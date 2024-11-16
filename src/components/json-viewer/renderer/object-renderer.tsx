@@ -84,6 +84,16 @@ function CollapsibleWrapper(props: {
   );
 }
 
+/**
+ * A component that renders an object as a collapsible table of key-value pairs.
+ *
+ * Will render the given object as a collapsible table with each key-value pair
+ * displayed in a separate row.
+ *
+ * @param {Record<string, any>} value - The object to render.
+ *
+ * @returns A JSX element representing the object structure.
+ */
 export function ObjectRenderer(props: {
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   value: Record<string, any>;
@@ -95,6 +105,16 @@ export function ObjectRenderer(props: {
   );
 }
 
+/**
+ * A component that renders an array as a collapsible table of key-value pairs.
+ *
+ * Will render the given array as a collapsible table with each element
+ * displayed in a separate row.
+ *
+ * @param {any[]} value - The array to render.
+ *
+ * @returns A JSX element representing the array structure.
+ */
 export function ArrayRenderer(props: {
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   value: any[];

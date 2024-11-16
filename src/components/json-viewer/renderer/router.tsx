@@ -6,6 +6,14 @@ import {
 import { StringRenderer } from './common-renderers';
 import { ArrayRenderer, ObjectRenderer } from './object-renderer';
 
+/**
+ * Given a value, render it as a JSX element.
+ *
+ * This function is a union type router that delegates to a specific
+ * renderer based on the type of the value.
+ *
+ * @param value - The value to render.
+ */
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export function renderValue(value: any) {
   if (typeof value === 'string') {

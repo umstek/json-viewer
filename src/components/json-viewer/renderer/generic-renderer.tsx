@@ -8,6 +8,17 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
+/**
+ * A component that renders a generic value type.
+ *
+ * Will render the given icon, children, and type as a JSX element.
+ *
+ * @param {LucideIcon} icon - The Lucide icon to render.
+ * @param {ReactNode} children - The children to render.
+ * @param {string} type - The type of value to render.
+ *
+ * @returns A JSX element representing the given value type.
+ */
 export function GenericRenderer(props: {
   icon: LucideIcon;
   children: ReactNode;
@@ -22,6 +33,17 @@ export function GenericRenderer(props: {
   );
 }
 
+/**
+ * A wrapper component for rendering tooltips around children elements.
+ *
+ * Provides a tooltip that displays the given string when the user interacts
+ * with the wrapped children elements.
+ *
+ * @param {ReactNode} children - The elements to wrap with a tooltip.
+ * @param {string} tooltip - The text to display inside the tooltip.
+ *
+ * @returns A JSX element with tooltip functionality.
+ */
 export function TooltipWrapper(props: {
   children: ReactNode;
   tooltip: string;
