@@ -30,7 +30,7 @@ function KeyValueRenderer(props: {
   const entries = Object.entries(props.value);
 
   return (
-    <Table>
+    <Table className="border border-primary border-solid">
       <TableHeader>
         <TableRow>
           <TableHead className="text-right">
@@ -46,7 +46,7 @@ function KeyValueRenderer(props: {
       <TableBody>
         {entries.map(([key, value]) => (
           <TableRow key={key}>
-            <TableCell className="text-right">
+            <TableCell className="border-r text-right">
               <pre>{key}</pre>
             </TableCell>
             <TableCell>{renderValue(value)}</TableCell>
