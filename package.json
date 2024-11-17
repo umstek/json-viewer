@@ -1,7 +1,7 @@
 {
   "name": "@umstek/json-viewer",
-  "private": true,
-  "version": "0.1.0",
+  "license": "MIT",
+  "version": "0.1.1",
   "type": "module",
   "module": "./dist/index.js",
   "main": "./dist/index.js",
