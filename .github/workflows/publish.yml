@@ -34,7 +34,7 @@ jobs:
       - name: Set tokens
         run: echo "//registry.npmjs.org/:_authToken=${{env.NPM_CONFIG_TOKEN}}" >> ~/.npmrc
       - run: bun install
-      - run: bun publish
+      - run: bun publish --access public
 
   publish-gpr:
     env:
@@ -53,4 +53,4 @@ jobs:
       - name: Set tokens
         run: echo "//npm.pkg.github.com/:_authToken=${{env.NPM_CONFIG_TOKEN}}" >> ~/.npmrc
       - run: bun install
-      - run: bun publish
+      - run: bun publish --access public

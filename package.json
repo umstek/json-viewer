@@ -1,7 +1,7 @@
 {
   "name": "@umstek/json-viewer",
   "license": "MIT",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "type": "module",
   "module": "./dist/index.js",
   "main": "./dist/index.js",
@@ -55,10 +55,6 @@
   "peerDependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "scope": "@umstek"
   },
   "trustedDependencies": ["@biomejs/biome", "@swc/core", "esbuild"]
 }
