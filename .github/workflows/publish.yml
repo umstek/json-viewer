@@ -21,6 +21,8 @@ jobs:
         run: bun run build
 
   publish-npm:
+    env:
+      NPM_CONFIG_TOKEN: ${{secrets.npm_token}}
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -30,11 +32,13 @@ jobs:
         with:
           bun-version: latest
       - name: Set tokens
-        run: echo "//registry.npmjs.org/:_authToken=${{secrets.npm_token}}" >> ~/.npmrc
+        run: echo "//registry.npmjs.org/:_authToken=${{env.NPM_CONFIG_TOKEN}}" >> ~/.npmrc
       - run: bun install
       - run: bun publish
 
   publish-gpr:
+    env:
+      NPM_CONFIG_TOKEN: ${{secrets.GITHUB_TOKEN}}
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -47,6 +51,6 @@ jobs:
         with:
           bun-version: latest
       - name: Set tokens
-        run: echo "//npm.pkg.github.com/:_authToken=${{secrets.GITHUB_TOKEN}}" >> ~/.npmrc
+        run: echo "//npm.pkg.github.com/:_authToken=${{env.NPM_CONFIG_TOKEN}}" >> ~/.npmrc
       - run: bun install
       - run: bun publish
