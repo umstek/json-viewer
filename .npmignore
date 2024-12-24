@@ -1,0 +1,23 @@
+# Source files
+src/
+tests/
+demo/
+
+# Config files
+.github/
+.vscode/
+.idea/
+*.config.js
+*.config.ts
+tsconfig.json
+vite.config.*
+
+# Development files
+coverage/
+node_modules/
+.env*
+*.log
+.DS_Store
+
+# Don't ignore dist directory
+!dist/
