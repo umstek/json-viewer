@@ -1,8 +1,8 @@
+import { useMemo } from 'react';
 import PojoViewer from './pojo-viewer';
 import { createDateRenderer } from './renderer/advanced/date';
-import { createLinkRenderer } from './renderer/advanced/link';
 import type { DateRendererOptions } from './renderer/advanced/date';
-import { useMemo } from 'react';
+import { createLinkRenderer } from './renderer/advanced/link';
 
 export interface JsonViewerProps {
   json: string;

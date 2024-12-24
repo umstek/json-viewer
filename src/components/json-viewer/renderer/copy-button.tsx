@@ -1,8 +1,8 @@
 import { Check, Copy } from 'lucide-react';
 import { useState } from 'react';
 
-import { TooltipWrapper } from './generic-renderer';
 import { Button } from '@/components/ui/button';
+import { TooltipWrapper } from './generic-renderer';
 
 interface CopyButtonProps {
   value: unknown;
@@ -23,7 +23,7 @@ export function CopyButton({ value }: CopyButtonProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="ml-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="ml-2 h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100"
         onClick={handleCopy}
       >
         {hasCopied ? (

@@ -21,7 +21,7 @@ export function ObjectRenderer({ value, router, path }: ObjectRendererProps) {
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <div className="flex items-center gap-1 group">
+      <div className="group flex items-center gap-1">
         <CollapsibleTrigger>
           <ChevronRight
             className={`h-4 w-4 transition-transform ${
@@ -56,7 +56,7 @@ export function ArrayRenderer({ value, router, path }: ObjectRendererProps) {
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <div className="flex items-center gap-1 group">
+      <div className="group flex items-center gap-1">
         <CollapsibleTrigger>
           <ChevronRight
             className={`h-4 w-4 transition-transform ${

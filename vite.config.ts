@@ -3,9 +3,9 @@
 import { resolve } from 'node:path';
 import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import dts from 'vite-plugin-dts';
-import { peerDependencies, dependencies, name } from './package.json';
+import tsconfigPaths from 'vite-tsconfig-paths';
+import { dependencies, name, peerDependencies } from './package.json';
 
 const libraryName = (
   name.indexOf('/') > -1 ? name.split('/').pop() : name

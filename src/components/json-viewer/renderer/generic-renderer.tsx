@@ -28,7 +28,7 @@ export function GenericRenderer(props: {
   value: unknown;
 }) {
   return (
-    <div className="flex items-center gap-2 group">
+    <div className="group flex items-center gap-2">
       <props.icon className="text-muted-foreground" size={16} />
       {props.children}
       <span className="text-muted-foreground text-xs">{props.type}</span>

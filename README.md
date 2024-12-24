@@ -9,9 +9,9 @@ A recursive table-based JSON viewer component for React.
 
 ## Plan/todo
 
-- [ ] Add a way to pass custom renderers for values that may or may not be JSON serializable.
-  - [ ] Allow special rendering depending on the path in the JSON.
-  - [ ] Automatically detect the best renderer for a value.
+- [x] Add a way to pass custom renderers for values that may or may not be JSON serializable.
+  - [x] Allow special rendering depending on the path in the JSON.
+  - [x] Automatically detect the best renderer for a value.
 - [ ] Allow customizing of inline (collapsed) renderers.
 - [ ] Allow adhering to a schema, so that the viewer can automatically detect the type of a value and render it accordingly.
 - [ ] Allow editing of values adhering to the schema.
