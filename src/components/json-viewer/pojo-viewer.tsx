@@ -1,11 +1,13 @@
-import { renderValue } from './renderer/router';
+import type { Renderer } from './renderer/renderer';
+import { createRouter } from './renderer/router';
 
-/**
- * A JSON viewer component that renders a plain old JavaScript object.
- *
- * @prop data - The POJO to render.
- */
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-export default function PojoViewer(props: { data: any }) {
-  return <div>{renderValue(props.data)}</div>;
+interface PojoViewerProps {
+  // biome-ignore lint/suspicious/noExplicitAny: Legacy code
+  data: any;
+  renderers?: Renderer[];
+}
+
+export default function PojoViewer({ data, renderers = [] }: PojoViewerProps) {
+  const router = createRouter(renderers);
+  return <div>{router(data, [])}</div>;
 }
