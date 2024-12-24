@@ -1,6 +1,6 @@
 # JSON Viewer
 
-A recursive table-based JSON viewer component for React.
+A recursive JSON viewer component with custom renderer support for React. Uses TailwindCSS and ShadCN.
 
 ## Components
 
