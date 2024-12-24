@@ -25,13 +25,13 @@ npm install @umstek/json-viewer
 ## Usage
 
 ```tsx
-import JsonViewer from '@umstek/json-viewer';
+import { JsonViewer } from '@umstek/json-viewer';
 
 <JsonViewer json="..." />;
 ```
 
 ```tsx
-import PojoViewer from '@umstek/json-viewer';
+import { PojoViewer } from '@umstek/json-viewer';
 
 <PojoViewer data={/** your POJO */} />;
 ```
