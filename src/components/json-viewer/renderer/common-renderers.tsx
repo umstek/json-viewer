@@ -15,7 +15,7 @@ import { GenericRenderer, TooltipWrapper } from './generic-renderer';
  */
 export function StringRenderer(props: { value: string }) {
   return (
-    <GenericRenderer icon={TextIcon} type="string">
+    <GenericRenderer icon={TextIcon} type="string" value={props.value}>
       <pre>{props.value}</pre>
     </GenericRenderer>
   );
@@ -32,7 +32,7 @@ export function StringRenderer(props: { value: string }) {
  */
 export function NumberRenderer(props: { value: number }) {
   return (
-    <GenericRenderer icon={HashIcon} type="number">
+    <GenericRenderer icon={HashIcon} type="number" value={props.value}>
       <pre>{props.value}</pre>
     </GenericRenderer>
   );
@@ -52,7 +52,7 @@ export function NumberRenderer(props: { value: number }) {
 export function BooleanRenderer(props: { value: boolean }) {
   return (
     <TooltipWrapper tooltip={props.value ? 'true' : 'false'}>
-      <GenericRenderer icon={SlashIcon} type="boolean">
+      <GenericRenderer icon={SlashIcon} type="boolean" value={props.value}>
         <Checkbox checked={props.value} />
       </GenericRenderer>
     </TooltipWrapper>
@@ -70,7 +70,7 @@ export function BooleanRenderer(props: { value: boolean }) {
 export function NullRenderer() {
   return (
     <TooltipWrapper tooltip="null">
-      <GenericRenderer icon={CircleSlash2Icon} type="null">
+      <GenericRenderer icon={CircleSlash2Icon} type="null" value={null}>
         <CircleSlash2Icon size={16} />
       </GenericRenderer>
     </TooltipWrapper>

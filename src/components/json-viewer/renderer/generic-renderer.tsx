@@ -7,6 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { CopyButton } from './copy-button';
 
 /**
  * A component that renders a generic value type.
@@ -16,6 +17,7 @@ import {
  * @param {LucideIcon} icon - The Lucide icon to render.
  * @param {ReactNode} children - The children to render.
  * @param {string} type - The type of value to render.
+ * @param {unknown} value - The value to copy.
  *
  * @returns A JSX element representing the given value type.
  */
@@ -23,12 +25,14 @@ export function GenericRenderer(props: {
   icon: LucideIcon;
   children: ReactNode;
   type: string;
+  value: unknown;
 }) {
   return (
     <div className="flex items-center gap-2">
       <props.icon className="text-muted-foreground" size={16} />
       {props.children}
       <span className="text-muted-foreground text-xs">{props.type}</span>
+      <CopyButton value={props.value} />
     </div>
   );
 }

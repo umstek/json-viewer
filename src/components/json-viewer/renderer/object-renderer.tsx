@@ -6,6 +6,7 @@ import {
 import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+import { CopyButton } from './copy-button';
 
 interface ObjectRendererProps {
   // biome-ignore lint/suspicious/noExplicitAny: Legacy code
@@ -33,6 +34,7 @@ export function ObjectRenderer({ value, router, path }: ObjectRendererProps) {
           {!isOpen && `...${entries.length} items`}
           {!isOpen && '}'}
         </span>
+        <CopyButton value={value} />
       </div>
       <CollapsibleContent>
         <div className="ml-4">
@@ -67,6 +69,7 @@ export function ArrayRenderer({ value, router, path }: ObjectRendererProps) {
           {!isOpen && `...${value.length} items`}
           {!isOpen && ']'}
         </span>
+        <CopyButton value={value} />
       </div>
       <CollapsibleContent>
         <div className="ml-4">

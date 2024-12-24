@@ -76,7 +76,7 @@ export const createDateRenderer = (
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger>
-            <GenericRenderer icon={Calendar} type="date">
+            <GenericRenderer icon={Calendar} type="date" value={value}>
               <pre>{date.toString()}</pre>
             </GenericRenderer>
           </TooltipTrigger>

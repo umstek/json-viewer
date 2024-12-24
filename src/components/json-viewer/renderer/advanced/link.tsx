@@ -29,7 +29,7 @@ export const createLinkRenderer =
     }
 
     return (
-      <GenericRenderer icon={Link} type="link">
+      <GenericRenderer icon={Link} type="link" value={value}>
         <a
           href={value}
           className="text-accent-foreground hover:underline"
