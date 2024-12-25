@@ -3,13 +3,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import type { VirtualItem } from '@tanstack/react-virtual';
 import { ChevronRight } from 'lucide-react';
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { CopyButton } from './copy-button';
 import type { RouterOptions } from './router';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import type { VirtualItem } from '@tanstack/react-virtual';
 
 const VIRTUALIZATION_THRESHOLD = 50; // Only virtualize if more than 50 items
 
@@ -52,10 +52,10 @@ function HighlightText({ text, searchQuery }: HighlightTextProps) {
 function isPathAncestor(currentPath: string, targetPath: string): boolean {
   if (!currentPath || !targetPath) return false;
   if (currentPath === targetPath) return true;
-  
+
   const currentParts = currentPath.split('.');
   const targetParts = targetPath.split('.');
-  
+
   // Check if current path is a prefix of target path
   return targetParts.slice(0, currentParts.length).join('.') === currentPath;
 }
@@ -141,8 +141,8 @@ export function ObjectRenderer({
           transform: `translateY(${virtualRow.start}px)`,
         }}
       >
-        <div className="flex gap-2 min-w-0 w-full">
-          <span className="text-primary whitespace-nowrap">
+        <div className="flex w-full min-w-0 gap-2">
+          <span className="whitespace-nowrap text-primary">
             <HighlightText text={`${key}:`} searchQuery={options.searchQuery} />
           </span>
           <div className="min-w-0 flex-1">
@@ -156,8 +156,11 @@ export function ObjectRenderer({
   const renderContent = () => {
     if (!shouldVirtualize) {
       return filteredEntries.map(([key, val]: [string, unknown]) => (
-        <div key={`${path.join('.')}.${key}`} className="flex gap-2 min-w-0 w-full">
-          <span className="text-primary whitespace-nowrap">
+        <div
+          key={`${path.join('.')}.${key}`}
+          className="flex w-full min-w-0 gap-2"
+        >
+          <span className="whitespace-nowrap text-primary">
             <HighlightText text={`${key}:`} searchQuery={options.searchQuery} />
           </span>
           <div className="min-w-0 flex-1">
@@ -170,7 +173,7 @@ export function ObjectRenderer({
     return (
       <div
         ref={parentRef}
-        className="overflow-auto w-full"
+        className="w-full overflow-auto"
         style={{
           maxHeight: '400px',
           minHeight: Math.min(400, filteredEntries.length * 30),
@@ -207,9 +210,7 @@ export function ObjectRenderer({
         <CopyButton value={value} />
       </div>
       <CollapsibleContent>
-        <div className="ml-4 w-full">
-          {renderContent()}
-        </div>
+        <div className="ml-4 w-full">{renderContent()}</div>
         <span className="text-muted-foreground">{'}'}</span>
       </CollapsibleContent>
     </Collapsible>
@@ -230,11 +231,15 @@ export function ArrayRenderer({
   const { filteredItems, shouldVirtualize } = useMemo(() => {
     const filtered = value.filter((val: unknown) => {
       if (options.filterOptions) {
-        if (typeof val === 'string' && !options.filterOptions.showStrings) return false;
-        if (typeof val === 'number' && !options.filterOptions.showNumbers) return false;
-        if (typeof val === 'boolean' && !options.filterOptions.showBooleans) return false;
+        if (typeof val === 'string' && !options.filterOptions.showStrings)
+          return false;
+        if (typeof val === 'number' && !options.filterOptions.showNumbers)
+          return false;
+        if (typeof val === 'boolean' && !options.filterOptions.showBooleans)
+          return false;
         if (val === null && !options.filterOptions.showNull) return false;
-        if (Array.isArray(val) && !options.filterOptions.showArrays) return false;
+        if (Array.isArray(val) && !options.filterOptions.showArrays)
+          return false;
         if (
           typeof val === 'object' &&
           val !== null &&
@@ -248,7 +253,7 @@ export function ArrayRenderer({
 
     return {
       filteredItems: filtered,
-      shouldVirtualize: filtered.length > VIRTUALIZATION_THRESHOLD
+      shouldVirtualize: filtered.length > VIRTUALIZATION_THRESHOLD,
     };
   }, [value, options.filterOptions]);
 
@@ -285,10 +290,10 @@ export function ArrayRenderer({
           transform: `translateY(${virtualRow.start}px)`,
         }}
       >
-        <div className="flex gap-2 min-w-0 w-full">
-          <span className="text-primary whitespace-nowrap">
-            <HighlightText 
-              text={`${virtualRow.index}:`} 
+        <div className="flex w-full min-w-0 gap-2">
+          <span className="whitespace-nowrap text-primary">
+            <HighlightText
+              text={`${virtualRow.index}:`}
               searchQuery={options.searchQuery}
             />
           </span>
@@ -303,10 +308,13 @@ export function ArrayRenderer({
   const renderContent = () => {
     if (!shouldVirtualize) {
       return filteredItems.map((val: unknown, index: number) => (
-        <div key={`${path.join('.')}.${index}`} className="flex gap-2 min-w-0 w-full">
-          <span className="text-primary whitespace-nowrap">
-            <HighlightText 
-              text={`${index}:`} 
+        <div
+          key={`${path.join('.')}.${index}`}
+          className="flex w-full min-w-0 gap-2"
+        >
+          <span className="whitespace-nowrap text-primary">
+            <HighlightText
+              text={`${index}:`}
               searchQuery={options.searchQuery}
             />
           </span>
@@ -320,7 +328,7 @@ export function ArrayRenderer({
     return (
       <div
         ref={parentRef}
-        className="overflow-auto w-full"
+        className="w-full overflow-auto"
         style={{
           maxHeight: '400px',
           minHeight: Math.min(400, filteredItems.length * 30),
@@ -357,9 +365,7 @@ export function ArrayRenderer({
         <CopyButton value={value} />
       </div>
       <CollapsibleContent>
-        <div className="ml-4 w-full">
-          {renderContent()}
-        </div>
+        <div className="ml-4 w-full">{renderContent()}</div>
         <span className="text-muted-foreground">{']'}</span>
       </CollapsibleContent>
     </Collapsible>

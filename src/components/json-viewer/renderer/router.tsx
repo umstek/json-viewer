@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { FilterOptions } from '../pojo-viewer';
 import {
   BooleanRenderer,
   NullRenderer,
@@ -7,7 +8,6 @@ import {
 } from './common-renderers';
 import { ArrayRenderer, ObjectRenderer } from './object-renderer';
 import type { Renderer } from './renderer';
-import type { FilterOptions } from '../pojo-viewer';
 
 export interface RouterOptions {
   highlightedPath?: string[];
@@ -15,7 +15,10 @@ export interface RouterOptions {
   searchQuery?: string;
 }
 
-function isPathMatch(currentPath: string[], highlightedPath: string[]): boolean {
+function isPathMatch(
+  currentPath: string[],
+  highlightedPath: string[],
+): boolean {
   if (!currentPath.length || !highlightedPath.length) return false;
   return currentPath.join('.') === highlightedPath.join('.');
 }
@@ -50,7 +53,7 @@ export function createRouter(customRenderers: Renderer[] = []) {
     const wrapWithHighlight = (element: ReactNode) => {
       if (!isHighlighted) return element;
       return (
-        <div className="bg-yellow-100 dark:bg-yellow-900/30 -mx-2 px-2 rounded">
+        <div className="-mx-2 rounded bg-yellow-100 px-2 dark:bg-yellow-900/30">
           {element}
         </div>
       );
@@ -60,7 +63,8 @@ export function createRouter(customRenderers: Renderer[] = []) {
     if (filterOptions) {
       if (typeof value === 'string' && !filterOptions.showStrings) return null;
       if (typeof value === 'number' && !filterOptions.showNumbers) return null;
-      if (typeof value === 'boolean' && !filterOptions.showBooleans) return null;
+      if (typeof value === 'boolean' && !filterOptions.showBooleans)
+        return null;
       if (value === null && !filterOptions.showNull) return null;
       if (Array.isArray(value) && !filterOptions.showArrays) return null;
       if (
