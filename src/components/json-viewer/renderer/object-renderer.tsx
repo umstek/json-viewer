@@ -136,7 +136,7 @@ export function ObjectRenderer({
         key={virtualRow.key}
         data-index={virtualRow.index}
         ref={virtualizer.measureElement}
-        className="absolute top-0 left-0 w-full"
+        className="absolute top-0 left-0 w-full overflow-hidden"
         style={{
           transform: `translateY(${virtualRow.start}px)`,
         }}
@@ -145,7 +145,7 @@ export function ObjectRenderer({
           <span className="whitespace-nowrap text-primary">
             <HighlightText text={`${key}:`} searchQuery={options.searchQuery} />
           </span>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 overflow-hidden">
             {router(val, [...path, key], options)}
           </div>
         </div>
@@ -163,7 +163,7 @@ export function ObjectRenderer({
           <span className="whitespace-nowrap text-primary">
             <HighlightText text={`${key}:`} searchQuery={options.searchQuery} />
           </span>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 overflow-hidden">
             {router(val, [...path, key], options)}
           </div>
         </div>
@@ -173,7 +173,7 @@ export function ObjectRenderer({
     return (
       <div
         ref={parentRef}
-        className="w-full overflow-auto"
+        className="w-full overflow-auto rounded-md pr-2 scrollbar-custom"
         style={{
           maxHeight: '400px',
           minHeight: Math.min(400, filteredEntries.length * 30),
@@ -285,7 +285,7 @@ export function ArrayRenderer({
         key={virtualRow.key}
         data-index={virtualRow.index}
         ref={virtualizer.measureElement}
-        className="absolute top-0 left-0 w-full"
+        className="absolute top-0 left-0 w-full overflow-hidden"
         style={{
           transform: `translateY(${virtualRow.start}px)`,
         }}
@@ -297,7 +297,7 @@ export function ArrayRenderer({
               searchQuery={options.searchQuery}
             />
           </span>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 overflow-hidden">
             {router(val, [...path, String(virtualRow.index)], options)}
           </div>
         </div>
@@ -318,7 +318,7 @@ export function ArrayRenderer({
               searchQuery={options.searchQuery}
             />
           </span>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 overflow-hidden">
             {router(val, [...path, String(index)], options)}
           </div>
         </div>
@@ -328,7 +328,7 @@ export function ArrayRenderer({
     return (
       <div
         ref={parentRef}
-        className="w-full overflow-auto"
+        className="w-full overflow-auto rounded-md pr-2 scrollbar-custom"
         style={{
           maxHeight: '400px',
           minHeight: Math.min(400, filteredItems.length * 30),

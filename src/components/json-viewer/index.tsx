@@ -145,7 +145,7 @@ export default function JsonViewer({ json, dateOptions }: JsonViewerProps) {
   try {
     const data = JSON.parse(json);
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 w-full overflow-hidden">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
