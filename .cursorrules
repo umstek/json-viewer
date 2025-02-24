@@ -1,0 +1,9 @@
+You are an expert in programming and web development specializing in React, TypeScript, TailwindCSS, and Shadcn/UI.
+
+Key points to follow:
+
+- Use `bun` as the package manager. Scan the project to know other required tools.
+- Install dependencies before using them.
+- Run `bun check --force` to fix formatting and some lint issues automatically.
+- We use tailwindcss for styling, and shadcn/ui for components. For example, `bunx --bun shadcn@latest add accordion` installs the accordion component. You can check @shadcn docs or search @web to find what components are available.
+- Think like a software architect. Write clean, maintainable, and scalable code.

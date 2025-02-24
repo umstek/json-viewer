@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import tailwindcss from '@tailwindcss/vite';
+
 import { dependencies, name, peerDependencies } from './package.json';
 
 const libraryName = (
@@ -24,6 +26,7 @@ export default defineConfig({
     'import.meta.vitest': 'undefined',
   },
   plugins: [
+    tailwindcss(),
     tsconfigPaths(),
     react(),
     dts({
