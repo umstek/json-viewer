@@ -1,12 +1,15 @@
 {
   "name": "@umstek/json-viewer",
   "license": "MIT",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "type": "module",
   "module": "./dist/index.js",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "exports": {
     ".": {
       "import": {
@@ -60,5 +63,9 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
-  "trustedDependencies": ["@biomejs/biome", "@swc/core", "esbuild"]
+  "trustedDependencies": [
+    "@biomejs/biome",
+    "@swc/core",
+    "esbuild"
+  ]
 }
