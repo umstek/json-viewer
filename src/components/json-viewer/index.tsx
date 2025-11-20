@@ -1,3 +1,5 @@
+import { Filter, Search } from 'lucide-react';
+import { type ChangeEvent, type KeyboardEvent, useMemo, useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,13 +8,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Filter, Search } from 'lucide-react';
-import { type ChangeEvent, type KeyboardEvent, useMemo, useState } from 'react';
 import { Button } from '../ui/button';
-import PojoViewer from './pojo-viewer';
 import type { FilterOptions } from './pojo-viewer';
-import { createDateRenderer } from './renderer/advanced/date';
+import PojoViewer from './pojo-viewer';
 import type { DateRendererOptions } from './renderer/advanced/date';
+import { createDateRenderer } from './renderer/advanced/date';
 import { createLinkRenderer } from './renderer/advanced/link';
 
 export interface JsonViewerProps {
@@ -145,7 +145,7 @@ export default function JsonViewer({ json, dateOptions }: JsonViewerProps) {
   try {
     const data = JSON.parse(json);
     return (
-      <div className="space-y-4 w-full overflow-hidden">
+      <div className="w-full space-y-4 overflow-hidden">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
