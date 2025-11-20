@@ -1,5 +1,11 @@
 import { ArrowDownAZ, Filter, Search } from 'lucide-react';
-import { type ChangeEvent, type KeyboardEvent, useMemo, useState } from 'react';
+import {
+  type ChangeEvent,
+  type KeyboardEvent,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +17,12 @@ import {
 import { Button } from '../ui/button';
 import { BreadcrumbNav } from './features/breadcrumbs';
 import { ExportButton } from './features/export';
+import {
+  type CustomKeyboardShortcut,
+  ShortcutsHelp,
+  ShortcutsHelpButton,
+  useKeyboardNavigation,
+} from './features/keyboard';
 import { ThemeToggle } from './features/theme';
 import type { FilterOptions } from './pojo-viewer';
 import PojoViewer from './pojo-viewer';
@@ -20,9 +32,19 @@ import type { DateRendererOptions } from './renderer/advanced/date';
 import { createDateRenderer } from './renderer/advanced/date';
 import { createLinkRenderer } from './renderer/advanced/link';
 import {
+  createSchemaValidationRenderer,
+  ValidationErrorPanel,
+} from './renderer/advanced/schema-validation';
+import {
   createValidationRenderer,
   type ValidationRendererOptions,
 } from './renderer/advanced/validation';
+import type {
+  JSONSchemaObject,
+  JSONSchemaValidationOptions,
+} from './schema/json-schema';
+import { validateWithJSONSchema } from './schema/json-schema';
+import type { ValidationResult } from './schema/types';
 import {
   detectQueryType,
   executeQuery,
@@ -47,6 +69,11 @@ export interface JsonViewerProps {
   showThemeToggle?: boolean;
   enableValidation?: boolean;
   validationOptions?: ValidationRendererOptions;
+  jsonSchema?: JSONSchemaObject;
+  jsonSchemaOptions?: JSONSchemaValidationOptions;
+  showValidationErrors?: boolean;
+  keyboardShortcuts?: boolean;
+  customShortcuts?: CustomKeyboardShortcut[];
 }
 
 interface SearchableObject {
@@ -81,7 +108,26 @@ export default function JsonViewer({
   showThemeToggle = false,
   enableValidation = false,
   validationOptions,
+  jsonSchema,
+  jsonSchemaOptions,
+  showValidationErrors = true,
+  keyboardShortcuts = true,
+  customShortcuts,
 }: JsonViewerProps) {
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  // Validate JSON data against JSON Schema if provided
+  const schemaValidation: ValidationResult | null = useMemo(() => {
+    if (!jsonSchema) return null;
+
+    try {
+      const data = JSON.parse(json);
+      return validateWithJSONSchema(data, jsonSchema, jsonSchemaOptions);
+    } catch (_error) {
+      // Invalid JSON, return null and let the JSON parsing error handle it
+      return null;
+    }
+  }, [json, jsonSchema, jsonSchemaOptions]);
+
   const renderers = useMemo(() => {
     const baseRenderers = [
       createCodeRenderer(codeOptions),
@@ -89,12 +135,31 @@ export default function JsonViewer({
       createLinkRenderer(),
     ];
 
+    // Add JSON Schema validation renderer if schema is provided
+    if (jsonSchema && schemaValidation && !schemaValidation.valid) {
+      baseRenderers.push(
+        createSchemaValidationRenderer({
+          validationErrors: schemaValidation.errors,
+          showErrors: showValidationErrors,
+        }),
+      );
+    }
+
+    // Add format validation renderer if enabled
     if (enableValidation) {
       baseRenderers.push(createValidationRenderer(validationOptions));
     }
 
     return baseRenderers;
-  }, [codeOptions, dateOptions, enableValidation, validationOptions]);
+  }, [
+    codeOptions,
+    dateOptions,
+    enableValidation,
+    validationOptions,
+    jsonSchema,
+    schemaValidation,
+    showValidationErrors,
+  ]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<QueryResult[]>([]);
@@ -107,6 +172,32 @@ export default function JsonViewer({
   >('text');
   const [sortOptions, setSortOptions] =
     useState<SortOptions>(defaultSortOptions);
+
+  // Parse data once for keyboard navigation
+  const parsedData = useMemo(() => {
+    try {
+      return JSON.parse(json);
+    } catch {
+      return null;
+    }
+  }, [json]);
+
+  // Keyboard navigation
+  const keyboard = useKeyboardNavigation(parsedData, {
+    enabled: keyboardShortcuts,
+    customShortcuts,
+    onFocusChange: (path) => {
+      if (path) {
+        // Navigate to the focused path by setting it as search result
+        const jsonPath = pathArrayToJsonPath(path);
+        handleSearch(jsonPath);
+      }
+    },
+    onCopy: () => {
+      // Copy notification could be added here
+      console.log('Value copied to clipboard');
+    },
+  });
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -191,11 +282,18 @@ export default function JsonViewer({
   try {
     const data = JSON.parse(json);
     return (
-      <div className="w-full space-y-4 overflow-hidden">
+      <div
+        ref={keyboard.containerRef}
+        className="w-full space-y-4 overflow-hidden"
+      >
+        {jsonSchema && schemaValidation && showValidationErrors && (
+          <ValidationErrorPanel errors={schemaValidation.errors} />
+        )}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
             <Input
+              ref={searchInputRef}
               type="text"
               placeholder="Search, JSONPath ($.path), or JSON Pointer (/path)..."
               value={searchQuery}
@@ -214,6 +312,9 @@ export default function JsonViewer({
           </div>
           {showThemeToggle && <ThemeToggle />}
           <ExportButton data={data} filename="json-data" />
+          {keyboardShortcuts && (
+            <ShortcutsHelpButton onClick={() => keyboard.setShowHelp(true)} />
+          )}
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="icon">
@@ -423,7 +524,15 @@ export default function JsonViewer({
           filterOptions={filterOptions}
           searchQuery={queryType === 'text' ? searchQuery : ''}
           sortOptions={sortOptions}
+          focusedPath={keyboard.focusState.focusedPath}
         />
+        {keyboardShortcuts && (
+          <ShortcutsHelp
+            open={keyboard.showHelp}
+            onOpenChange={keyboard.setShowHelp}
+            shortcuts={keyboard.shortcuts}
+          />
+        )}
       </div>
     );
   } catch (error) {

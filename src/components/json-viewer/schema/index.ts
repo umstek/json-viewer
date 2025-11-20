@@ -42,6 +42,17 @@ export {
   inferSchema,
   inferSchemaFromSamples,
 } from './inference';
+// JSON Schema support
+export type {
+  JSONSchemaObject,
+  JSONSchemaValidationOptions,
+} from './json-schema';
+export {
+  clearValidatorCache,
+  convertJSONSchemaToSchema,
+  createJSONSchemaValidator,
+  validateWithJSONSchema,
+} from './json-schema';
 // Type definitions
 export type {
   ArraySchemaNode,
@@ -60,6 +71,5 @@ export type {
   ValidationError,
   ValidationResult,
 } from './types';
-
 // Validation functions
 export { matches, matchesType, validate } from './validator';

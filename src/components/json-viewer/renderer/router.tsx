@@ -23,6 +23,11 @@ export interface RouterOptions {
   maxInitialDepth?: number;
   lazyLoadingEnabled?: boolean;
   bookmarkedPaths?: Set<string>;
+  editable?: boolean;
+  schema?: Record<string, unknown>;
+  onChange?: (path: string[], newValue: unknown) => void;
+  readOnly?: boolean;
+  focusedPath?: string[] | null;
 }
 
 function isPathMatch(
@@ -81,15 +86,26 @@ export function createRouter(
     const isBookmarked =
       path.length > 0 && options.bookmarkedPaths?.has(path.join('.'));
 
+    const isFocused = options.focusedPath?.length
+      ? isPathMatch(path, options.focusedPath)
+      : false;
+
     const wrapWithHighlight = (element: ReactNode) => {
-      const hasIndicator = isHighlighted || isBookmarked;
+      const hasIndicator = isHighlighted || isBookmarked || isFocused;
       if (!hasIndicator) return element;
 
       return (
         <div
           className={`-mx-2 flex items-start gap-1 rounded px-2 ${
             isHighlighted ? 'bg-yellow-100 dark:bg-yellow-900/30' : ''
+          } ${
+            isFocused
+              ? 'ring-2 ring-blue-500 ring-offset-2 dark:ring-blue-400'
+              : ''
           }`}
+          tabIndex={isFocused ? 0 : -1}
+          data-focused={isFocused ? 'true' : undefined}
+          data-path={isFocused ? path.join('.') : undefined}
         >
           {isBookmarked && (
             <Star className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 fill-yellow-400 text-yellow-400" />
@@ -121,16 +137,47 @@ export function createRouter(
 
     // Fall back to default renderers (using transformed value)
     if (typeof transformedValue === 'string') {
-      return wrapWithHighlight(<StringRenderer value={transformedValue} />);
+      return wrapWithHighlight(
+        <StringRenderer
+          value={transformedValue}
+          path={path}
+          editable={options.editable}
+          onChange={options.onChange}
+          readOnly={options.readOnly}
+        />,
+      );
     }
     if (typeof transformedValue === 'number') {
-      return wrapWithHighlight(<NumberRenderer value={transformedValue} />);
+      return wrapWithHighlight(
+        <NumberRenderer
+          value={transformedValue}
+          path={path}
+          editable={options.editable}
+          onChange={options.onChange}
+          readOnly={options.readOnly}
+        />,
+      );
     }
     if (typeof transformedValue === 'boolean') {
-      return wrapWithHighlight(<BooleanRenderer value={transformedValue} />);
+      return wrapWithHighlight(
+        <BooleanRenderer
+          value={transformedValue}
+          path={path}
+          editable={options.editable}
+          onChange={options.onChange}
+          readOnly={options.readOnly}
+        />,
+      );
     }
     if (transformedValue === null || transformedValue === undefined) {
-      return wrapWithHighlight(<NullRenderer />);
+      return wrapWithHighlight(
+        <NullRenderer
+          path={path}
+          editable={options.editable}
+          onChange={options.onChange}
+          readOnly={options.readOnly}
+        />,
+      );
     }
     if (Array.isArray(transformedValue)) {
       return wrapWithHighlight(

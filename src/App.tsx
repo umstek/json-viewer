@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import JsonViewer from './components/json-viewer';
+import DiffViewer from './components/json-viewer/diff-viewer';
 import { ThemeProvider } from './components/json-viewer/features/theme';
 
 const dataUrls = {
@@ -40,9 +41,42 @@ const sampleData = {
   active: true,
 };
 
+// Sample data for diff viewer demo
+const beforeData = {
+  user: {
+    name: 'John Doe',
+    email: 'john@example.com',
+    age: 30,
+  },
+  settings: {
+    theme: 'dark',
+    notifications: true,
+    language: 'en',
+  },
+  tags: ['developer', 'react'],
+  status: 'active',
+};
+
+const afterData = {
+  user: {
+    name: 'Jane Doe',
+    email: 'jane@example.com',
+    age: 30,
+    role: 'admin',
+  },
+  settings: {
+    theme: 'light',
+    notifications: true,
+    timezone: 'UTC',
+  },
+  tags: ['developer', 'react', 'typescript'],
+  status: 'active',
+};
+
 function App() {
   const [json, setJson] = useState(JSON.stringify(sampleData, null, 2));
   const [useRealData, setUseRealData] = useState(false);
+  const [activeView, setActiveView] = useState<'viewer' | 'diff'>('viewer');
 
   useEffect(() => {
     if (useRealData) {
@@ -57,21 +91,70 @@ function App() {
       <div className="min-h-screen bg-background p-8 text-foreground">
         <div className="mx-auto max-w-6xl">
           <h1 className="mb-6 font-bold text-3xl">JSON Viewer Demo</h1>
-          <div className="mb-4">
+
+          <div className="mb-4 flex gap-4">
             <button
               type="button"
-              onClick={() => setUseRealData(!useRealData)}
-              className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+              onClick={() => setActiveView('viewer')}
+              className={`rounded px-4 py-2 ${
+                activeView === 'viewer'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+              }`}
             >
-              {useRealData ? 'Show Sample Data' : 'Load GitHub Repos'}
+              JSON Viewer
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView('diff')}
+              className={`rounded px-4 py-2 ${
+                activeView === 'diff'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+              }`}
+            >
+              Diff Viewer
             </button>
           </div>
-          <JsonViewer
-            json={json}
-            showThemeToggle={true}
-            codeOptions={{ enabled: true }}
-            enableValidation={true}
-          />
+
+          {activeView === 'viewer' && (
+            <>
+              <div className="mb-4">
+                <button
+                  type="button"
+                  onClick={() => setUseRealData(!useRealData)}
+                  className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                >
+                  {useRealData ? 'Show Sample Data' : 'Load GitHub Repos'}
+                </button>
+              </div>
+              <JsonViewer
+                json={json}
+                showThemeToggle={true}
+                codeOptions={{ enabled: true }}
+                enableValidation={true}
+              />
+            </>
+          )}
+
+          {activeView === 'diff' && (
+            <>
+              <div className="mb-4">
+                <p className="text-muted-foreground text-sm">
+                  Compare two JSON structures to see what changed
+                </p>
+              </div>
+              <DiffViewer
+                left={beforeData}
+                right={afterData}
+                leftLabel="Before (v1.0)"
+                rightLabel="After (v2.0)"
+                viewMode="side-by-side"
+                showUnchanged={false}
+                expandDepth={2}
+              />
+            </>
+          )}
         </div>
       </div>
     </ThemeProvider>

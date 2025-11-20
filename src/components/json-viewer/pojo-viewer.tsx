@@ -27,6 +27,11 @@ interface PojoViewerProps {
   maxInitialDepth?: number;
   lazyLoadingEnabled?: boolean;
   bookmarkedPaths?: Set<string>;
+  editable?: boolean;
+  schema?: Record<string, unknown>;
+  onChange?: (path: string[], newValue: unknown) => void;
+  readOnly?: boolean;
+  focusedPath?: string[] | null;
 }
 
 export default function PojoViewer({
@@ -41,6 +46,11 @@ export default function PojoViewer({
   maxInitialDepth = 3,
   lazyLoadingEnabled = true,
   bookmarkedPaths,
+  editable,
+  schema,
+  onChange,
+  readOnly,
+  focusedPath,
 }: PojoViewerProps) {
   const router = createRouter(renderers, inlineRenderers, transformers);
   return (
@@ -54,6 +64,11 @@ export default function PojoViewer({
         maxInitialDepth,
         lazyLoadingEnabled,
         bookmarkedPaths,
+        editable,
+        schema,
+        onChange,
+        readOnly,
+        focusedPath,
       })}
     </div>
   );
