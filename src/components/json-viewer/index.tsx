@@ -10,12 +10,19 @@ import {
 } from '@/components/ui/popover';
 import { Button } from '../ui/button';
 import { BreadcrumbNav } from './features/breadcrumbs';
+import { ExportButton } from './features/export';
 import { ThemeToggle } from './features/theme';
 import type { FilterOptions } from './pojo-viewer';
 import PojoViewer from './pojo-viewer';
+import type { CodeRendererOptions } from './renderer/advanced/code';
+import { createCodeRenderer } from './renderer/advanced/code';
 import type { DateRendererOptions } from './renderer/advanced/date';
 import { createDateRenderer } from './renderer/advanced/date';
 import { createLinkRenderer } from './renderer/advanced/link';
+import {
+  createValidationRenderer,
+  type ValidationRendererOptions,
+} from './renderer/advanced/validation';
 import {
   detectQueryType,
   executeQuery,
@@ -35,8 +42,11 @@ import type { Transformer } from './utils/transforms';
 export interface JsonViewerProps {
   json: string;
   dateOptions?: DateRendererOptions;
+  codeOptions?: CodeRendererOptions;
   transformers?: Transformer[];
   showThemeToggle?: boolean;
+  enableValidation?: boolean;
+  validationOptions?: ValidationRendererOptions;
 }
 
 interface SearchableObject {
@@ -66,13 +76,25 @@ const defaultFilterOptions: FilterOptions = {
 export default function JsonViewer({
   json,
   dateOptions,
+  codeOptions,
   transformers = [],
   showThemeToggle = false,
+  enableValidation = false,
+  validationOptions,
 }: JsonViewerProps) {
-  const renderers = useMemo(
-    () => [createDateRenderer(dateOptions), createLinkRenderer()],
-    [dateOptions],
-  );
+  const renderers = useMemo(() => {
+    const baseRenderers = [
+      createCodeRenderer(codeOptions),
+      createDateRenderer(dateOptions),
+      createLinkRenderer(),
+    ];
+
+    if (enableValidation) {
+      baseRenderers.push(createValidationRenderer(validationOptions));
+    }
+
+    return baseRenderers;
+  }, [codeOptions, dateOptions, enableValidation, validationOptions]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<QueryResult[]>([]);
@@ -191,6 +213,7 @@ export default function JsonViewer({
             )}
           </div>
           {showThemeToggle && <ThemeToggle />}
+          <ExportButton data={data} filename="json-data" />
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="icon">

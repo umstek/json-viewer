@@ -24,6 +24,9 @@ interface PojoViewerProps {
   filterOptions?: FilterOptions;
   searchQuery?: string;
   sortOptions?: SortOptions;
+  maxInitialDepth?: number;
+  lazyLoadingEnabled?: boolean;
+  bookmarkedPaths?: Set<string>;
 }
 
 export default function PojoViewer({
@@ -35,6 +38,9 @@ export default function PojoViewer({
   filterOptions,
   searchQuery,
   sortOptions,
+  maxInitialDepth = 3,
+  lazyLoadingEnabled = true,
+  bookmarkedPaths,
 }: PojoViewerProps) {
   const router = createRouter(renderers, inlineRenderers, transformers);
   return (
@@ -44,6 +50,10 @@ export default function PojoViewer({
         filterOptions,
         searchQuery,
         sortOptions,
+        currentDepth: 0,
+        maxInitialDepth,
+        lazyLoadingEnabled,
+        bookmarkedPaths,
       })}
     </div>
   );

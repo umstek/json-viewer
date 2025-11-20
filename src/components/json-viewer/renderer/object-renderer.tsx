@@ -71,6 +71,15 @@ export function ObjectRenderer({
   const currentPath = path.join('.');
   const parentRef = useRef<HTMLDivElement>(null);
 
+  // Lazy loading logic
+  const {
+    currentDepth = 0,
+    maxInitialDepth = 3,
+    lazyLoadingEnabled = true,
+  } = options;
+  const shouldLazyLoad =
+    lazyLoadingEnabled && currentDepth >= maxInitialDepth && !isOpen;
+
   // Memoize entries and filtering to avoid unnecessary recalculations
   const { filteredEntries, shouldVirtualize } = useMemo(() => {
     const entries = Object.entries(value);
@@ -160,6 +169,15 @@ export function ObjectRenderer({
   };
 
   const renderContent = () => {
+    // Show placeholder if lazy loading is active
+    if (shouldLazyLoad) {
+      return (
+        <div className="text-muted-foreground text-sm italic">
+          Expand to load {filteredEntries.length} items (depth {currentDepth})
+        </div>
+      );
+    }
+
     if (!shouldVirtualize) {
       return filteredEntries.map(([key, val]: [string, unknown]) => (
         <div
@@ -236,6 +254,15 @@ export function ArrayRenderer({
   const [isOpen, setIsOpen] = useState(false);
   const currentPath = path.join('.');
   const parentRef = useRef<HTMLDivElement>(null);
+
+  // Lazy loading logic
+  const {
+    currentDepth = 0,
+    maxInitialDepth = 3,
+    lazyLoadingEnabled = true,
+  } = options;
+  const shouldLazyLoad =
+    lazyLoadingEnabled && currentDepth >= maxInitialDepth && !isOpen;
 
   // Memoize filtering to avoid unnecessary recalculations
   const { filteredItems, shouldVirtualize } = useMemo(() => {
@@ -321,6 +348,15 @@ export function ArrayRenderer({
   };
 
   const renderContent = () => {
+    // Show placeholder if lazy loading is active
+    if (shouldLazyLoad) {
+      return (
+        <div className="text-muted-foreground text-sm italic">
+          Expand to load {filteredItems.length} items (depth {currentDepth})
+        </div>
+      );
+    }
+
     if (!shouldVirtualize) {
       return filteredItems.map((val: unknown, index: number) => (
         <div

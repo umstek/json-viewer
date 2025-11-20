@@ -1,3 +1,4 @@
+import { Star } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { FilterOptions } from '../pojo-viewer';
 import type { SortOptions } from '../utils/sorting';
@@ -18,6 +19,10 @@ export interface RouterOptions {
   searchQuery?: string;
   sortOptions?: SortOptions;
   inlineRouter?: (value: unknown, path: string[], count?: number) => ReactNode;
+  currentDepth?: number;
+  maxInitialDepth?: number;
+  lazyLoadingEnabled?: boolean;
+  bookmarkedPaths?: Set<string>;
 }
 
 function isPathMatch(
@@ -45,14 +50,18 @@ export function createRouter(
     path: string[] = [],
     options: RouterOptions = {},
   ) {
-    const { filterOptions } = options;
+    const { filterOptions, currentDepth = 0 } = options;
 
     // Apply transformations to the value before rendering
     // This ensures transformations don't modify the original data
     const transformedValue = applyTransformers(value, path, transformers);
 
-    // Pass inline router through options
-    const optionsWithInline = { ...options, inlineRouter };
+    // Pass inline router and incremented depth through options
+    const optionsWithInline = {
+      ...options,
+      inlineRouter,
+      currentDepth: currentDepth + 1,
+    };
 
     // Check if the current key is excluded
     if (filterOptions?.excludedKeys.includes(path[path.length - 1] || '')) {
@@ -69,11 +78,23 @@ export function createRouter(
       ? isPathMatch(path, options.highlightedPath)
       : false;
 
+    const isBookmarked =
+      path.length > 0 && options.bookmarkedPaths?.has(path.join('.'));
+
     const wrapWithHighlight = (element: ReactNode) => {
-      if (!isHighlighted) return element;
+      const hasIndicator = isHighlighted || isBookmarked;
+      if (!hasIndicator) return element;
+
       return (
-        <div className="-mx-2 rounded bg-yellow-100 px-2 dark:bg-yellow-900/30">
-          {element}
+        <div
+          className={`-mx-2 flex items-start gap-1 rounded px-2 ${
+            isHighlighted ? 'bg-yellow-100 dark:bg-yellow-900/30' : ''
+          }`}
+        >
+          {isBookmarked && (
+            <Star className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 fill-yellow-400 text-yellow-400" />
+          )}
+          <div className="flex-1">{element}</div>
         </div>
       );
     };
