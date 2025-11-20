@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import type { FilterOptions } from '../pojo-viewer';
+import type { SortOptions } from '../utils/sorting';
+import { applyTransformers, type Transformer } from '../utils/transforms';
 import {
   BooleanRenderer,
   NullRenderer,
@@ -14,6 +16,7 @@ export interface RouterOptions {
   highlightedPath?: string[];
   filterOptions?: FilterOptions;
   searchQuery?: string;
+  sortOptions?: SortOptions;
   inlineRouter?: (value: unknown, path: string[], count?: number) => ReactNode;
 }
 
@@ -32,6 +35,7 @@ function isPathMatch(
 export function createRouter(
   customRenderers: Renderer[] = [],
   inlineRenderers: InlineRenderer[] = [],
+  transformers: Transformer[] = [],
 ) {
   // Create the inline router once for reuse
   const inlineRouter = createInlineRouter(inlineRenderers);
@@ -43,6 +47,10 @@ export function createRouter(
   ) {
     const { filterOptions } = options;
 
+    // Apply transformations to the value before rendering
+    // This ensures transformations don't modify the original data
+    const transformedValue = applyTransformers(value, path, transformers);
+
     // Pass inline router through options
     const optionsWithInline = { ...options, inlineRouter };
 
@@ -51,9 +59,9 @@ export function createRouter(
       return null;
     }
 
-    // Try custom renderers first
+    // Try custom renderers first (using transformed value)
     for (const renderer of customRenderers) {
-      const result = renderer({ value, path });
+      const result = renderer({ value: transformedValue, path });
       if (result !== null) return result;
     }
 
@@ -70,50 +78,53 @@ export function createRouter(
       );
     };
 
-    // Apply type-based filtering
+    // Apply type-based filtering (using transformed value)
     if (filterOptions) {
-      if (typeof value === 'string' && !filterOptions.showStrings) return null;
-      if (typeof value === 'number' && !filterOptions.showNumbers) return null;
-      if (typeof value === 'boolean' && !filterOptions.showBooleans)
+      if (typeof transformedValue === 'string' && !filterOptions.showStrings)
         return null;
-      if (value === null && !filterOptions.showNull) return null;
-      if (Array.isArray(value) && !filterOptions.showArrays) return null;
+      if (typeof transformedValue === 'number' && !filterOptions.showNumbers)
+        return null;
+      if (typeof transformedValue === 'boolean' && !filterOptions.showBooleans)
+        return null;
+      if (transformedValue === null && !filterOptions.showNull) return null;
+      if (Array.isArray(transformedValue) && !filterOptions.showArrays)
+        return null;
       if (
-        typeof value === 'object' &&
-        value !== null &&
-        !Array.isArray(value) &&
+        typeof transformedValue === 'object' &&
+        transformedValue !== null &&
+        !Array.isArray(transformedValue) &&
         !filterOptions.showObjects
       )
         return null;
     }
 
-    // Fall back to default renderers
-    if (typeof value === 'string') {
-      return wrapWithHighlight(<StringRenderer value={value} />);
+    // Fall back to default renderers (using transformed value)
+    if (typeof transformedValue === 'string') {
+      return wrapWithHighlight(<StringRenderer value={transformedValue} />);
     }
-    if (typeof value === 'number') {
-      return wrapWithHighlight(<NumberRenderer value={value} />);
+    if (typeof transformedValue === 'number') {
+      return wrapWithHighlight(<NumberRenderer value={transformedValue} />);
     }
-    if (typeof value === 'boolean') {
-      return wrapWithHighlight(<BooleanRenderer value={value} />);
+    if (typeof transformedValue === 'boolean') {
+      return wrapWithHighlight(<BooleanRenderer value={transformedValue} />);
     }
-    if (value === null || value === undefined) {
+    if (transformedValue === null || transformedValue === undefined) {
       return wrapWithHighlight(<NullRenderer />);
     }
-    if (Array.isArray(value)) {
+    if (Array.isArray(transformedValue)) {
       return wrapWithHighlight(
         <ArrayRenderer
-          value={value}
+          value={transformedValue}
           router={renderValue}
           path={path}
           options={optionsWithInline}
         />,
       );
     }
-    if (typeof value === 'object') {
+    if (typeof transformedValue === 'object') {
       return wrapWithHighlight(
         <ObjectRenderer
-          value={value}
+          value={transformedValue}
           router={renderValue}
           path={path}
           options={optionsWithInline}
@@ -122,6 +133,6 @@ export function createRouter(
     }
 
     // Fallback for any other types
-    return wrapWithHighlight(<pre>{String(value)}</pre>);
+    return wrapWithHighlight(<pre>{String(transformedValue)}</pre>);
   };
 }

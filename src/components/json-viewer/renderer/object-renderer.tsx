@@ -8,6 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { sortArrayItems, sortObjectEntries } from '../utils/sorting';
 import { CopyButton } from './copy-button';
 import type { RouterOptions } from './router';
 
@@ -102,11 +103,16 @@ export function ObjectRenderer({
       return true;
     });
 
+    // Apply sorting
+    const sorted = options.sortOptions?.objectKeySort
+      ? sortObjectEntries(filtered, options.sortOptions.objectKeySort)
+      : filtered;
+
     return {
-      filteredEntries: filtered,
-      shouldVirtualize: filtered.length > VIRTUALIZATION_THRESHOLD,
+      filteredEntries: sorted,
+      shouldVirtualize: sorted.length > VIRTUALIZATION_THRESHOLD,
     };
-  }, [value, options.filterOptions]);
+  }, [value, options.filterOptions, options.sortOptions]);
 
   // Auto-expand if this path is part of the highlighted path
   useEffect(() => {
@@ -255,11 +261,16 @@ export function ArrayRenderer({
       return true;
     });
 
+    // Apply sorting
+    const sorted = options.sortOptions?.arrayItemSort
+      ? sortArrayItems(filtered, options.sortOptions.arrayItemSort)
+      : filtered;
+
     return {
-      filteredItems: filtered,
-      shouldVirtualize: filtered.length > VIRTUALIZATION_THRESHOLD,
+      filteredItems: sorted,
+      shouldVirtualize: sorted.length > VIRTUALIZATION_THRESHOLD,
     };
-  }, [value, options.filterOptions]);
+  }, [value, options.filterOptions, options.sortOptions]);
 
   // Auto-expand if this path is part of the highlighted path
   useEffect(() => {

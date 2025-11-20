@@ -1,4 +1,4 @@
-import { Filter, Search } from 'lucide-react';
+import { ArrowDownAZ, Filter, Search } from 'lucide-react';
 import { type ChangeEvent, type KeyboardEvent, useMemo, useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Button } from '../ui/button';
+import { BreadcrumbNav } from './features/breadcrumbs';
 import { ThemeToggle } from './features/theme';
 import type { FilterOptions } from './pojo-viewer';
 import PojoViewer from './pojo-viewer';
@@ -18,12 +19,23 @@ import { createLinkRenderer } from './renderer/advanced/link';
 import {
   detectQueryType,
   executeQuery,
+  pathArrayToJsonPath,
   type QueryResult,
 } from './utils/jsonpath';
+import {
+  type ArrayItemSortMode,
+  defaultSortOptions,
+  getArrayItemSortLabel,
+  getObjectKeySortLabel,
+  type ObjectKeySortMode,
+  type SortOptions,
+} from './utils/sorting';
+import type { Transformer } from './utils/transforms';
 
 export interface JsonViewerProps {
   json: string;
   dateOptions?: DateRendererOptions;
+  transformers?: Transformer[];
   showThemeToggle?: boolean;
 }
 
@@ -54,6 +66,7 @@ const defaultFilterOptions: FilterOptions = {
 export default function JsonViewer({
   json,
   dateOptions,
+  transformers = [],
   showThemeToggle = false,
 }: JsonViewerProps) {
   const renderers = useMemo(
@@ -70,6 +83,8 @@ export default function JsonViewer({
   const [queryType, setQueryType] = useState<
     'json-pointer' | 'jsonpath' | 'text'
   >('text');
+  const [sortOptions, setSortOptions] =
+    useState<SortOptions>(defaultSortOptions);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -131,6 +146,26 @@ export default function JsonViewer({
     }));
   };
 
+  const handleObjectKeySortChange = (mode: ObjectKeySortMode) => {
+    setSortOptions((prev) => ({
+      ...prev,
+      objectKeySort: mode,
+    }));
+  };
+
+  const handleArrayItemSortChange = (mode: ArrayItemSortMode) => {
+    setSortOptions((prev) => ({
+      ...prev,
+      arrayItemSort: mode,
+    }));
+  };
+
+  const handleBreadcrumbNavigate = (path: string[]) => {
+    // Convert path to JSONPath and search for it
+    const jsonPath = pathArrayToJsonPath(path);
+    handleSearch(jsonPath);
+  };
+
   try {
     const data = JSON.parse(json);
     return (
@@ -156,6 +191,71 @@ export default function JsonViewer({
             )}
           </div>
           {showThemeToggle && <ThemeToggle />}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="icon">
+                <ArrowDownAZ className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <h4 className="font-medium leading-none">Sort Object Keys</h4>
+                  <div className="grid gap-2">
+                    {(
+                      [
+                        'original',
+                        'alphabetical',
+                        'reverse-alphabetical',
+                      ] as ObjectKeySortMode[]
+                    ).map((mode) => (
+                      <Button
+                        key={mode}
+                        variant={
+                          sortOptions.objectKeySort === mode
+                            ? 'default'
+                            : 'outline'
+                        }
+                        size="sm"
+                        onClick={() => handleObjectKeySortChange(mode)}
+                        className="justify-start"
+                      >
+                        {getObjectKeySortLabel(mode)}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="font-medium leading-none">Sort Array Items</h4>
+                  <div className="grid gap-2">
+                    {(
+                      [
+                        'original',
+                        'ascending',
+                        'descending',
+                        'alphabetical',
+                        'reverse-alphabetical',
+                      ] as ArrayItemSortMode[]
+                    ).map((mode) => (
+                      <Button
+                        key={mode}
+                        variant={
+                          sortOptions.arrayItemSort === mode
+                            ? 'default'
+                            : 'outline'
+                        }
+                        size="sm"
+                        onClick={() => handleArrayItemSortChange(mode)}
+                        className="justify-start"
+                      >
+                        {getArrayItemSortLabel(mode)}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="icon">
@@ -283,14 +383,23 @@ export default function JsonViewer({
             </div>
           )}
         </div>
+        {searchResults.length > 0 && searchResults[currentResultIndex] && (
+          <BreadcrumbNav
+            path={searchResults[currentResultIndex].path}
+            onNavigate={handleBreadcrumbNavigate}
+            className="rounded-md bg-muted/50 px-1 py-2"
+          />
+        )}
         <PojoViewer
           data={data}
           renderers={renderers}
+          transformers={transformers}
           highlightedPath={
             searchResults[currentResultIndex]?.path.join('.') || ''
           }
           filterOptions={filterOptions}
           searchQuery={queryType === 'text' ? searchQuery : ''}
+          sortOptions={sortOptions}
         />
       </div>
     );
