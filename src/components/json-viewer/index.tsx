@@ -9,15 +9,22 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Button } from '../ui/button';
+import { ThemeToggle } from './features/theme';
 import type { FilterOptions } from './pojo-viewer';
 import PojoViewer from './pojo-viewer';
 import type { DateRendererOptions } from './renderer/advanced/date';
 import { createDateRenderer } from './renderer/advanced/date';
 import { createLinkRenderer } from './renderer/advanced/link';
+import {
+  detectQueryType,
+  executeQuery,
+  type QueryResult,
+} from './utils/jsonpath';
 
 export interface JsonViewerProps {
   json: string;
   dateOptions?: DateRendererOptions;
+  showThemeToggle?: boolean;
 }
 
 interface SearchableObject {
@@ -44,64 +51,46 @@ const defaultFilterOptions: FilterOptions = {
  *
  * @returns A JSX tree, or an error message if the JSON is invalid.
  */
-export default function JsonViewer({ json, dateOptions }: JsonViewerProps) {
+export default function JsonViewer({
+  json,
+  dateOptions,
+  showThemeToggle = false,
+}: JsonViewerProps) {
   const renderers = useMemo(
     () => [createDateRenderer(dateOptions), createLinkRenderer()],
     [dateOptions],
   );
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<string[]>([]);
+  const [searchResults, setSearchResults] = useState<QueryResult[]>([]);
   const [currentResultIndex, setCurrentResultIndex] = useState(0);
   const [filterOptions, setFilterOptions] =
     useState<FilterOptions>(defaultFilterOptions);
   const [excludeKeyInput, setExcludeKeyInput] = useState('');
+  const [queryType, setQueryType] = useState<
+    'json-pointer' | 'jsonpath' | 'text'
+  >('text');
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     if (!query) {
       setSearchResults([]);
       setCurrentResultIndex(0);
+      setQueryType('text');
       return;
     }
 
     try {
       const data = JSON.parse(json) as SearchableObject;
-      const paths: string[] = [];
+      const results = executeQuery(data, query);
+      const detectedType = detectQueryType(query);
 
-      const searchInObject = (obj: SearchableObject, path: string[] = []) => {
-        if (!obj) return;
-
-        if (typeof obj === 'object') {
-          for (const [key, value] of Object.entries(obj)) {
-            const currentPath = [...path, key];
-
-            // Search in key
-            if (key.toLowerCase().includes(query.toLowerCase())) {
-              paths.push(currentPath.join('.'));
-            }
-
-            // Search in value
-            if (
-              typeof value === 'string' &&
-              value.toLowerCase().includes(query.toLowerCase())
-            ) {
-              paths.push(currentPath.join('.'));
-            }
-
-            // Recurse into nested objects/arrays
-            if (value && typeof value === 'object') {
-              searchInObject(value as SearchableObject, currentPath);
-            }
-          }
-        }
-      };
-
-      searchInObject(data);
-      setSearchResults(paths);
+      setSearchResults(results);
       setCurrentResultIndex(0);
+      setQueryType(detectedType);
     } catch (error) {
       console.error('Search error:', error);
+      setSearchResults([]);
     }
   };
 
@@ -151,14 +140,22 @@ export default function JsonViewer({ json, dateOptions }: JsonViewerProps) {
             <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search in JSON..."
+              placeholder="Search, JSONPath ($.path), or JSON Pointer (/path)..."
               value={searchQuery}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 handleSearch(e.target.value)
               }
-              className="pl-8"
+              className="pr-24 pl-8"
             />
+            {searchQuery && (
+              <div className="absolute top-2.5 right-2 text-muted-foreground text-xs">
+                {queryType === 'json-pointer' && 'JSON Pointer'}
+                {queryType === 'jsonpath' && 'JSONPath'}
+                {queryType === 'text' && 'Text Search'}
+              </div>
+            )}
           </div>
+          {showThemeToggle && <ThemeToggle />}
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="icon">
@@ -289,9 +286,11 @@ export default function JsonViewer({ json, dateOptions }: JsonViewerProps) {
         <PojoViewer
           data={data}
           renderers={renderers}
-          highlightedPath={searchResults[currentResultIndex]}
+          highlightedPath={
+            searchResults[currentResultIndex]?.path.join('.') || ''
+          }
           filterOptions={filterOptions}
-          searchQuery={searchQuery}
+          searchQuery={queryType === 'text' ? searchQuery : ''}
         />
       </div>
     );

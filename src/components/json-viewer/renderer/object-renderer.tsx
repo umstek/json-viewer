@@ -192,6 +192,12 @@ export function ObjectRenderer({
     );
   };
 
+  // Render inline preview when collapsed
+  const inlinePreview =
+    !isOpen && options.inlineRouter
+      ? options.inlineRouter(value, path, filteredEntries.length)
+      : `{...${filteredEntries.length} items}`;
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="group flex items-center gap-1">
@@ -203,9 +209,7 @@ export function ObjectRenderer({
           />
         </CollapsibleTrigger>
         <span className="text-muted-foreground">
-          {'{'}
-          {!isOpen && `...${filteredEntries.length} items`}
-          {!isOpen && '}'}
+          {isOpen ? '{' : inlinePreview}
         </span>
         <CopyButton value={value} />
       </div>
@@ -347,6 +351,12 @@ export function ArrayRenderer({
     );
   };
 
+  // Render inline preview when collapsed
+  const inlinePreview =
+    !isOpen && options.inlineRouter
+      ? options.inlineRouter(value, path, filteredItems.length)
+      : `[...${filteredItems.length} items]`;
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="group flex items-center gap-1">
@@ -358,9 +368,7 @@ export function ArrayRenderer({
           />
         </CollapsibleTrigger>
         <span className="text-muted-foreground">
-          {'['}
-          {!isOpen && `...${filteredItems.length} items`}
-          {!isOpen && ']'}
+          {isOpen ? '[' : inlinePreview}
         </span>
         <CopyButton value={value} />
       </div>

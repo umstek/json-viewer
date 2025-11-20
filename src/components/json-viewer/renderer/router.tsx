@@ -6,6 +6,7 @@ import {
   NumberRenderer,
   StringRenderer,
 } from './common-renderers';
+import { createInlineRouter, type InlineRenderer } from './inline-renderer';
 import { ArrayRenderer, ObjectRenderer } from './object-renderer';
 import type { Renderer } from './renderer';
 
@@ -13,6 +14,7 @@ export interface RouterOptions {
   highlightedPath?: string[];
   filterOptions?: FilterOptions;
   searchQuery?: string;
+  inlineRouter?: (value: unknown, path: string[], count?: number) => ReactNode;
 }
 
 function isPathMatch(
@@ -27,13 +29,22 @@ function isPathMatch(
  * Creates a router function that will try custom renderers first,
  * then fall back to default renderers.
  */
-export function createRouter(customRenderers: Renderer[] = []) {
+export function createRouter(
+  customRenderers: Renderer[] = [],
+  inlineRenderers: InlineRenderer[] = [],
+) {
+  // Create the inline router once for reuse
+  const inlineRouter = createInlineRouter(inlineRenderers);
+
   return function renderValue(
     value: unknown,
     path: string[] = [],
     options: RouterOptions = {},
   ) {
     const { filterOptions } = options;
+
+    // Pass inline router through options
+    const optionsWithInline = { ...options, inlineRouter };
 
     // Check if the current key is excluded
     if (filterOptions?.excludedKeys.includes(path[path.length - 1] || '')) {
@@ -95,7 +106,7 @@ export function createRouter(customRenderers: Renderer[] = []) {
           value={value}
           router={renderValue}
           path={path}
-          options={options}
+          options={optionsWithInline}
         />,
       );
     }
@@ -105,7 +116,7 @@ export function createRouter(customRenderers: Renderer[] = []) {
           value={value}
           router={renderValue}
           path={path}
-          options={options}
+          options={optionsWithInline}
         />,
       );
     }
