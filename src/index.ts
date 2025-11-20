@@ -153,3 +153,20 @@ export {
   createTypeTransformer,
   createUppercaseTransformer,
 } from './components/json-viewer/utils/transforms';
+// Format mapping support
+export type {
+  FormatMapping,
+  FormatResolutionResult,
+} from './components/json-viewer/validation/format-mapping';
+export {
+  createEmailMappings,
+  createFormatMapping,
+  createIpMappings,
+  createPhoneMappings,
+  createStandardMappings,
+  createUrlMappings,
+  DEFAULT_PRIORITIES,
+  findMatchingMappings,
+  matchesPath,
+  resolveFormat,
+} from './components/json-viewer/validation/format-mapping';

@@ -38,7 +38,7 @@ describe('export-formats', () => {
       expect(result).toContain('name: John Doe');
       expect(result).toContain('age: 30');
       expect(result).toContain('address:');
-      expect(result).toContain('  street: "123 Main St"');
+      expect(result).toContain('  street: 123 Main St');
     });
 
     it('should convert to CSV with flattened structure', () => {
@@ -81,7 +81,8 @@ describe('export-formats', () => {
       const data = { tags: ['one', 'two', 'three'] };
       const result = convertToFormat(data, 'csv');
       expect(result).toContain('tags');
-      expect(result).toContain('["one","two","three"]');
+      // papaparse properly escapes the JSON array with CSV quote escaping
+      expect(result).toMatch(/\["one","two","three"\]|"?\[""one"",""two"",""three""\]"?/);
     });
 
     it('should escape CSV values with commas', () => {
@@ -114,7 +115,8 @@ describe('export-formats', () => {
       expect(resultJSON).toBe('{}');
 
       const resultYAML = convertToFormat(data, 'yaml');
-      expect(resultYAML).toBe('{}');
+      // js-yaml adds a newline at the end, which is standard YAML
+      expect(resultYAML).toBe('{}\n');
 
       const resultCSV = convertToFormat(data, 'csv');
       expect(resultCSV).toContain('value');

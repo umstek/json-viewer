@@ -2,125 +2,21 @@
  * Export utilities for converting and downloading JSON data in various formats
  */
 
+import yaml from 'js-yaml';
+import Papa from 'papaparse';
+
 export type ExportFormat = 'json' | 'json-minified' | 'yaml' | 'csv';
 
 /**
- * Converts a value to a YAML string representation
- * Simple implementation that handles common JSON types
+ * Converts a value to a YAML string representation using js-yaml library
  */
-function toYAML(data: unknown, indent = 0): string {
-  const spaces = '  '.repeat(indent);
-
-  if (data === null) {
-    return 'null';
-  }
-
-  if (data === undefined) {
-    return 'null';
-  }
-
-  if (typeof data === 'string') {
-    // Handle strings that need quoting
-    if (
-      data.includes('\n') ||
-      data.includes(':') ||
-      data.includes('#') ||
-      data.includes('[') ||
-      data.includes(']') ||
-      data.includes('{') ||
-      data.includes('}') ||
-      data.includes(',') ||
-      data.includes('&') ||
-      data.includes('*') ||
-      data.includes('!') ||
-      data.includes('|') ||
-      data.includes('>') ||
-      data.includes("'") ||
-      data.includes('"') ||
-      data.includes('%') ||
-      data.includes('@') ||
-      data.includes('`') ||
-      data.trim() !== data ||
-      data.match(/^\d+$/) ||
-      data.toLowerCase() === 'true' ||
-      data.toLowerCase() === 'false' ||
-      data.toLowerCase() === 'null' ||
-      data === ''
-    ) {
-      // Use double quotes and escape internal quotes
-      return `"${data.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`;
-    }
-    return data;
-  }
-
-  if (typeof data === 'number' || typeof data === 'boolean') {
-    return String(data);
-  }
-
-  if (Array.isArray(data)) {
-    if (data.length === 0) {
-      return '[]';
-    }
-
-    // Check if all items are primitives
-    const allPrimitives = data.every(
-      (item) =>
-        item === null || ['string', 'number', 'boolean'].includes(typeof item),
-    );
-
-    if (allPrimitives) {
-      // Inline array notation
-      return `[${data.map((item) => toYAML(item, 0)).join(', ')}]`;
-    }
-
-    // Multi-line array notation
-    return data
-      .map((item) => {
-        const itemYAML = toYAML(item, indent + 1);
-        if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
-          // For objects, format as nested structure
-          const lines = itemYAML.split('\n');
-          return `${spaces}- ${lines[0]}\n${lines.slice(1).join('\n')}`;
-        }
-        return `${spaces}- ${itemYAML}`;
-      })
-      .join('\n');
-  }
-
-  if (typeof data === 'object') {
-    const entries = Object.entries(data as Record<string, unknown>);
-
-    if (entries.length === 0) {
-      return '{}';
-    }
-
-    return entries
-      .map(([key, value]) => {
-        // Quote key if necessary
-        const quotedKey = /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)
-          ? key
-          : `"${key}"`;
-
-        if (typeof value === 'object' && value !== null) {
-          const valueYAML = toYAML(value, indent + 1);
-          if (Array.isArray(value) && value.length > 0) {
-            // Array values on next line
-            return `${spaces}${quotedKey}:\n${valueYAML}`;
-          }
-          if (Object.keys(value).length === 0) {
-            return `${spaces}${quotedKey}: {}`;
-          }
-          // Object values on next line
-          return `${spaces}${quotedKey}:\n${valueYAML}`;
-        }
-
-        // Primitive values inline
-        return `${spaces}${quotedKey}: ${toYAML(value, 0)}`;
-      })
-      .join('\n');
-  }
-
-  return String(data);
+function toYAML(data: unknown): string {
+  return yaml.dump(data, {
+    indent: 2,
+    lineWidth: -1, // Don't wrap lines
+    noRefs: true, // Don't use references
+    sortKeys: false, // Preserve key order
+  });
 }
 
 /**
@@ -192,7 +88,7 @@ function flattenObject(
 }
 
 /**
- * Converts data to CSV format
+ * Converts data to CSV format using papaparse
  * Flattens nested objects and arrays using dot notation
  */
 function toCSV(data: unknown): string {
@@ -209,7 +105,7 @@ function toCSV(data: unknown): string {
     flatData = [flattenObject(data)];
   }
 
-  // Get all unique keys (column headers)
+  // Get all unique keys (column headers) and sort them
   const allKeys = new Set<string>();
   for (const row of flatData) {
     for (const key of Object.keys(row)) {
@@ -219,35 +115,20 @@ function toCSV(data: unknown): string {
 
   const headers = Array.from(allKeys).sort();
 
-  // Escape CSV value
-  const escapeCSV = (value: unknown): string => {
-    if (value === null || value === undefined) {
-      return '';
+  // Normalize data so all rows have the same keys in the same order
+  const normalizedData = flatData.map((row) => {
+    const normalizedRow: Record<string, unknown> = {};
+    for (const header of headers) {
+      normalizedRow[header] = row[header];
     }
+    return normalizedRow;
+  });
 
-    const str = String(value);
-
-    // If contains comma, newline, or quote, wrap in quotes and escape quotes
-    if (str.includes(',') || str.includes('\n') || str.includes('"')) {
-      return `"${str.replace(/"/g, '""')}"`;
-    }
-
-    return str;
-  };
-
-  // Build CSV
-  const lines: string[] = [];
-
-  // Header row
-  lines.push(headers.map(escapeCSV).join(','));
-
-  // Data rows
-  for (const row of flatData) {
-    const values = headers.map((header) => escapeCSV(row[header]));
-    lines.push(values.join(','));
-  }
-
-  return lines.join('\n');
+  // Use papaparse to convert to CSV
+  return Papa.unparse(normalizedData, {
+    columns: headers,
+    header: true,
+  });
 }
 
 /**

@@ -60,6 +60,7 @@ import {
   type SortOptions,
 } from './utils/sorting';
 import type { Transformer } from './utils/transforms';
+import type { FormatMapping } from './validation/format-mapping';
 
 export interface JsonViewerProps {
   json: string;
@@ -74,6 +75,7 @@ export interface JsonViewerProps {
   showValidationErrors?: boolean;
   keyboardShortcuts?: boolean;
   customShortcuts?: CustomKeyboardShortcut[];
+  formatMappings?: FormatMapping[];
 }
 
 interface SearchableObject {
@@ -113,6 +115,7 @@ export default function JsonViewer({
   showValidationErrors = true,
   keyboardShortcuts = true,
   customShortcuts,
+  formatMappings = [],
 }: JsonViewerProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   // Validate JSON data against JSON Schema if provided
@@ -147,7 +150,12 @@ export default function JsonViewer({
 
     // Add format validation renderer if enabled
     if (enableValidation) {
-      baseRenderers.push(createValidationRenderer(validationOptions));
+      baseRenderers.push(
+        createValidationRenderer({
+          ...validationOptions,
+          formatMappings,
+        }),
+      );
     }
 
     return baseRenderers;
@@ -159,6 +167,7 @@ export default function JsonViewer({
     jsonSchema,
     schemaValidation,
     showValidationErrors,
+    formatMappings,
   ]);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -525,6 +534,7 @@ export default function JsonViewer({
           searchQuery={queryType === 'text' ? searchQuery : ''}
           sortOptions={sortOptions}
           focusedPath={keyboard.focusState.focusedPath}
+          formatMappings={formatMappings}
         />
         {keyboardShortcuts && (
           <ShortcutsHelp

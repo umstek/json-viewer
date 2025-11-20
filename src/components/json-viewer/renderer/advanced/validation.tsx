@@ -23,6 +23,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  DEFAULT_PRIORITIES,
+  type FormatMapping,
+  resolveFormat,
+} from '../../validation/format-mapping';
 import { GenericRenderer } from '../generic-renderer';
 import type { Renderer } from '../renderer';
 
@@ -79,6 +84,12 @@ export interface ValidationRendererOptions {
    * Default: true
    */
   showInvalid?: boolean;
+
+  /**
+   * Format mappings for explicit path-based format specification
+   * These mappings take precedence over auto-detection based on priority
+   */
+  formatMappings?: FormatMapping[];
 }
 
 /**
@@ -405,29 +416,94 @@ export function createValidationRenderer(
     explicitFormat,
     showValid = true,
     showInvalid = true,
+    formatMappings = [],
   } = options;
 
-  return ({ value }) => {
+  return ({ value, path }) => {
     // Only validate strings
     if (typeof value !== 'string') return null;
 
-    // Determine the format to validate
-    let format: ValidationFormat | undefined = explicitFormat;
+    // Determine the format to validate using priority-based resolution:
+    // 1. Explicit format from options (highest priority)
+    // 2. Format mappings (by their configured priority)
+    // 3. Auto-detection (lowest priority)
+    let format: ValidationFormat | string | undefined = explicitFormat;
+    let formatSource: 'explicit' | 'mapping' | 'auto-detect' = 'explicit';
+
+    // If no explicit format, try format mappings
+    if (!format && formatMappings.length > 0) {
+      const resolution = resolveFormat(value, path, formatMappings);
+      if (
+        resolution.format &&
+        resolution.priority >= DEFAULT_PRIORITIES.AUTO_DETECT
+      ) {
+        format = resolution.format;
+        formatSource = 'mapping';
+      }
+    }
+
+    // If still no format and auto-detect is enabled, try detection
     if (!format && autoDetect) {
       format = detectFormat(value);
+      formatSource = 'auto-detect';
     }
 
     // If no format detected or specified, don't render
     if (!format) return null;
 
+    // Only validate standard ValidationFormat types
+    // Custom formats from mappings will be displayed but not validated
+    const isStandardFormat = [
+      'email',
+      'url',
+      'uri',
+      'date',
+      'date-time',
+      'time',
+      'uuid',
+      'ipv4',
+      'ipv6',
+      'phone',
+      'credit-card',
+    ].includes(format);
+
+    if (!isStandardFormat) {
+      // For custom formats, just display the type without validation
+      const formatIcon = getFormatIcon(format as ValidationFormat);
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="inline-flex items-center gap-2">
+                <GenericRenderer icon={formatIcon} type={format} value={value}>
+                  <div className="flex items-center gap-2">
+                    <pre className="font-mono text-sm">{value}</pre>
+                    <AlertCircle className="h-4 w-4 text-blue-500" />
+                  </div>
+                </GenericRenderer>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="flex flex-col gap-1 text-sm">
+                <div className="font-semibold">
+                  Format: {format.toUpperCase()}
+                </div>
+                <div>Custom format (from {formatSource})</div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+
     // Validate the value
-    const result = validateFormat(value, format);
+    const result = validateFormat(value, format as ValidationFormat);
 
     // Filter based on validation result and options
     if (!result.isValid && !showInvalid) return null;
     if (result.isValid && !showValid) return null;
 
-    const formatIcon = getFormatIcon(format);
+    const formatIcon = getFormatIcon(format as ValidationFormat);
 
     return (
       <TooltipProvider>
@@ -448,6 +524,11 @@ export function createValidationRenderer(
                 Format: {format.toUpperCase()}
               </div>
               <div>{result.message}</div>
+              {formatSource === 'mapping' && (
+                <div className="text-muted-foreground text-xs">
+                  (from format mapping)
+                </div>
+              )}
             </div>
           </TooltipContent>
         </Tooltip>

@@ -5,6 +5,7 @@
  * sample JSON data by analyzing types, structures, and patterns.
  */
 
+import { detectFormat } from '../validation';
 import type {
   ArraySchemaNode,
   InferenceOptions,
@@ -354,58 +355,31 @@ function mergeArraySchemas(nodes: ArraySchemaNode[]): ArraySchemaNode {
 }
 
 /**
- * Detects string format based on patterns
+ * Detects string format based on patterns using Zod-based validation
+ *
+ * This function uses the new validation system with confidence scoring,
+ * but maintains backward compatibility by returning a single format string.
+ *
+ * @param value - The string value to analyze
+ * @returns The detected format, or undefined if no format matches
  */
 function detectStringFormat(value: string): string | undefined {
-  // Date only (check before date-time)
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return 'date';
+  // Use the new Zod-based validation system with confidence scoring
+  // Only return a format if confidence is >= 0.5 (medium-high confidence)
+  const result = detectFormat(value, 0.5);
+
+  if (!result) {
+    return undefined;
   }
 
-  // ISO 8601 date/datetime
-  if (
-    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]\d{2}:\d{2})?$/.test(
-      value,
-    )
-  ) {
-    return 'date-time';
+  // Map validation formats to schema formats for backward compatibility
+  // Most formats map directly, but 'url' maps to 'uri' for JSON Schema compatibility
+  switch (result.format) {
+    case 'url':
+      return 'uri';
+    default:
+      return result.format;
   }
-
-  // Time only
-  if (/^\d{2}:\d{2}:\d{2}(\.\d{3})?$/.test(value)) {
-    return 'time';
-  }
-
-  // Email
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-    return 'email';
-  }
-
-  // URL
-  if (/^https?:\/\/.+/.test(value)) {
-    return 'uri';
-  }
-
-  // UUID
-  if (
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-      value,
-    )
-  ) {
-    return 'uuid';
-  }
-
-  // IPv4
-  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(value)) {
-    return 'ipv4';
-  }
-
-  // IPv6
-  if (/^([0-9a-f]{0,4}:){7}[0-9a-f]{0,4}$/i.test(value)) {
-    return 'ipv6';
-  }
-
-  return undefined;
 }
 
 /**

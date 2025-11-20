@@ -3,6 +3,7 @@ import type { Renderer } from './renderer/renderer';
 import { createRouter } from './renderer/router';
 import type { SortOptions } from './utils/sorting';
 import type { Transformer } from './utils/transforms';
+import type { FormatMapping } from './validation/format-mapping';
 
 export interface FilterOptions {
   showStrings: boolean;
@@ -32,6 +33,7 @@ interface PojoViewerProps {
   onChange?: (path: string[], newValue: unknown) => void;
   readOnly?: boolean;
   focusedPath?: string[] | null;
+  formatMappings?: FormatMapping[];
 }
 
 export default function PojoViewer({
@@ -51,6 +53,7 @@ export default function PojoViewer({
   onChange,
   readOnly,
   focusedPath,
+  formatMappings,
 }: PojoViewerProps) {
   const router = createRouter(renderers, inlineRenderers, transformers);
   return (
@@ -69,6 +72,7 @@ export default function PojoViewer({
         onChange,
         readOnly,
         focusedPath,
+        formatMappings,
       })}
     </div>
   );
