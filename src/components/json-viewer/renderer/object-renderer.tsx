@@ -1,13 +1,13 @@
+import type { VirtualItem } from '@tanstack/react-virtual';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { ChevronRight } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import type { VirtualItem } from '@tanstack/react-virtual';
-import { ChevronRight } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
 import { CopyButton } from './copy-button';
 import type { RouterOptions } from './router';
 
@@ -173,7 +173,7 @@ export function ObjectRenderer({
     return (
       <div
         ref={parentRef}
-        className="w-full overflow-auto rounded-md pr-2 scrollbar-custom"
+        className="scrollbar-custom w-full overflow-auto rounded-md pr-2"
         style={{
           maxHeight: '400px',
           minHeight: Math.min(400, filteredEntries.length * 30),
@@ -328,7 +328,7 @@ export function ArrayRenderer({
     return (
       <div
         ref={parentRef}
-        className="w-full overflow-auto rounded-md pr-2 scrollbar-custom"
+        className="scrollbar-custom w-full overflow-auto rounded-md pr-2"
         style={{
           maxHeight: '400px',
           minHeight: Math.min(400, filteredItems.length * 30),

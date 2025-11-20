@@ -4,15 +4,11 @@
     "enabled": true,
     "indentStyle": "space"
   },
-  "organizeImports": {
-    "enabled": true
-  },
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true,
       "correctness": {
-        "noNewSymbol": "error",
         "noUndeclaredVariables": "error",
         "noUnusedVariables": "error",
         "useHookAtTopLevel": "error"
@@ -37,6 +33,12 @@
   "javascript": {
     "formatter": {
       "quoteStyle": "single"
+    }
+  },
+  "css": {
+    "parser": {
+      "cssModules": false,
+      "tailwindDirectives": true
     }
   },
   "vcs": {
