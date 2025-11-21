@@ -7,6 +7,7 @@ import {
   executeQuery,
   jsonPathToPathArray,
   jsonPointerToPathArray,
+  matchPath,
   pathArrayToJsonPath,
   pathArrayToJsonPointer,
 } from './jsonpath';
@@ -201,6 +202,53 @@ describe('JSONPath Utilities', () => {
     it('should return empty for empty query', () => {
       const results = executeQuery(testData, '');
       expect(results).toHaveLength(0);
+    });
+  });
+
+  describe('matchPath', () => {
+    it('should match exact paths', () => {
+      expect(matchPath(['users', '0', 'name'], '$.users[0].name')).toBe(true);
+      expect(matchPath(['users', '0', 'name'], '$.users[1].name')).toBe(false);
+    });
+
+    it('should match wildcard array indices', () => {
+      expect(matchPath(['users', '0', 'name'], '$.users[*].name')).toBe(true);
+      expect(matchPath(['users', '1', 'name'], '$.users[*].name')).toBe(true);
+      expect(matchPath(['users', '99', 'name'], '$.users[*].name')).toBe(true);
+    });
+
+    it('should match wildcard properties', () => {
+      expect(matchPath(['data', 'foo', 'value'], '$.data.*.value')).toBe(true);
+      expect(matchPath(['data', 'bar', 'value'], '$.data.*.value')).toBe(true);
+    });
+
+    it('should match recursive descent', () => {
+      expect(matchPath(['a', 'b', 'c', 'name'], '$..name')).toBe(true);
+      expect(matchPath(['name'], '$..name')).toBe(true);
+      expect(matchPath(['users', '0', 'address', 'city'], '$..city')).toBe(
+        true,
+      );
+    });
+
+    it('should not match shorter paths', () => {
+      expect(matchPath(['users'], '$.users[*].name')).toBe(false);
+      expect(matchPath(['users', '0'], '$.users[*].name')).toBe(false);
+    });
+
+    it('should not match longer paths', () => {
+      expect(
+        matchPath(['users', '0', 'name', 'extra'], '$.users[*].name'),
+      ).toBe(false);
+    });
+
+    it('should match root with empty path', () => {
+      expect(matchPath([], '$')).toBe(true);
+    });
+
+    it('should handle bracket notation with quotes', () => {
+      expect(
+        matchPath(['special-key', 'value'], "$['special-key'].value"),
+      ).toBe(true);
     });
   });
 });

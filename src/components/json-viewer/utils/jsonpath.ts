@@ -290,3 +290,135 @@ export function dotPathToPathArray(dotPath: string): string[] {
   if (!dotPath) return [];
   return dotPath.split('.');
 }
+
+/**
+ * Matches a path array against a JSONPath pattern with wildcards
+ *
+ * Supports:
+ * - `*` matches any single segment
+ * - `[*]` matches any array index
+ * - `..` (recursive descent) matches any intermediate path
+ *
+ * @example
+ * matchPath(['users', '0', 'name'], '$.users[*].name') // true
+ * matchPath(['users', '1', 'name'], '$.users[*].name') // true
+ * matchPath(['a', 'b', 'c'], '$..c') // true (recursive descent)
+ */
+export function matchPath(path: string[], pattern: string): boolean {
+  // Parse pattern into segments
+  const patternSegments = parsePattern(pattern);
+
+  return matchSegments(path, patternSegments);
+}
+
+/**
+ * Parse a JSONPath pattern into segments
+ * Handles: $.foo, $[*], $.foo[0], $..bar, etc.
+ */
+function parsePattern(pattern: string): PatternSegment[] {
+  const segments: PatternSegment[] = [];
+
+  // Remove leading $
+  let p = pattern.startsWith('$') ? pattern.slice(1) : pattern;
+
+  while (p.length > 0) {
+    // Recursive descent
+    if (p.startsWith('..')) {
+      segments.push({ type: 'recursive' });
+      p = p.slice(2);
+      continue;
+    }
+
+    // Dot notation
+    if (p.startsWith('.')) {
+      p = p.slice(1);
+      continue;
+    }
+
+    // Bracket notation
+    if (p.startsWith('[')) {
+      const endBracket = p.indexOf(']');
+      if (endBracket === -1) break;
+
+      const content = p.slice(1, endBracket);
+      p = p.slice(endBracket + 1);
+
+      if (content === '*') {
+        segments.push({ type: 'wildcard' });
+      } else {
+        // Remove quotes if present
+        const cleaned = content.replace(/^['"]|['"]$/g, '');
+        segments.push({ type: 'literal', value: cleaned });
+      }
+      continue;
+    }
+
+    // Property name (dot notation without bracket)
+    const match = p.match(/^([^.[]+)/);
+    if (match) {
+      const name = match[1];
+      p = p.slice(name.length);
+
+      if (name === '*') {
+        segments.push({ type: 'wildcard' });
+      } else {
+        segments.push({ type: 'literal', value: name });
+      }
+      continue;
+    }
+
+    break;
+  }
+
+  return segments;
+}
+
+interface PatternSegment {
+  type: 'literal' | 'wildcard' | 'recursive';
+  value?: string;
+}
+
+/**
+ * Match path segments against pattern segments
+ */
+function matchSegments(path: string[], pattern: PatternSegment[]): boolean {
+  let pathIdx = 0;
+  let patternIdx = 0;
+
+  while (patternIdx < pattern.length) {
+    const seg = pattern[patternIdx];
+
+    if (seg.type === 'recursive') {
+      // Recursive descent: try all possible positions
+      patternIdx++;
+
+      // If this is the last pattern segment, match succeeds
+      if (patternIdx >= pattern.length) return true;
+
+      // Try matching remaining pattern at each position
+      for (let i = pathIdx; i <= path.length; i++) {
+        if (matchSegments(path.slice(i), pattern.slice(patternIdx))) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // Need more path segments
+    if (pathIdx >= path.length) return false;
+
+    if (seg.type === 'wildcard') {
+      // Wildcard matches any single segment
+      pathIdx++;
+      patternIdx++;
+    } else if (seg.type === 'literal') {
+      // Must match exactly
+      if (path[pathIdx] !== seg.value) return false;
+      pathIdx++;
+      patternIdx++;
+    }
+  }
+
+  // Pattern fully consumed, path should also be fully consumed
+  return pathIdx === path.length;
+}
