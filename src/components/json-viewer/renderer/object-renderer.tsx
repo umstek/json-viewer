@@ -8,6 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { sortArrayItems, sortObjectEntries } from '../utils/sorting';
 import { CopyButton } from './copy-button';
 import type { RouterOptions } from './router';
 
@@ -70,6 +71,15 @@ export function ObjectRenderer({
   const currentPath = path.join('.');
   const parentRef = useRef<HTMLDivElement>(null);
 
+  // Lazy loading logic
+  const {
+    currentDepth = 0,
+    maxInitialDepth = 3,
+    lazyLoadingEnabled = true,
+  } = options;
+  const shouldLazyLoad =
+    lazyLoadingEnabled && currentDepth >= maxInitialDepth && !isOpen;
+
   // Memoize entries and filtering to avoid unnecessary recalculations
   const { filteredEntries, shouldVirtualize } = useMemo(() => {
     const entries = Object.entries(value);
@@ -102,11 +112,16 @@ export function ObjectRenderer({
       return true;
     });
 
+    // Apply sorting
+    const sorted = options.sortOptions?.objectKeySort
+      ? sortObjectEntries(filtered, options.sortOptions.objectKeySort)
+      : filtered;
+
     return {
-      filteredEntries: filtered,
-      shouldVirtualize: filtered.length > VIRTUALIZATION_THRESHOLD,
+      filteredEntries: sorted,
+      shouldVirtualize: sorted.length > VIRTUALIZATION_THRESHOLD,
     };
-  }, [value, options.filterOptions]);
+  }, [value, options.filterOptions, options.sortOptions]);
 
   // Auto-expand if this path is part of the highlighted path
   useEffect(() => {
@@ -154,6 +169,15 @@ export function ObjectRenderer({
   };
 
   const renderContent = () => {
+    // Show placeholder if lazy loading is active
+    if (shouldLazyLoad) {
+      return (
+        <div className="text-muted-foreground text-sm italic">
+          Expand to load {filteredEntries.length} items (depth {currentDepth})
+        </div>
+      );
+    }
+
     if (!shouldVirtualize) {
       return filteredEntries.map(([key, val]: [string, unknown]) => (
         <div
@@ -192,6 +216,12 @@ export function ObjectRenderer({
     );
   };
 
+  // Render inline preview when collapsed
+  const inlinePreview =
+    !isOpen && options.inlineRouter
+      ? options.inlineRouter(value, path, filteredEntries.length)
+      : `{...${filteredEntries.length} items}`;
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="group flex items-center gap-1">
@@ -203,9 +233,7 @@ export function ObjectRenderer({
           />
         </CollapsibleTrigger>
         <span className="text-muted-foreground">
-          {'{'}
-          {!isOpen && `...${filteredEntries.length} items`}
-          {!isOpen && '}'}
+          {isOpen ? '{' : inlinePreview}
         </span>
         <CopyButton value={value} />
       </div>
@@ -226,6 +254,15 @@ export function ArrayRenderer({
   const [isOpen, setIsOpen] = useState(false);
   const currentPath = path.join('.');
   const parentRef = useRef<HTMLDivElement>(null);
+
+  // Lazy loading logic
+  const {
+    currentDepth = 0,
+    maxInitialDepth = 3,
+    lazyLoadingEnabled = true,
+  } = options;
+  const shouldLazyLoad =
+    lazyLoadingEnabled && currentDepth >= maxInitialDepth && !isOpen;
 
   // Memoize filtering to avoid unnecessary recalculations
   const { filteredItems, shouldVirtualize } = useMemo(() => {
@@ -251,11 +288,16 @@ export function ArrayRenderer({
       return true;
     });
 
+    // Apply sorting
+    const sorted = options.sortOptions?.arrayItemSort
+      ? sortArrayItems(filtered, options.sortOptions.arrayItemSort)
+      : filtered;
+
     return {
-      filteredItems: filtered,
-      shouldVirtualize: filtered.length > VIRTUALIZATION_THRESHOLD,
+      filteredItems: sorted,
+      shouldVirtualize: sorted.length > VIRTUALIZATION_THRESHOLD,
     };
-  }, [value, options.filterOptions]);
+  }, [value, options.filterOptions, options.sortOptions]);
 
   // Auto-expand if this path is part of the highlighted path
   useEffect(() => {
@@ -306,6 +348,15 @@ export function ArrayRenderer({
   };
 
   const renderContent = () => {
+    // Show placeholder if lazy loading is active
+    if (shouldLazyLoad) {
+      return (
+        <div className="text-muted-foreground text-sm italic">
+          Expand to load {filteredItems.length} items (depth {currentDepth})
+        </div>
+      );
+    }
+
     if (!shouldVirtualize) {
       return filteredItems.map((val: unknown, index: number) => (
         <div
@@ -347,6 +398,12 @@ export function ArrayRenderer({
     );
   };
 
+  // Render inline preview when collapsed
+  const inlinePreview =
+    !isOpen && options.inlineRouter
+      ? options.inlineRouter(value, path, filteredItems.length)
+      : `[...${filteredItems.length} items]`;
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="group flex items-center gap-1">
@@ -358,9 +415,7 @@ export function ArrayRenderer({
           />
         </CollapsibleTrigger>
         <span className="text-muted-foreground">
-          {'['}
-          {!isOpen && `...${filteredItems.length} items`}
-          {!isOpen && ']'}
+          {isOpen ? '[' : inlinePreview}
         </span>
         <CopyButton value={value} />
       </div>

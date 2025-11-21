@@ -57,6 +57,11 @@ This document provides guidelines for Claude when working with this codebase.
    - Evaluate new dependencies carefully for size and maintenance
    - Prefer well-maintained, popular libraries
    - Check security vulnerabilities regularly
+   - **IMPORTANT**: For complex data formats and validation, prefer battle-tested libraries over hand-rolled implementations
+     - YAML parsing/serialization: Use `js-yaml` instead of custom implementations
+     - CSV parsing/serialization: Use `papaparse` or `csv-stringify` instead of regex-based solutions
+     - Data validation: Use `zod`, `yup`, or similar validation libraries instead of custom regex patterns
+     - Rationale: These libraries handle edge cases, encoding issues, and standards compliance that custom code often misses
 
 10. **Build and Development**
     - Ensure the build passes: `bun run build`
