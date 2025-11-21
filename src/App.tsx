@@ -8,69 +8,260 @@ const dataUrls = {
   githubRepos: 'https://api.github.com/users/umstek/repos',
 };
 
+// Comprehensive sample data demonstrating all library capabilities
 const sampleData = {
-  user: {
-    name: 'John Doe',
-    email: 'john@example.com',
-    invalidEmail: 'not-an-email',
-    website: 'https://example.com',
-    created: '2024-01-15T10:30:00Z',
-    birthdate: '1990-05-15',
-    phone: '+1-555-123-4567',
-    invalidPhone: '123',
+  company: {
+    name: 'TechCorp International',
+    founded: '2015-03-22',
+    website: 'https://techcorp.example.com',
+    logo: 'https://picsum.photos/200/200',
+    headquarters: {
+      address: '123 Innovation Drive',
+      city: 'San Francisco',
+      country: 'USA',
+      coordinates: {
+        latitude: 37.7749,
+        longitude: -122.4194,
+      },
+    },
+    contact: {
+      email: 'info@techcorp.example.com',
+      phone: '+1-415-555-0100',
+      support: 'support@techcorp.example.com',
+    },
   },
-  identifiers: {
-    uuid: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    ipv4: '192.168.1.1',
-    invalidIpv4: '999.999.999.999',
-    ipv6: '2001:0db8:0000:0000:0000:8a2e:0370:7334',
-    creditCard: '4532-1488-0343-6467',
-    invalidCreditCard: '1234-5678-9012-3456',
+  employees: [
+    {
+      id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+      name: 'Alice Chen',
+      role: 'Engineering Lead',
+      email: 'alice.chen@techcorp.example.com',
+      phone: '+1-415-555-0101',
+      hiredAt: '2016-08-15T09:00:00Z',
+      avatar: 'https://i.pravatar.cc/150?u=alice',
+      skills: ['TypeScript', 'React', 'Node.js', 'PostgreSQL'],
+      active: true,
+      workstation: {
+        ip: '192.168.1.101',
+        hostname: 'dev-ws-101',
+      },
+    },
+    {
+      id: 'b1ffc00a-ad1c-5fg9-cc7e-7cc0ce491b22',
+      name: 'Bob Martinez',
+      role: 'Product Designer',
+      email: 'bob.martinez@techcorp.example.com',
+      phone: '+44-20-7946-0958',
+      hiredAt: '2018-03-01T10:30:00Z',
+      avatar: 'https://i.pravatar.cc/150?u=bob',
+      skills: ['Figma', 'UI/UX', 'Prototyping'],
+      active: true,
+      workstation: {
+        ip: '192.168.1.102',
+        hostname: 'design-ws-102',
+      },
+    },
+    {
+      id: 'c2ggd11b-be2d-6gh0-dd8f-8dd1df502c33',
+      name: 'Carol Nakamura',
+      role: 'DevOps Engineer',
+      email: 'carol.nakamura@techcorp.example.com',
+      phone: '+81-3-1234-5678',
+      hiredAt: '2019-11-20T08:00:00Z',
+      avatar: 'https://i.pravatar.cc/150?u=carol',
+      skills: ['Kubernetes', 'AWS', 'Terraform', 'Docker'],
+      active: true,
+      workstation: {
+        ip: '192.168.1.103',
+        hostname: 'ops-ws-103',
+      },
+    },
+  ],
+  projects: [
+    {
+      id: 'd3hhe22c-cf3e-7hi1-ee9g-9ee2eg613d44',
+      name: 'Customer Portal',
+      status: 'active',
+      startDate: '2024-01-15',
+      deadline: '2024-06-30T23:59:59Z',
+      repository: 'https://github.com/techcorp/customer-portal',
+      budget: 250000,
+      team: ['alice.chen@techcorp.example.com', 'bob.martinez@techcorp.example.com'],
+      milestones: [
+        { name: 'MVP Launch', date: '2024-03-01', completed: true },
+        { name: 'Beta Release', date: '2024-04-15', completed: true },
+        { name: 'Public Launch', date: '2024-06-30', completed: false },
+      ],
+    },
+    {
+      id: 'e4iif33d-dg4f-8ij2-ff0h-0ff3fh724e55',
+      name: 'Infrastructure Migration',
+      status: 'planning',
+      startDate: '2024-07-01',
+      deadline: '2024-12-31T23:59:59Z',
+      repository: 'https://github.com/techcorp/infra-migration',
+      budget: 500000,
+      team: ['carol.nakamura@techcorp.example.com'],
+      milestones: [],
+    },
+  ],
+  infrastructure: {
+    servers: [
+      {
+        name: 'prod-api-1',
+        ip: '10.0.1.10',
+        status: 'running',
+        cpu: 45.2,
+        memory: 68.7,
+        uptime: '45 days',
+      },
+      {
+        name: 'prod-api-2',
+        ip: '10.0.1.11',
+        status: 'running',
+        cpu: 38.9,
+        memory: 55.3,
+        uptime: '45 days',
+      },
+      {
+        name: 'prod-db-1',
+        ip: '10.0.2.10',
+        status: 'running',
+        cpu: 22.1,
+        memory: 82.4,
+        uptime: '90 days',
+      },
+    ],
+    loadBalancer: {
+      ip: '203.0.113.50',
+      requestsPerSecond: 1250,
+      healthyBackends: 2,
+      totalBackends: 2,
+    },
   },
-  codeExamples: {
-    javascript:
-      'const greeting = "Hello World";\nfunction sayHello() {\n  console.log(greeting);\n  return true;\n}',
-    typescript:
-      'interface User {\n  name: string;\n  age: number;\n}\nconst user: User = { name: "Alice", age: 30 };',
-    html: '<div class="container">\n  <h1>Hello World</h1>\n  <p>This is a paragraph</p>\n</div>',
-    css: '.container {\n  display: flex;\n  padding: 20px;\n  background-color: #f0f0f0;\n}',
-    sql: 'SELECT users.name, orders.total\nFROM users\nINNER JOIN orders ON users.id = orders.user_id\nWHERE orders.total > 100;',
-    json: '{\n  "name": "Example",\n  "version": "1.0.0",\n  "active": true\n}',
-  },
-  numbers: [1, 2, 3, 4, 5],
-  active: true,
-};
-
-// Sample data for diff viewer demo
-const beforeData = {
-  user: {
-    name: 'John Doe',
-    email: 'john@example.com',
-    age: 30,
+  analytics: {
+    lastUpdated: '2024-11-21T14:30:00Z',
+    visitors: {
+      today: 12543,
+      thisWeek: 87234,
+      thisMonth: 342567,
+    },
+    topPages: [
+      { path: '/products', views: 45230 },
+      { path: '/pricing', views: 23456 },
+      { path: '/about', views: 12345 },
+    ],
+    conversionRate: 3.24,
+    revenue: {
+      currency: 'USD',
+      today: 15420.5,
+      thisMonth: 487320.75,
+    },
   },
   settings: {
-    theme: 'dark',
-    notifications: true,
-    language: 'en',
+    features: {
+      darkMode: true,
+      notifications: true,
+      twoFactorAuth: true,
+      apiAccess: false,
+    },
+    integrations: [
+      {
+        name: 'Slack',
+        enabled: true,
+        webhook: 'https://hooks.slack.com/services/T00/B00/XXX',
+      },
+      {
+        name: 'GitHub',
+        enabled: true,
+        webhook: 'https://api.github.com/webhooks/12345',
+      },
+    ],
+    limits: {
+      maxUsers: 100,
+      maxStorage: null,
+      apiRateLimit: 1000,
+    },
   },
-  tags: ['developer', 'react'],
-  status: 'active',
+};
+
+// Sample data for diff viewer demo - API response before/after
+const beforeData = {
+  version: '1.2.0',
+  deployedAt: '2024-10-15T09:00:00Z',
+  config: {
+    server: {
+      host: '0.0.0.0',
+      port: 8080,
+      timeout: 30000,
+    },
+    database: {
+      host: 'db.internal.example.com',
+      port: 5432,
+      maxConnections: 50,
+      ssl: false,
+    },
+    cache: {
+      enabled: true,
+      ttl: 3600,
+      provider: 'redis',
+    },
+    logging: {
+      level: 'info',
+      format: 'json',
+    },
+  },
+  features: {
+    newDashboard: false,
+    darkMode: true,
+    apiV2: false,
+  },
+  endpoints: [
+    { path: '/api/users', methods: ['GET', 'POST'] },
+    { path: '/api/products', methods: ['GET'] },
+  ],
 };
 
 const afterData = {
-  user: {
-    name: 'Jane Doe',
-    email: 'jane@example.com',
-    age: 30,
-    role: 'admin',
+  version: '2.0.0',
+  deployedAt: '2024-11-21T14:30:00Z',
+  config: {
+    server: {
+      host: '0.0.0.0',
+      port: 8080,
+      timeout: 60000,
+      keepAlive: true,
+    },
+    database: {
+      host: 'db.internal.example.com',
+      port: 5432,
+      maxConnections: 100,
+      ssl: true,
+      pooling: { min: 5, max: 100 },
+    },
+    cache: {
+      enabled: true,
+      ttl: 7200,
+      provider: 'redis',
+      cluster: true,
+    },
+    logging: {
+      level: 'debug',
+      format: 'json',
+      destination: 'stdout',
+    },
   },
-  settings: {
-    theme: 'light',
-    notifications: true,
-    timezone: 'UTC',
+  features: {
+    newDashboard: true,
+    darkMode: true,
+    apiV2: true,
+    realTimeUpdates: true,
   },
-  tags: ['developer', 'react', 'typescript'],
-  status: 'active',
+  endpoints: [
+    { path: '/api/users', methods: ['GET', 'POST', 'PUT', 'DELETE'] },
+    { path: '/api/products', methods: ['GET', 'POST'] },
+    { path: '/api/analytics', methods: ['GET'] },
+  ],
 };
 
 function App() {
