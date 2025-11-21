@@ -41,7 +41,7 @@ jobs:
       - name: Build project
         run: bun run build:demo
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           # Upload entire repository
           path: 'dist'
