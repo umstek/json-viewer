@@ -3,7 +3,6 @@ import type { ReactNode } from 'react';
 import type { FilterOptions } from '../pojo-viewer';
 import type { SortOptions } from '../utils/sorting';
 import { applyTransformers, type Transformer } from '../utils/transforms';
-import type { FormatMapping } from '../validation/format-mapping';
 import {
   BooleanRenderer,
   NullRenderer,
@@ -29,7 +28,6 @@ export interface RouterOptions {
   onChange?: (path: string[], newValue: unknown) => void;
   readOnly?: boolean;
   focusedPath?: string[] | null;
-  formatMappings?: FormatMapping[];
 }
 
 function isPathMatch(

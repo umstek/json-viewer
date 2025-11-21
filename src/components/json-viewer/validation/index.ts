@@ -1,35 +1,17 @@
 /**
- * Validation module exports
- *
- * This module provides comprehensive validation using Zod schemas and libphonenumber-js,
- * with confidence-based detection for format inference.
+ * Validation module - actionable formats only
  */
 
-export type {
-  FormatDetectionResult,
-  ValidationCheckResult,
-  ValidationFormat,
-} from './types';
+export type { ActionableFormat, FormatResult } from './validators';
 
 export {
   detectFormat,
-  detectFormatWithConfidence,
   getPhoneMetadata,
-  validateBase64,
-  validateCreditCard,
   validateDate,
   validateDateTime,
-  validateDomain,
   validateEmail,
-  validateFormat,
-  validateHexColor,
-  validateHostname,
   validateIpv4,
-  validateIpv6,
-  validateJwt,
-  validateMacAddress,
   validatePhone,
-  validateTime,
   validateUrl,
   validateUuid,
 } from './validators';

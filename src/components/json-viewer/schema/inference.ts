@@ -355,31 +355,12 @@ function mergeArraySchemas(nodes: ArraySchemaNode[]): ArraySchemaNode {
 }
 
 /**
- * Detects string format based on patterns using Zod-based validation
- *
- * This function uses the new validation system with confidence scoring,
- * but maintains backward compatibility by returning a single format string.
- *
- * @param value - The string value to analyze
- * @returns The detected format, or undefined if no format matches
+ * Detects string format using Zod-based validation
  */
 function detectStringFormat(value: string): string | undefined {
-  // Use the new Zod-based validation system with confidence scoring
-  // Only return a format if confidence is >= 0.5 (medium-high confidence)
-  const result = detectFormat(value, 0.5);
-
-  if (!result) {
-    return undefined;
-  }
-
-  // Map validation formats to schema formats for backward compatibility
-  // Most formats map directly, but 'url' maps to 'uri' for JSON Schema compatibility
-  switch (result.format) {
-    case 'url':
-      return 'uri';
-    default:
-      return result.format;
-  }
+  const result = detectFormat(value);
+  if (!result) return undefined;
+  return result.format === 'url' ? 'uri' : result.format;
 }
 
 /**

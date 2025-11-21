@@ -1,5 +1,8 @@
+// Main components
 export type { JsonViewerProps } from './components/json-viewer';
 export { default as JsonViewer } from './components/json-viewer';
+export { default as PojoViewer } from './components/json-viewer/pojo-viewer';
+export { default as DiffViewer } from './components/json-viewer/diff-viewer';
 export type {
   DiffNode,
   DiffResult,
@@ -8,67 +11,12 @@ export type {
   DiffViewerProps,
   DiffViewMode,
 } from './components/json-viewer/diff-viewer';
-export { default as DiffViewer } from './components/json-viewer/diff-viewer';
+
+// Renderers
 export type {
-  BookmarkEntry,
-  BookmarkManagerProps,
-} from './components/json-viewer/features/bookmarks';
-export { BookmarkManager } from './components/json-viewer/features/bookmarks';
-export type { BreadcrumbNavProps } from './components/json-viewer/features/breadcrumbs';
-export { BreadcrumbNav } from './components/json-viewer/features/breadcrumbs';
-export type {
-  EditorProps,
-  ValueEditorProps,
-} from './components/json-viewer/features/editor';
-export {
-  BooleanEditor,
-  NullEditor,
-  NumberEditor,
-  StringEditor,
-  useJsonEditor,
-  ValueEditor,
-} from './components/json-viewer/features/editor';
-export type { ExportButtonProps } from './components/json-viewer/features/export';
-export { ExportButton } from './components/json-viewer/features/export';
-export type {
-  CustomKeyboardShortcut,
-  FocusState,
-  KeyboardHandler,
-  KeyboardHandlerMap,
-  KeyboardNavigationOptions,
-  KeyboardShortcut,
-  ShortcutsHelpButtonProps,
-  ShortcutsHelpProps,
-} from './components/json-viewer/features/keyboard';
-export {
-  DEFAULT_SHORTCUTS,
-  ShortcutsHelp,
-  ShortcutsHelpButton,
-  useKeyboardNavigation,
-} from './components/json-viewer/features/keyboard';
-export type {
-  ThemeProviderProps,
-  ThemeToggleProps,
-} from './components/json-viewer/features/theme';
-export {
-  ThemeProvider,
-  ThemeToggle,
-  useTheme,
-} from './components/json-viewer/features/theme';
-export { default as PojoViewer } from './components/json-viewer/pojo-viewer';
-export type { SchemaValidationRendererOptions } from './components/json-viewer/renderer/advanced/schema-validation';
-export {
-  createSchemaValidationRenderer,
-  ValidationErrorPanel,
-} from './components/json-viewer/renderer/advanced/schema-validation';
-export type {
-  ValidationFormat,
-  ValidationRendererOptions,
-} from './components/json-viewer/renderer/advanced/validation';
-export {
-  createValidationRenderer,
-  defaultValidationRenderer,
-} from './components/json-viewer/renderer/advanced/validation';
+  Renderer,
+  RenderProps,
+} from './components/json-viewer/renderer/renderer';
 export type {
   InlineRenderer,
   InlineRenderProps,
@@ -79,94 +27,90 @@ export {
   defaultObjectInlineRenderer,
   defaultStringInlineRenderer,
 } from './components/json-viewer/renderer/inline-renderer';
-export type {
-  Renderer,
-  RenderProps,
-} from './components/json-viewer/renderer/renderer';
-// JSON Schema support
-export type {
-  ArraySchemaNode,
-  BaseSchemaNode,
-  BooleanSchemaNode,
-  InferenceOptions,
-  JSONSchemaObject,
-  JSONSchemaValidationOptions,
-  JsonComplexType,
-  JsonPrimitiveType,
-  JsonType,
-  NullSchemaNode,
-  NumberSchemaNode,
-  ObjectSchemaNode,
-  Schema,
-  SchemaNode,
-  StringSchemaNode,
-  ValidationError,
-  ValidationResult,
-} from './components/json-viewer/schema';
 export {
-  clearValidatorCache,
-  convertJSONSchemaToSchema,
-  createJSONSchemaValidator,
-  getJsonType,
+  createActionableRenderer,
+  defaultValidationRenderer,
+} from './components/json-viewer/renderer/advanced/validation';
+
+// Features
+export { ThemeProvider, ThemeToggle, useTheme } from './components/json-viewer/features/theme';
+export type { ThemeProviderProps, ThemeToggleProps } from './components/json-viewer/features/theme';
+
+export { ExportButton } from './components/json-viewer/features/export';
+export type { ExportButtonProps } from './components/json-viewer/features/export';
+
+export { BookmarkManager } from './components/json-viewer/features/bookmarks';
+export type { BookmarkEntry, BookmarkManagerProps } from './components/json-viewer/features/bookmarks';
+
+export { BreadcrumbNav } from './components/json-viewer/features/breadcrumbs';
+export type { BreadcrumbNavProps } from './components/json-viewer/features/breadcrumbs';
+
+export {
+  useKeyboardNavigation,
+  ShortcutsHelp,
+  ShortcutsHelpButton,
+  DEFAULT_SHORTCUTS,
+} from './components/json-viewer/features/keyboard';
+export type {
+  KeyboardShortcut,
+  CustomKeyboardShortcut,
+  FocusState,
+} from './components/json-viewer/features/keyboard';
+
+export {
+  ValueEditor,
+  StringEditor,
+  NumberEditor,
+  BooleanEditor,
+  NullEditor,
+  useJsonEditor,
+} from './components/json-viewer/features/editor';
+export type { ValueEditorProps, EditorProps } from './components/json-viewer/features/editor';
+
+// Schema
+export {
   inferSchema,
   inferSchemaFromSamples,
+  validate,
   matches,
   matchesType,
-  validate,
+  getJsonType,
   validateWithJSONSchema,
+  createJSONSchemaValidator,
+  convertJSONSchemaToSchema,
+  clearValidatorCache,
 } from './components/json-viewer/schema';
-export {
-  calculateDiffStats,
-  computeDiff,
-  filterUnchanged,
-} from './components/json-viewer/utils/diff';
-export type { ExportFormat } from './components/json-viewer/utils/export-formats';
-export {
-  convertToFormat,
-  downloadFile,
-  exportData,
-  formatLabels,
-  getFileExtension,
-  getMimeType,
-} from './components/json-viewer/utils/export-formats';
 export type {
-  Transformer,
-  TransformProps,
-} from './components/json-viewer/utils/transforms';
+  Schema,
+  SchemaNode,
+  ValidationResult,
+  ValidationError,
+  JSONSchemaObject,
+} from './components/json-viewer/schema';
+
+// Validation - actionable formats only
+export type { ActionableFormat, FormatResult } from './components/json-viewer/validation';
+export {
+  detectFormat,
+  validateEmail,
+  validatePhone,
+  validateUrl,
+  validateDate,
+  validateDateTime,
+  validateIpv4,
+  validateUuid,
+  getPhoneMetadata,
+} from './components/json-viewer/validation';
+
+// Utilities
+export { computeDiff, calculateDiffStats, filterUnchanged } from './components/json-viewer/utils/diff';
+export { convertToFormat, exportData, downloadFile } from './components/json-viewer/utils/export-formats';
+export type { ExportFormat } from './components/json-viewer/utils/export-formats';
 export {
   applyTransformers,
   chainTransformers,
-  createConditionalTransformer,
-  createCurrencyTransformer,
-  createCustomTransformer,
-  createDateFormatTransformer,
-  createISODateTransformer,
-  createLowercaseTransformer,
-  createNumberFormatTransformer,
   createPathTransformer,
-  createPercentageTransformer,
-  createRoundTransformer,
-  createStringFormatTransformer,
-  createTimezoneTransformer,
-  createTrimTransformer,
-  createTruncateTransformer,
   createTypeTransformer,
-  createUppercaseTransformer,
+  createCustomTransformer,
 } from './components/json-viewer/utils/transforms';
-// Format mapping support
-export type {
-  FormatMapping,
-  FormatResolutionResult,
-} from './components/json-viewer/validation/format-mapping';
-export {
-  createEmailMappings,
-  createFormatMapping,
-  createIpMappings,
-  createPhoneMappings,
-  createStandardMappings,
-  createUrlMappings,
-  DEFAULT_PRIORITIES,
-  findMatchingMappings,
-  matchesPath,
-  resolveFormat,
-} from './components/json-viewer/validation/format-mapping';
+export type { Transformer, TransformProps } from './components/json-viewer/utils/transforms';

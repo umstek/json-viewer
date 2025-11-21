@@ -35,10 +35,7 @@ import {
   createSchemaValidationRenderer,
   ValidationErrorPanel,
 } from './renderer/advanced/schema-validation';
-import {
-  createValidationRenderer,
-  type ValidationRendererOptions,
-} from './renderer/advanced/validation';
+import { createActionableRenderer } from './renderer/advanced/validation';
 import type {
   JSONSchemaObject,
   JSONSchemaValidationOptions,
@@ -60,7 +57,6 @@ import {
   type SortOptions,
 } from './utils/sorting';
 import type { Transformer } from './utils/transforms';
-import type { FormatMapping } from './validation/format-mapping';
 
 export interface JsonViewerProps {
   json: string;
@@ -69,13 +65,11 @@ export interface JsonViewerProps {
   transformers?: Transformer[];
   showThemeToggle?: boolean;
   enableValidation?: boolean;
-  validationOptions?: ValidationRendererOptions;
   jsonSchema?: JSONSchemaObject;
   jsonSchemaOptions?: JSONSchemaValidationOptions;
   showValidationErrors?: boolean;
   keyboardShortcuts?: boolean;
   customShortcuts?: CustomKeyboardShortcut[];
-  formatMappings?: FormatMapping[];
 }
 
 interface SearchableObject {
@@ -109,13 +103,11 @@ export default function JsonViewer({
   transformers = [],
   showThemeToggle = false,
   enableValidation = false,
-  validationOptions,
   jsonSchema,
   jsonSchemaOptions,
   showValidationErrors = true,
   keyboardShortcuts = true,
   customShortcuts,
-  formatMappings = [],
 }: JsonViewerProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   // Validate JSON data against JSON Schema if provided
@@ -148,14 +140,9 @@ export default function JsonViewer({
       );
     }
 
-    // Add format validation renderer if enabled
+    // Add actionable format renderer if enabled
     if (enableValidation) {
-      baseRenderers.push(
-        createValidationRenderer({
-          ...validationOptions,
-          formatMappings,
-        }),
-      );
+      baseRenderers.push(createActionableRenderer());
     }
 
     return baseRenderers;
@@ -163,11 +150,9 @@ export default function JsonViewer({
     codeOptions,
     dateOptions,
     enableValidation,
-    validationOptions,
     jsonSchema,
     schemaValidation,
     showValidationErrors,
-    formatMappings,
   ]);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -534,7 +519,6 @@ export default function JsonViewer({
           searchQuery={queryType === 'text' ? searchQuery : ''}
           sortOptions={sortOptions}
           focusedPath={keyboard.focusState.focusedPath}
-          formatMappings={formatMappings}
         />
         {keyboardShortcuts && (
           <ShortcutsHelp
