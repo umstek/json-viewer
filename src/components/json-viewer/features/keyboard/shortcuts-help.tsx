@@ -115,7 +115,10 @@ export function ShortcutsHelp({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`max-w-2xl ${className}`}>
+      <DialogContent
+        className={`max-w-2xl ${className}`}
+        style={{ maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
+      >
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -137,7 +140,10 @@ export function ShortcutsHelp({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4 grid gap-6">
+        <div
+          className="mt-4 space-y-6 overflow-y-auto pr-2"
+          style={{ minHeight: 0, flex: 1 }}
+        >
           {Object.entries(groupedShortcuts).map(
             ([category, categoryShortcuts]) => {
               if (categoryShortcuts.length === 0) return null;
