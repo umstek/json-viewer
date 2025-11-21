@@ -82,7 +82,9 @@ describe('export-formats', () => {
       const result = convertToFormat(data, 'csv');
       expect(result).toContain('tags');
       // papaparse properly escapes the JSON array with CSV quote escaping
-      expect(result).toMatch(/\["one","two","three"\]|"?\[""one"",""two"",""three""\]"?/);
+      expect(result).toMatch(
+        /\["one","two","three"\]|"?\[""one"",""two"",""three""\]"?/,
+      );
     });
 
     it('should escape CSV values with commas', () => {

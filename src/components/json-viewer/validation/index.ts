@@ -14,6 +14,7 @@ export type {
 export {
   detectFormat,
   detectFormatWithConfidence,
+  getPhoneMetadata,
   validateBase64,
   validateCreditCard,
   validateDate,

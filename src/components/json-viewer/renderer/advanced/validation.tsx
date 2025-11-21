@@ -1,9 +1,7 @@
 /**
  * Validation renderer for common string formats
  *
- * This renderer detects and validates common string formats like email, URL, date, UUID, etc.
- * It shows visual indicators (icons, colors) for valid/invalid formats and provides
- * detailed information in tooltips.
+ * Uses Zod-based validators for format detection and validation.
  */
 
 import type { LucideIcon } from 'lucide-react';
@@ -24,6 +22,11 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
+  detectFormat as detectFormatZod,
+  type ValidationFormat,
+  validateFormat as validateFormatZod,
+} from '../../validation';
+import {
   DEFAULT_PRIORITIES,
   type FormatMapping,
   resolveFormat,
@@ -32,360 +35,40 @@ import { GenericRenderer } from '../generic-renderer';
 import type { Renderer } from '../renderer';
 
 /**
- * Supported validation formats
- */
-export type ValidationFormat =
-  | 'email'
-  | 'url'
-  | 'uri'
-  | 'date'
-  | 'date-time'
-  | 'time'
-  | 'uuid'
-  | 'ipv4'
-  | 'ipv6'
-  | 'phone'
-  | 'credit-card';
-
-/**
- * Validation result
- */
-interface ValidationResult {
-  isValid: boolean;
-  format: ValidationFormat;
-  message: string;
-  icon: LucideIcon;
-  iconColor: string;
-}
-
-/**
  * Options for the validation renderer
  */
 export interface ValidationRendererOptions {
-  /**
-   * Whether to enable auto-detection of formats
-   * Default: true
-   */
+  /** Whether to enable auto-detection of formats (default: true) */
   autoDetect?: boolean;
-
-  /**
-   * Explicitly specified format (overrides auto-detection)
-   */
+  /** Explicitly specified format (overrides auto-detection) */
   explicitFormat?: ValidationFormat;
-
-  /**
-   * Whether to show validation for valid values
-   * Default: true
-   */
+  /** Whether to show validation for valid values (default: true) */
   showValid?: boolean;
-
-  /**
-   * Whether to show validation for invalid values
-   * Default: true
-   */
+  /** Whether to show validation for invalid values (default: true) */
   showInvalid?: boolean;
-
-  /**
-   * Format mappings for explicit path-based format specification
-   * These mappings take precedence over auto-detection based on priority
-   */
+  /** Format mappings for explicit path-based format specification */
   formatMappings?: FormatMapping[];
 }
 
-/**
- * Detects the format of a string value
- * Reuses patterns from the schema infrastructure
- */
-function detectFormat(value: string): ValidationFormat | undefined {
-  // Date only (check before date-time)
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return 'date';
-  }
-
-  // ISO 8601 date/datetime
-  if (
-    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]\d{2}:\d{2})?$/.test(
-      value,
-    )
-  ) {
-    return 'date-time';
-  }
-
-  // Time only
-  if (/^\d{2}:\d{2}:\d{2}(\.\d{3})?$/.test(value)) {
-    return 'time';
-  }
-
-  // Email
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-    return 'email';
-  }
-
-  // URL
-  if (/^https?:\/\/.+/.test(value)) {
-    return 'url';
-  }
-
-  // UUID
-  if (
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-      value,
-    )
-  ) {
-    return 'uuid';
-  }
-
-  // IPv4
-  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(value)) {
-    // Validate that each octet is 0-255
-    const octets = value.split('.').map(Number);
-    if (octets.every((octet) => octet >= 0 && octet <= 255)) {
-      return 'ipv4';
-    }
-  }
-
-  // IPv6 (simplified pattern - full IPv6 validation is complex)
-  if (/^([0-9a-f]{0,4}:){7}[0-9a-f]{0,4}$/i.test(value)) {
-    return 'ipv6';
-  }
-
-  // Phone number (international format with optional country code)
-  // Matches: +1234567890, +1-234-567-8900, (123) 456-7890, etc.
-  if (
-    /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,4}[-\s.]?[0-9]{1,9}$/.test(
-      value,
-    )
-  ) {
-    // Only consider it a phone if it has at least 10 digits
-    const digitCount = value.replace(/\D/g, '').length;
-    if (digitCount >= 10 && digitCount <= 15) {
-      return 'phone';
-    }
-  }
-
-  // Credit card (Luhn algorithm would be ideal, but basic pattern check for now)
-  // Matches: 16 digits with optional spaces or dashes
-  if (/^(\d{4}[\s-]?){3}\d{4}$/.test(value)) {
-    const digits = value.replace(/[\s-]/g, '');
-    if (digits.length >= 13 && digits.length <= 19 && /^\d+$/.test(digits)) {
-      return 'credit-card';
-    }
-  }
-
-  return undefined;
-}
-
-/**
- * Validates a string value against a specific format
- */
-function validateFormat(
-  value: string,
-  format: ValidationFormat,
-): ValidationResult {
-  let isValid = false;
-  let message = '';
-  let icon: LucideIcon = XCircle;
-  let iconColor = 'text-red-500';
-
-  switch (format) {
-    case 'email': {
-      isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-      message = isValid
-        ? `Valid email address: ${value}`
-        : 'Invalid email address format';
-      icon = isValid ? CheckCircle : XCircle;
-      iconColor = isValid ? 'text-green-500' : 'text-red-500';
-      break;
-    }
-
-    case 'url':
-    case 'uri': {
-      isValid = /^https?:\/\/.+/.test(value);
-      if (isValid) {
-        try {
-          const url = new URL(value);
-          message = `Valid URL: ${url.protocol}//${url.host}`;
-        } catch {
-          isValid = false;
-          message = 'Invalid URL format';
-        }
-      } else {
-        message = 'Invalid URL format (must start with http:// or https://)';
-      }
-      icon = isValid ? CheckCircle : XCircle;
-      iconColor = isValid ? 'text-green-500' : 'text-red-500';
-      break;
-    }
-
-    case 'date': {
-      isValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
-      if (isValid) {
-        try {
-          const date = new Date(value);
-          if (Number.isNaN(date.getTime())) {
-            isValid = false;
-            message = 'Invalid date value';
-          } else {
-            message = `Valid date (ISO 8601): ${date.toLocaleDateString()}`;
-          }
-        } catch {
-          isValid = false;
-          message = 'Invalid date format';
-        }
-      } else {
-        message = 'Invalid date format (expected YYYY-MM-DD)';
-      }
-      icon = isValid ? CheckCircle : XCircle;
-      iconColor = isValid ? 'text-green-500' : 'text-red-500';
-      break;
-    }
-
-    case 'date-time': {
-      isValid =
-        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]\d{2}:\d{2})?$/.test(
-          value,
-        );
-      if (isValid) {
-        try {
-          const date = new Date(value);
-          if (Number.isNaN(date.getTime())) {
-            isValid = false;
-            message = 'Invalid datetime value';
-          } else {
-            message = `Valid ISO 8601 datetime: ${date.toLocaleString()}`;
-          }
-        } catch {
-          isValid = false;
-          message = 'Invalid datetime format';
-        }
-      } else {
-        message = 'Invalid datetime format (expected ISO 8601)';
-      }
-      icon = isValid ? CheckCircle : XCircle;
-      iconColor = isValid ? 'text-green-500' : 'text-red-500';
-      break;
-    }
-
-    case 'time': {
-      isValid = /^\d{2}:\d{2}:\d{2}(\.\d{3})?$/.test(value);
-      message = isValid
-        ? `Valid time format (HH:MM:SS): ${value}`
-        : 'Invalid time format (expected HH:MM:SS)';
-      icon = isValid ? CheckCircle : XCircle;
-      iconColor = isValid ? 'text-green-500' : 'text-red-500';
-      break;
-    }
-
-    case 'uuid': {
-      isValid =
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-          value,
-        );
-      if (isValid) {
-        const version = Number.parseInt(value.charAt(14), 16);
-        message = `Valid UUID (version ${version})`;
-      } else {
-        message = 'Invalid UUID format';
-      }
-      icon = isValid ? CheckCircle : XCircle;
-      iconColor = isValid ? 'text-green-500' : 'text-red-500';
-      break;
-    }
-
-    case 'ipv4': {
-      isValid = /^(\d{1,3}\.){3}\d{1,3}$/.test(value);
-      if (isValid) {
-        const octets = value.split('.').map(Number);
-        isValid = octets.every((octet) => octet >= 0 && octet <= 255);
-        message = isValid
-          ? `Valid IPv4 address: ${value}`
-          : 'Invalid IPv4 address (octets must be 0-255)';
-      } else {
-        message = 'Invalid IPv4 address format';
-      }
-      icon = isValid ? CheckCircle : XCircle;
-      iconColor = isValid ? 'text-green-500' : 'text-red-500';
-      break;
-    }
-
-    case 'ipv6': {
-      isValid = /^([0-9a-f]{0,4}:){7}[0-9a-f]{0,4}$/i.test(value);
-      message = isValid
-        ? `Valid IPv6 address: ${value}`
-        : 'Invalid IPv6 address format';
-      icon = isValid ? CheckCircle : XCircle;
-      iconColor = isValid ? 'text-green-500' : 'text-red-500';
-      break;
-    }
-
-    case 'phone': {
-      const digitCount = value.replace(/\D/g, '').length;
-      isValid = digitCount >= 10 && digitCount <= 15;
-      message = isValid
-        ? `Valid phone number (${digitCount} digits)`
-        : `Invalid phone number (expected 10-15 digits, got ${digitCount})`;
-      icon = isValid ? CheckCircle : XCircle;
-      iconColor = isValid ? 'text-green-500' : 'text-red-500';
-      break;
-    }
-
-    case 'credit-card': {
-      const digits = value.replace(/[\s-]/g, '');
-      isValid =
-        digits.length >= 13 && digits.length <= 19 && /^\d+$/.test(digits);
-      if (isValid) {
-        // Apply Luhn algorithm for more accurate validation
-        isValid = luhnCheck(digits);
-        message = isValid
-          ? `Valid credit card number (${digits.length} digits)`
-          : 'Invalid credit card number (failed Luhn check)';
-      } else {
-        message = 'Invalid credit card format (expected 13-19 digits)';
-      }
-      icon = isValid ? CheckCircle : XCircle;
-      iconColor = isValid ? 'text-green-500' : 'text-red-500';
-      break;
-    }
-
-    default: {
-      icon = AlertCircle;
-      iconColor = 'text-yellow-500';
-      message = `Unknown format: ${format}`;
-    }
-  }
-
-  return { isValid, format, message, icon, iconColor };
-}
-
-/**
- * Luhn algorithm for credit card validation
- */
-function luhnCheck(cardNumber: string): boolean {
-  let sum = 0;
-  let isEven = false;
-
-  // Loop through values starting from the rightmost digit
-  for (let i = cardNumber.length - 1; i >= 0; i--) {
-    let digit = Number.parseInt(cardNumber.charAt(i), 10);
-
-    if (isEven) {
-      digit *= 2;
-      if (digit > 9) {
-        digit -= 9;
-      }
-    }
-
-    sum += digit;
-    isEven = !isEven;
-  }
-
-  return sum % 10 === 0;
-}
+// Formats supported by this renderer's UI
+const SUPPORTED_FORMATS = new Set([
+  'email',
+  'url',
+  'uri',
+  'date',
+  'date-time',
+  'time',
+  'uuid',
+  'ipv4',
+  'ipv6',
+  'phone',
+  'credit-card',
+]);
 
 /**
  * Gets the icon for a format
  */
-function getFormatIcon(format: ValidationFormat): LucideIcon {
+function getFormatIcon(format: string): LucideIcon {
   switch (format) {
     case 'email':
       return Mail;
@@ -396,12 +79,62 @@ function getFormatIcon(format: ValidationFormat): LucideIcon {
       return Phone;
     case 'credit-card':
       return CreditCard;
-    case 'uuid':
-    case 'ipv4':
-    case 'ipv6':
-      return Hash;
     default:
-      return AlertCircle;
+      return Hash;
+  }
+}
+
+/**
+ * Gets display message for a validated format
+ */
+function getValidationMessage(
+  value: string,
+  format: string,
+  isValid: boolean,
+): string {
+  if (!isValid) {
+    return `Invalid ${format} format`;
+  }
+
+  switch (format) {
+    case 'email':
+      return `Valid email: ${value}`;
+    case 'url':
+    case 'uri':
+      try {
+        const url = new URL(value);
+        return `Valid URL: ${url.protocol}//${url.host}`;
+      } catch {
+        return `Valid URL: ${value}`;
+      }
+    case 'date':
+      try {
+        return `Valid date: ${new Date(value).toLocaleDateString()}`;
+      } catch {
+        return `Valid date: ${value}`;
+      }
+    case 'date-time':
+      try {
+        return `Valid datetime: ${new Date(value).toLocaleString()}`;
+      } catch {
+        return `Valid datetime: ${value}`;
+      }
+    case 'time':
+      return `Valid time: ${value}`;
+    case 'uuid': {
+      const version = Number.parseInt(value.charAt(14), 16);
+      return `Valid UUID (v${version})`;
+    }
+    case 'ipv4':
+      return `Valid IPv4: ${value}`;
+    case 'ipv6':
+      return `Valid IPv6: ${value}`;
+    case 'phone':
+      return `Valid phone number`;
+    case 'credit-card':
+      return `Valid credit card`;
+    default:
+      return `Valid ${format}`;
   }
 }
 
@@ -420,17 +153,12 @@ export function createValidationRenderer(
   } = options;
 
   return ({ value, path }) => {
-    // Only validate strings
     if (typeof value !== 'string') return null;
 
-    // Determine the format to validate using priority-based resolution:
-    // 1. Explicit format from options (highest priority)
-    // 2. Format mappings (by their configured priority)
-    // 3. Auto-detection (lowest priority)
-    let format: ValidationFormat | string | undefined = explicitFormat;
+    // Determine format: explicit > mappings > auto-detect
+    let format: string | undefined = explicitFormat;
     let formatSource: 'explicit' | 'mapping' | 'auto-detect' = 'explicit';
 
-    // If no explicit format, try format mappings
     if (!format && formatMappings.length > 0) {
       const resolution = resolveFormat(value, path, formatMappings);
       if (
@@ -442,34 +170,19 @@ export function createValidationRenderer(
       }
     }
 
-    // If still no format and auto-detect is enabled, try detection
     if (!format && autoDetect) {
-      format = detectFormat(value);
-      formatSource = 'auto-detect';
+      const detected = detectFormatZod(value);
+      if (detected) {
+        format = detected.format;
+        formatSource = 'auto-detect';
+      }
     }
 
-    // If no format detected or specified, don't render
     if (!format) return null;
 
-    // Only validate standard ValidationFormat types
-    // Custom formats from mappings will be displayed but not validated
-    const isStandardFormat = [
-      'email',
-      'url',
-      'uri',
-      'date',
-      'date-time',
-      'time',
-      'uuid',
-      'ipv4',
-      'ipv6',
-      'phone',
-      'credit-card',
-    ].includes(format);
-
-    if (!isStandardFormat) {
-      // For custom formats, just display the type without validation
-      const formatIcon = getFormatIcon(format as ValidationFormat);
+    // For unsupported formats, show info badge
+    if (!SUPPORTED_FORMATS.has(format)) {
+      const formatIcon = getFormatIcon(format);
       return (
         <TooltipProvider>
           <Tooltip>
@@ -484,7 +197,7 @@ export function createValidationRenderer(
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              <div className="flex flex-col gap-1 text-sm">
+              <div className="text-sm">
                 <div className="font-semibold">
                   Format: {format.toUpperCase()}
                 </div>
@@ -496,14 +209,17 @@ export function createValidationRenderer(
       );
     }
 
-    // Validate the value
-    const result = validateFormat(value, format as ValidationFormat);
+    // Validate using Zod
+    const result = validateFormatZod(value, format as ValidationFormat);
+    const isValid = result.valid;
 
-    // Filter based on validation result and options
-    if (!result.isValid && !showInvalid) return null;
-    if (result.isValid && !showValid) return null;
+    if (!isValid && !showInvalid) return null;
+    if (isValid && !showValid) return null;
 
-    const formatIcon = getFormatIcon(format as ValidationFormat);
+    const formatIcon = getFormatIcon(format);
+    const StatusIcon = isValid ? CheckCircle : XCircle;
+    const iconColor = isValid ? 'text-green-500' : 'text-red-500';
+    const message = getValidationMessage(value, format, isValid);
 
     return (
       <TooltipProvider>
@@ -513,17 +229,17 @@ export function createValidationRenderer(
               <GenericRenderer icon={formatIcon} type={format} value={value}>
                 <div className="flex items-center gap-2">
                   <pre className="font-mono text-sm">{value}</pre>
-                  <result.icon className={`h-4 w-4 ${result.iconColor}`} />
+                  <StatusIcon className={`h-4 w-4 ${iconColor}`} />
                 </div>
               </GenericRenderer>
             </div>
           </TooltipTrigger>
           <TooltipContent>
-            <div className="flex flex-col gap-1 text-sm">
+            <div className="text-sm">
               <div className="font-semibold">
                 Format: {format.toUpperCase()}
               </div>
-              <div>{result.message}</div>
+              <div>{message}</div>
               {formatSource === 'mapping' && (
                 <div className="text-muted-foreground text-xs">
                   (from format mapping)
@@ -541,3 +257,6 @@ export function createValidationRenderer(
  * Default validation renderer with auto-detection enabled
  */
 export const defaultValidationRenderer = createValidationRenderer();
+
+// Re-export ValidationFormat type for convenience
+export type { ValidationFormat };
