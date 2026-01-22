@@ -10,6 +10,8 @@ export type {
   DiffViewMode,
 } from './components/json-viewer/diff-viewer';
 export { default as DiffViewer } from './components/json-viewer/diff-viewer';
+export type { ErrorBoundaryProps } from './components/json-viewer/error-boundary';
+export { JsonViewerErrorBoundary } from './components/json-viewer/error-boundary';
 export type {
   BookmarkEntry,
   BookmarkManagerProps,
@@ -29,6 +31,17 @@ export {
   useJsonEditor,
   ValueEditor,
 } from './components/json-viewer/features/editor';
+export type {
+  ExpansionContextValue,
+  ExpansionControlsProps,
+  ExpansionProviderProps,
+} from './components/json-viewer/features/expansion';
+export {
+  ExpansionControls,
+  ExpansionProvider,
+  useExpansion,
+  useOptionalExpansion,
+} from './components/json-viewer/features/expansion';
 export type { ExportButtonProps } from './components/json-viewer/features/export';
 export { ExportButton } from './components/json-viewer/features/export';
 export type {
@@ -121,6 +134,12 @@ export {
   validate,
   validateWithJSONSchema,
 } from './components/json-viewer/schema';
+export {
+  CIRCULAR_REF_PLACEHOLDER,
+  cloneWithoutCircular,
+  hasCircularReference,
+  safeStringify,
+} from './components/json-viewer/utils/circular-detection';
 // Utilities
 export {
   calculateDiffStats,

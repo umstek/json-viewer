@@ -135,13 +135,23 @@ function validateString(
 
   // Pattern validation
   if (node.pattern) {
-    const regex = new RegExp(node.pattern);
-    if (!regex.test(value)) {
+    try {
+      const regex = new RegExp(node.pattern);
+      if (!regex.test(value)) {
+        errors.push({
+          path,
+          message: `String does not match pattern ${node.pattern}`,
+          expected: `pattern: ${node.pattern}`,
+          actual: value,
+          rule: 'pattern',
+        });
+      }
+    } catch (_e) {
       errors.push({
         path,
-        message: `String does not match pattern ${node.pattern}`,
-        expected: `pattern: ${node.pattern}`,
-        actual: value,
+        message: `Invalid regex pattern: ${node.pattern}`,
+        expected: 'valid regex pattern',
+        actual: node.pattern,
         rule: 'pattern',
       });
     }
@@ -351,6 +361,42 @@ function validateArray(
 }
 
 /**
+ * Validates an IPv6 address
+ * Supports full form, compressed form (::), and loopback (::1)
+ */
+function isValidIPv6(value: string): boolean {
+  // Handle empty string
+  if (!value) return false;
+
+  // Split by ::
+  const parts = value.split('::');
+
+  // Can have at most one ::
+  if (parts.length > 2) return false;
+
+  if (parts.length === 2) {
+    // Compressed form
+    const left = parts[0] ? parts[0].split(':') : [];
+    const right = parts[1] ? parts[1].split(':') : [];
+
+    // Total groups must be <= 8
+    if (left.length + right.length > 7) return false;
+
+    // Validate each group
+    const allGroups = [...left, ...right];
+    return allGroups.every(
+      (group) => group === '' || /^[0-9a-f]{1,4}$/i.test(group),
+    );
+  }
+
+  // Full form - must have exactly 8 groups
+  const groups = value.split(':');
+  if (groups.length !== 8) return false;
+
+  return groups.every((group) => /^[0-9a-f]{1,4}$/i.test(group));
+}
+
+/**
  * Validates string format
  */
 function validateFormat(
@@ -407,7 +453,7 @@ function validateFormat(
 
     case 'ipv6':
       pattern = 'valid IPv6 address';
-      isValid = /^([0-9a-f]{0,4}:){7}[0-9a-f]{0,4}$/i.test(value);
+      isValid = isValidIPv6(value);
       break;
 
     default:

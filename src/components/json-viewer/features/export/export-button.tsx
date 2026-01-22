@@ -1,4 +1,4 @@
-import { Download } from 'lucide-react';
+import { Check, Clipboard, Download } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -7,6 +7,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import {
+  convertToFormat,
   type ExportFormat,
   exportData,
   formatLabels,
@@ -48,6 +49,7 @@ export function ExportButton({
 }: ExportButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [hasCopied, setHasCopied] = useState(false);
 
   const handleExport = async (format: ExportFormat) => {
     try {
@@ -63,10 +65,24 @@ export function ExportButton({
       setIsOpen(false);
     } catch (error) {
       console.error('Export failed:', error);
-      // You could add toast notification here
       alert(`Export failed: ${(error as Error).message}`);
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleCopyToClipboard = async () => {
+    try {
+      const content = convertToFormat(data, 'json');
+      await navigator.clipboard.writeText(content);
+      setHasCopied(true);
+      setTimeout(() => {
+        setHasCopied(false);
+        setIsOpen(false);
+      }, 1000);
+    } catch (error) {
+      console.error('Copy failed:', error);
+      alert(`Copy failed: ${(error as Error).message}`);
     }
   };
 
@@ -95,6 +111,26 @@ export function ExportButton({
             </p>
           </div>
           <div className="grid gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyToClipboard}
+              disabled={isExporting}
+              className="justify-start gap-2"
+            >
+              {hasCopied ? (
+                <>
+                  <Check className="h-4 w-4 text-green-600" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Clipboard className="h-4 w-4" />
+                  Copy to clipboard
+                </>
+              )}
+            </Button>
+            <div className="my-1 border-t" />
             {formats.map((format) => (
               <Button
                 key={format}

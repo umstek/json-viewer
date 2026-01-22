@@ -23,7 +23,11 @@ export function CopyButton({ value }: CopyButtonProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="ml-2 h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100"
+        className={`ml-2 h-7 w-7 transition-opacity ${
+          hasCopied
+            ? 'opacity-100 text-green-600 dark:text-green-400'
+            : 'opacity-0 group-hover:opacity-100'
+        }`}
         onClick={handleCopy}
       >
         {hasCopied ? (

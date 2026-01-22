@@ -2,6 +2,8 @@
  * Diff utility for comparing two JSON structures
  */
 
+import { CIRCULAR_REF_PLACEHOLDER } from './circular-detection';
+
 export type DiffType = 'added' | 'removed' | 'modified' | 'unchanged';
 
 export interface DiffResult {
@@ -25,17 +27,31 @@ export interface DiffStats {
 
 /**
  * Compare two values and determine if they are equal
+ * Handles circular references by tracking seen objects
  */
-function deepEqual(a: unknown, b: unknown): boolean {
+function deepEqual(
+  a: unknown,
+  b: unknown,
+  seenA = new WeakSet<object>(),
+  seenB = new WeakSet<object>(),
+): boolean {
   if (a === b) return true;
   if (a === null || b === null) return false;
   if (a === undefined || b === undefined) return false;
   if (typeof a !== typeof b) return false;
 
   if (typeof a === 'object' && typeof b === 'object') {
+    // Check for circular references
+    if (seenA.has(a) || seenB.has(b)) {
+      // Both circular = equal, one circular = not equal
+      return seenA.has(a) && seenB.has(b);
+    }
+    seenA.add(a);
+    seenB.add(b);
+
     if (Array.isArray(a) && Array.isArray(b)) {
       if (a.length !== b.length) return false;
-      return a.every((item, index) => deepEqual(item, b[index]));
+      return a.every((item, index) => deepEqual(item, b[index], seenA, seenB));
     }
 
     if (Array.isArray(a) !== Array.isArray(b)) return false;
@@ -49,6 +65,8 @@ function deepEqual(a: unknown, b: unknown): boolean {
       deepEqual(
         (a as Record<string, unknown>)[key],
         (b as Record<string, unknown>)[key],
+        seenA,
+        seenB,
       ),
     );
   }
@@ -58,11 +76,13 @@ function deepEqual(a: unknown, b: unknown): boolean {
 
 /**
  * Compute diff between two values
+ * Handles circular references by tracking seen objects
  */
 export function computeDiff(
   left: unknown,
   right: unknown,
   path: string[] = [],
+  seen = new WeakSet<object>(),
 ): DiffResult {
   // Handle null/undefined cases
   if (left === undefined && right === undefined) {
@@ -77,6 +97,36 @@ export function computeDiff(
     return { type: 'removed', path, leftValue: left };
   }
 
+  // Check for circular references in objects
+  if (typeof left === 'object' && left !== null && seen.has(left)) {
+    return {
+      type: 'unchanged',
+      path,
+      leftValue: CIRCULAR_REF_PLACEHOLDER,
+      rightValue:
+        typeof right === 'object' && right !== null && seen.has(right)
+          ? CIRCULAR_REF_PLACEHOLDER
+          : right,
+    };
+  }
+
+  if (typeof right === 'object' && right !== null && seen.has(right)) {
+    return {
+      type: 'modified',
+      path,
+      leftValue: left,
+      rightValue: CIRCULAR_REF_PLACEHOLDER,
+    };
+  }
+
+  // Track objects we've seen
+  if (typeof left === 'object' && left !== null) {
+    seen.add(left);
+  }
+  if (typeof right === 'object' && right !== null) {
+    seen.add(right);
+  }
+
   // Check if values are equal
   if (deepEqual(left, right)) {
     return { type: 'unchanged', path, leftValue: left, rightValue: right };
@@ -84,7 +134,7 @@ export function computeDiff(
 
   // Handle arrays
   if (Array.isArray(left) && Array.isArray(right)) {
-    return computeArrayDiff(left, right, path);
+    return computeArrayDiff(left, right, path, seen);
   }
 
   // Handle objects
@@ -100,6 +150,7 @@ export function computeDiff(
       left as Record<string, unknown>,
       right as Record<string, unknown>,
       path,
+      seen,
     );
   }
 
@@ -114,6 +165,7 @@ function computeArrayDiff(
   left: unknown[],
   right: unknown[],
   path: string[],
+  seen: WeakSet<object>,
 ): DiffResult {
   const children: DiffNode[] = [];
   const maxLength = Math.max(left.length, right.length);
@@ -122,7 +174,12 @@ function computeArrayDiff(
     const leftItem = i < left.length ? left[i] : undefined;
     const rightItem = i < right.length ? right[i] : undefined;
 
-    const itemDiff = computeDiff(leftItem, rightItem, [...path, String(i)]);
+    const itemDiff = computeDiff(
+      leftItem,
+      rightItem,
+      [...path, String(i)],
+      seen,
+    );
     children.push({
       ...itemDiff,
       key: i,
@@ -149,6 +206,7 @@ function computeObjectDiff(
   left: Record<string, unknown>,
   right: Record<string, unknown>,
   path: string[],
+  seen: WeakSet<object>,
 ): DiffResult {
   const children: DiffNode[] = [];
   const allKeys = new Set([...Object.keys(left), ...Object.keys(right)]);
@@ -157,7 +215,7 @@ function computeObjectDiff(
     const leftValue = left[key];
     const rightValue = right[key];
 
-    const itemDiff = computeDiff(leftValue, rightValue, [...path, key]);
+    const itemDiff = computeDiff(leftValue, rightValue, [...path, key], seen);
     children.push({
       ...itemDiff,
       key,

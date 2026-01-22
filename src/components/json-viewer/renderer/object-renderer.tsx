@@ -2,12 +2,13 @@ import type { VirtualItem } from '@tanstack/react-virtual';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChevronRight } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { useOptionalExpansion } from '../features/expansion';
 import { sortArrayItems, sortObjectEntries } from '../utils/sorting';
 import { CopyButton } from './copy-button';
 import type { RouterOptions } from './router';
@@ -67,8 +68,26 @@ export function ObjectRenderer({
   path,
   options,
 }: ObjectRendererProps) {
-  const [isOpen, setIsOpen] = useState(false);
   const currentPath = path.join('.');
+  const expansionContext = useOptionalExpansion();
+
+  // Use context-based expansion if available, otherwise use local state
+  const [localIsOpen, setLocalIsOpen] = useState(false);
+
+  const isOpen = expansionContext
+    ? expansionContext.isExpanded(currentPath)
+    : localIsOpen;
+
+  const setIsOpen = useCallback(
+    (open: boolean) => {
+      if (expansionContext) {
+        expansionContext.setExpanded(currentPath, open);
+      } else {
+        setLocalIsOpen(open);
+      }
+    },
+    [expansionContext, currentPath],
+  );
   const parentRef = useRef<HTMLDivElement>(null);
 
   // Lazy loading logic
@@ -131,7 +150,7 @@ export function ObjectRenderer({
         setIsOpen(true);
       }
     }
-  }, [options.highlightedPath, currentPath]);
+  }, [options.highlightedPath, currentPath, setIsOpen]);
 
   const virtualizer = useVirtualizer({
     count: filteredEntries.length,
@@ -251,9 +270,27 @@ export function ArrayRenderer({
   path,
   options,
 }: ObjectRendererProps) {
-  const [isOpen, setIsOpen] = useState(false);
   const currentPath = path.join('.');
+  const expansionContext = useOptionalExpansion();
   const parentRef = useRef<HTMLDivElement>(null);
+
+  // Use context-based expansion if available, otherwise use local state
+  const [localIsOpen, setLocalIsOpen] = useState(false);
+
+  const isOpen = expansionContext
+    ? expansionContext.isExpanded(currentPath)
+    : localIsOpen;
+
+  const setIsOpen = useCallback(
+    (open: boolean) => {
+      if (expansionContext) {
+        expansionContext.setExpanded(currentPath, open);
+      } else {
+        setLocalIsOpen(open);
+      }
+    },
+    [expansionContext, currentPath],
+  );
 
   // Lazy loading logic
   const {
@@ -307,7 +344,7 @@ export function ArrayRenderer({
         setIsOpen(true);
       }
     }
-  }, [options.highlightedPath, currentPath]);
+  }, [options.highlightedPath, currentPath, setIsOpen]);
 
   const virtualizer = useVirtualizer({
     count: filteredItems.length,

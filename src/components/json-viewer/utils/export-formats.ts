@@ -4,6 +4,11 @@
 
 import yaml from 'js-yaml';
 import Papa from 'papaparse';
+import {
+  cloneWithoutCircular,
+  hasCircularReference,
+  safeStringify,
+} from './circular-detection';
 
 export type ExportFormat = 'json' | 'json-minified' | 'yaml' | 'csv';
 
@@ -133,20 +138,26 @@ function toCSV(data: unknown): string {
 
 /**
  * Converts data to the specified format
+ * Handles circular references safely by replacing them with a placeholder
  */
 export function convertToFormat(data: unknown, format: ExportFormat): string {
+  // Handle circular references for all formats
+  const safeData = hasCircularReference(data)
+    ? cloneWithoutCircular(data)
+    : data;
+
   switch (format) {
     case 'json':
-      return JSON.stringify(data, null, 2);
+      return safeStringify(safeData, 2);
 
     case 'json-minified':
-      return JSON.stringify(data);
+      return safeStringify(safeData, 0);
 
     case 'yaml':
-      return toYAML(data);
+      return toYAML(safeData);
 
     case 'csv':
-      return toCSV(data);
+      return toCSV(safeData);
 
     default:
       throw new Error(`Unsupported format: ${format}`);
