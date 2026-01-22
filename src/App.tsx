@@ -86,7 +86,10 @@ const sampleData = {
       deadline: '2024-06-30T23:59:59Z',
       repository: 'https://github.com/techcorp/customer-portal',
       budget: 250000,
-      team: ['alice.chen@techcorp.example.com', 'bob.martinez@techcorp.example.com'],
+      team: [
+        'alice.chen@techcorp.example.com',
+        'bob.martinez@techcorp.example.com',
+      ],
       milestones: [
         { name: 'MVP Launch', date: '2024-03-01', completed: true },
         { name: 'Beta Release', date: '2024-04-15', completed: true },

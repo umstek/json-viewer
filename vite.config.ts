@@ -59,6 +59,10 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    // Add any other necessary Vitest configurations
+    server: {
+      deps: {
+        inline: ['zod'],
+      },
+    },
   },
 });

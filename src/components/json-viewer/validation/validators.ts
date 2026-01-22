@@ -11,7 +11,7 @@
  */
 
 import { isValidPhoneNumber, parsePhoneNumber } from 'libphonenumber-js';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 // Only actionable formats
 export type ActionableFormat =
@@ -28,13 +28,13 @@ export interface FormatResult {
   action: string; // What you can DO with it
 }
 
-// Zod schemas for validation
-const emailSchema = z.string().email();
-const urlSchema = z.string().url();
-const uuidSchema = z.string().uuid();
-const ipv4Schema = z.string().ip({ version: 'v4' });
-const dateSchema = z.string().date();
-const dateTimeSchema = z.string().datetime({ offset: true });
+// Zod v4 schemas for validation
+const emailSchema = z.email();
+const urlSchema = z.url();
+const uuidSchema = z.uuid();
+const ipv4Schema = z.ipv4();
+const dateSchema = z.iso.date();
+const dateTimeSchema = z.iso.datetime({ offset: true });
 
 // Validators
 export const validateEmail = (v: string) => emailSchema.safeParse(v).success;
