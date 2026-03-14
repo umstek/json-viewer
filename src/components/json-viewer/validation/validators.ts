@@ -14,14 +14,7 @@ import { isValidPhoneNumber, parsePhoneNumber } from 'libphonenumber-js';
 import { z } from 'zod/v4';
 
 // Only actionable formats
-export type ActionableFormat =
-  | 'email'
-  | 'phone'
-  | 'url'
-  | 'date'
-  | 'date-time'
-  | 'ipv4'
-  | 'uuid';
+export type ActionableFormat = 'email' | 'phone' | 'url' | 'date' | 'date-time' | 'ipv4' | 'uuid';
 
 export interface FormatResult {
   format: ActionableFormat;
@@ -42,8 +35,7 @@ export const validateUrl = (v: string) => urlSchema.safeParse(v).success;
 export const validateUuid = (v: string) => uuidSchema.safeParse(v).success;
 export const validateIpv4 = (v: string) => ipv4Schema.safeParse(v).success;
 export const validateDate = (v: string) => dateSchema.safeParse(v).success;
-export const validateDateTime = (v: string) =>
-  dateTimeSchema.safeParse(v).success;
+export const validateDateTime = (v: string) => dateTimeSchema.safeParse(v).success;
 
 // Phone validation - more lenient
 // libphonenumber-js is strict, so we also accept common patterns

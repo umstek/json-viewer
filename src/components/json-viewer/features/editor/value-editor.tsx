@@ -6,19 +6,9 @@
 import { Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { SchemaNode } from '../../schema/types';
-import {
-  BooleanEditor,
-  NullEditor,
-  NumberEditor,
-  StringEditor,
-} from './inline-editors';
+import { BooleanEditor, NullEditor, NumberEditor, StringEditor } from './inline-editors';
 
 export interface ValueEditorProps {
   value: unknown;
@@ -185,11 +175,7 @@ export function useJsonEditor(initialData: unknown) {
 /**
  * Updates a value at a specific path in a nested object/array
  */
-function updateValueAtPath(
-  data: unknown,
-  path: string[],
-  newValue: unknown,
-): unknown {
+function updateValueAtPath(data: unknown, path: string[], newValue: unknown): unknown {
   if (path.length === 0) {
     return newValue;
   }

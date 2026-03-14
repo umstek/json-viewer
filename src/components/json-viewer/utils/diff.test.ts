@@ -1,10 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import {
-  calculateDiffStats,
-  computeDiff,
-  filterUnchanged,
-  flattenDiff,
-} from './diff';
+import { describe, expect, it } from 'vite-plus/test';
+import { calculateDiffStats, computeDiff, filterUnchanged, flattenDiff } from './diff';
 
 describe('computeDiff', () => {
   it('should detect unchanged primitive values', () => {
@@ -234,10 +229,7 @@ describe('calculateDiffStats', () => {
 
 describe('flattenDiff', () => {
   it('should flatten diff tree into a list', () => {
-    const diff = computeDiff(
-      { a: 1, b: { c: 2 } },
-      { a: 2, b: { c: 2, d: 3 } },
-    );
+    const diff = computeDiff({ a: 1, b: { c: 2 } }, { a: 2, b: { c: 2, d: 3 } });
     const flattened = flattenDiff(diff);
 
     expect(flattened.length).toBeGreaterThan(0);

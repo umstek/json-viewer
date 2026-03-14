@@ -1,11 +1,4 @@
-import {
-  createContext,
-  type ReactNode,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from 'react';
+import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 
 export interface ExpansionContextValue {
   /** Expand all nodes */
@@ -36,13 +29,8 @@ export interface ExpansionProviderProps {
   defaultExpanded?: boolean;
 }
 
-export function ExpansionProvider({
-  children,
-  defaultExpanded = false,
-}: ExpansionProviderProps) {
-  const [expansionMap, setExpansionMap] = useState<Map<string, boolean>>(
-    new Map(),
-  );
+export function ExpansionProvider({ children, defaultExpanded = false }: ExpansionProviderProps) {
+  const [expansionMap, setExpansionMap] = useState<Map<string, boolean>>(new Map());
   const [expansionVersion, setExpansionVersion] = useState(0);
   const [globalExpanded, setGlobalExpanded] = useState<boolean | null>(
     defaultExpanded ? true : null,
@@ -132,11 +120,7 @@ export function ExpansionProvider({
     ],
   );
 
-  return (
-    <ExpansionContext.Provider value={value}>
-      {children}
-    </ExpansionContext.Provider>
-  );
+  return <ExpansionContext.Provider value={value}>{children}</ExpansionContext.Provider>;
 }
 
 export function useExpansion(): ExpansionContextValue {

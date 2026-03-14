@@ -242,11 +242,4 @@ for (const error of debugResult.errors) {
   console.log(`    Rule: ${error.rule}`);
 }
 
-export {
-  apiSchema,
-  complexSchema,
-  formatSchema,
-  multiSampleSchema,
-  passwordSchema,
-  userSchema,
-};
+export { apiSchema, complexSchema, formatSchema, multiSampleSchema, passwordSchema, userSchema };

@@ -1,19 +1,9 @@
 import { ArrowDownAZ, Filter, Search } from 'lucide-react';
-import {
-  type ChangeEvent,
-  type KeyboardEvent,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { type ChangeEvent, type KeyboardEvent, useMemo, useRef, useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '../ui/button';
 import { BreadcrumbNav } from './features/breadcrumbs';
 import { ExportButton } from './features/export';
@@ -36,10 +26,7 @@ import {
   ValidationErrorPanel,
 } from './renderer/advanced/schema-validation';
 import { createActionableRenderer } from './renderer/advanced/validation';
-import type {
-  JSONSchemaObject,
-  JSONSchemaValidationOptions,
-} from './schema/json-schema';
+import type { JSONSchemaObject, JSONSchemaValidationOptions } from './schema/json-schema';
 import { validateWithJSONSchema } from './schema/json-schema';
 import type { ValidationResult } from './schema/types';
 import {
@@ -117,7 +104,7 @@ export default function JsonViewer({
     try {
       const data = JSON.parse(json);
       return validateWithJSONSchema(data, jsonSchema, jsonSchemaOptions);
-    } catch (_error) {
+    } catch {
       // Invalid JSON, return null and let the JSON parsing error handle it
       return null;
     }
@@ -158,14 +145,10 @@ export default function JsonViewer({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<QueryResult[]>([]);
   const [currentResultIndex, setCurrentResultIndex] = useState(0);
-  const [filterOptions, setFilterOptions] =
-    useState<FilterOptions>(defaultFilterOptions);
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>(defaultFilterOptions);
   const [excludeKeyInput, setExcludeKeyInput] = useState('');
-  const [queryType, setQueryType] = useState<
-    'json-pointer' | 'jsonpath' | 'text'
-  >('text');
-  const [sortOptions, setSortOptions] =
-    useState<SortOptions>(defaultSortOptions);
+  const [queryType, setQueryType] = useState<'json-pointer' | 'jsonpath' | 'text'>('text');
+  const [sortOptions, setSortOptions] = useState<SortOptions>(defaultSortOptions);
 
   // Parse data once for keyboard navigation
   const parsedData = useMemo(() => {
@@ -222,15 +205,11 @@ export default function JsonViewer({
     if (direction === 'next') {
       setCurrentResultIndex((prev) => (prev + 1) % searchResults.length);
     } else {
-      setCurrentResultIndex((prev) =>
-        prev === 0 ? searchResults.length - 1 : prev - 1,
-      );
+      setCurrentResultIndex((prev) => (prev === 0 ? searchResults.length - 1 : prev - 1));
     }
   };
 
-  const handleFilterChange = (
-    key: keyof Omit<FilterOptions, 'excludedKeys'>,
-  ) => {
+  const handleFilterChange = (key: keyof Omit<FilterOptions, 'excludedKeys'>) => {
     setFilterOptions((prev) => ({
       ...prev,
       [key]: !prev[key],
@@ -276,28 +255,23 @@ export default function JsonViewer({
   try {
     const data = JSON.parse(json);
     return (
-      <div
-        ref={keyboard.containerRef}
-        className="w-full space-y-4 overflow-hidden"
-      >
+      <div ref={keyboard.containerRef} className="w-full space-y-4 overflow-hidden">
         {jsonSchema && schemaValidation && showValidationErrors && (
           <ValidationErrorPanel errors={schemaValidation.errors} />
         )}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
+            <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
             <Input
               ref={searchInputRef}
               type="text"
               placeholder="Search, JSONPath ($.path), or JSON Pointer (/path)..."
               value={searchQuery}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                handleSearch(e.target.value)
-              }
+              onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
               className="pr-24 pl-8"
             />
             {searchQuery && (
-              <div className="absolute top-2.5 right-2 text-muted-foreground text-xs">
+              <div className="text-muted-foreground absolute top-2.5 right-2 text-xs">
                 {queryType === 'json-pointer' && 'JSON Pointer'}
                 {queryType === 'jsonpath' && 'JSONPath'}
                 {queryType === 'text' && 'Text Search'}
@@ -306,9 +280,7 @@ export default function JsonViewer({
           </div>
           {showThemeToggle && <ThemeToggle />}
           <ExportButton data={data} filename="json-data" />
-          {keyboardShortcuts && (
-            <ShortcutsHelpButton onClick={() => keyboard.setShowHelp(true)} />
-          )}
+          {keyboardShortcuts && <ShortcutsHelpButton onClick={() => keyboard.setShowHelp(true)} />}
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="icon">
@@ -318,22 +290,14 @@ export default function JsonViewer({
             <PopoverContent className="w-80">
               <div className="grid gap-4">
                 <div className="space-y-2">
-                  <h4 className="font-medium leading-none">Sort Object Keys</h4>
+                  <h4 className="leading-none font-medium">Sort Object Keys</h4>
                   <div className="grid gap-2">
                     {(
-                      [
-                        'original',
-                        'alphabetical',
-                        'reverse-alphabetical',
-                      ] as ObjectKeySortMode[]
+                      ['original', 'alphabetical', 'reverse-alphabetical'] as ObjectKeySortMode[]
                     ).map((mode) => (
                       <Button
                         key={mode}
-                        variant={
-                          sortOptions.objectKeySort === mode
-                            ? 'default'
-                            : 'outline'
-                        }
+                        variant={sortOptions.objectKeySort === mode ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => handleObjectKeySortChange(mode)}
                         className="justify-start"
@@ -344,7 +308,7 @@ export default function JsonViewer({
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <h4 className="font-medium leading-none">Sort Array Items</h4>
+                  <h4 className="leading-none font-medium">Sort Array Items</h4>
                   <div className="grid gap-2">
                     {(
                       [
@@ -357,11 +321,7 @@ export default function JsonViewer({
                     ).map((mode) => (
                       <Button
                         key={mode}
-                        variant={
-                          sortOptions.arrayItemSort === mode
-                            ? 'default'
-                            : 'outline'
-                        }
+                        variant={sortOptions.arrayItemSort === mode ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => handleArrayItemSortChange(mode)}
                         className="justify-start"
@@ -383,15 +343,13 @@ export default function JsonViewer({
             <PopoverContent className="w-80">
               <div className="grid gap-4">
                 <div className="space-y-2">
-                  <h4 className="font-medium leading-none">Show/Hide Types</h4>
+                  <h4 className="leading-none font-medium">Show/Hide Types</h4>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="show-strings"
                         checked={filterOptions.showStrings}
-                        onCheckedChange={() =>
-                          handleFilterChange('showStrings')
-                        }
+                        onCheckedChange={() => handleFilterChange('showStrings')}
                       />
                       <Label htmlFor="show-strings">Strings</Label>
                     </div>
@@ -399,9 +357,7 @@ export default function JsonViewer({
                       <Checkbox
                         id="show-numbers"
                         checked={filterOptions.showNumbers}
-                        onCheckedChange={() =>
-                          handleFilterChange('showNumbers')
-                        }
+                        onCheckedChange={() => handleFilterChange('showNumbers')}
                       />
                       <Label htmlFor="show-numbers">Numbers</Label>
                     </div>
@@ -409,9 +365,7 @@ export default function JsonViewer({
                       <Checkbox
                         id="show-booleans"
                         checked={filterOptions.showBooleans}
-                        onCheckedChange={() =>
-                          handleFilterChange('showBooleans')
-                        }
+                        onCheckedChange={() => handleFilterChange('showBooleans')}
                       />
                       <Label htmlFor="show-booleans">Booleans</Label>
                     </div>
@@ -427,9 +381,7 @@ export default function JsonViewer({
                       <Checkbox
                         id="show-objects"
                         checked={filterOptions.showObjects}
-                        onCheckedChange={() =>
-                          handleFilterChange('showObjects')
-                        }
+                        onCheckedChange={() => handleFilterChange('showObjects')}
                       />
                       <Label htmlFor="show-objects">Objects</Label>
                     </div>
@@ -444,7 +396,7 @@ export default function JsonViewer({
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <h4 className="font-medium leading-none">Exclude Keys</h4>
+                  <h4 className="leading-none font-medium">Exclude Keys</h4>
                   <div className="flex gap-2">
                     <Input
                       placeholder="Key to exclude..."
@@ -484,18 +436,10 @@ export default function JsonViewer({
               <span className="text-muted-foreground text-sm">
                 {currentResultIndex + 1} of {searchResults.length}
               </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigateResults('prev')}
-              >
+              <Button variant="outline" size="sm" onClick={() => navigateResults('prev')}>
                 Previous
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigateResults('next')}
-              >
+              <Button variant="outline" size="sm" onClick={() => navigateResults('next')}>
                 Next
               </Button>
             </div>
@@ -505,16 +449,14 @@ export default function JsonViewer({
           <BreadcrumbNav
             path={searchResults[currentResultIndex].path}
             onNavigate={handleBreadcrumbNavigate}
-            className="rounded-md bg-muted/50 px-1 py-2"
+            className="bg-muted/50 rounded-md px-1 py-2"
           />
         )}
         <PojoViewer
           data={data}
           renderers={renderers}
           transformers={transformers}
-          highlightedPath={
-            searchResults[currentResultIndex]?.path.join('.') || ''
-          }
+          highlightedPath={searchResults[currentResultIndex]?.path.join('.') || ''}
           filterOptions={filterOptions}
           searchQuery={queryType === 'text' ? searchQuery : ''}
           sortOptions={sortOptions}

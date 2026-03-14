@@ -24,15 +24,7 @@ export interface CodeRendererOptions {
   maxLength?: number;
 }
 
-type Language =
-  | 'json'
-  | 'javascript'
-  | 'typescript'
-  | 'html'
-  | 'xml'
-  | 'css'
-  | 'sql'
-  | 'unknown';
+type Language = 'json' | 'javascript' | 'typescript' | 'html' | 'xml' | 'css' | 'sql' | 'unknown';
 
 interface DetectionResult {
   language: Language;
@@ -62,9 +54,7 @@ function detectLanguage(value: string): DetectionResult {
   if (trimmed.startsWith('<') && trimmed.includes('>')) {
     const hasClosingTags = /<\/\w+>/.test(trimmed);
     const hasDoctype = /<!DOCTYPE/i.test(trimmed);
-    const hasHtmlTags = /<(html|head|body|div|span|p|a|img|script|style)/i.test(
-      trimmed,
-    );
+    const hasHtmlTags = /<(html|head|body|div|span|p|a|img|script|style)/i.test(trimmed);
 
     if (hasDoctype || hasHtmlTags) {
       return { language: 'html', confidence: 0.9 };
@@ -75,13 +65,10 @@ function detectLanguage(value: string): DetectionResult {
   }
 
   // SQL detection
-  const sqlKeywords =
-    /\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN|CREATE|DROP|ALTER|TABLE)\b/i;
+  const sqlKeywords = /\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN|CREATE|DROP|ALTER|TABLE)\b/i;
   if (sqlKeywords.test(trimmed)) {
     const sqlScore = (
-      trimmed.match(
-        /\b(SELECT|FROM|WHERE|JOIN|AND|OR|ORDER BY|GROUP BY)\b/gi,
-      ) || []
+      trimmed.match(/\b(SELECT|FROM|WHERE|JOIN|AND|OR|ORDER BY|GROUP BY)\b/gi) || []
     ).length;
     if (sqlScore >= 2) {
       return { language: 'sql', confidence: 0.85 };
@@ -127,15 +114,7 @@ function detectLanguage(value: string): DetectionResult {
  * Syntax highlighting tokens
  */
 interface Token {
-  type:
-    | 'keyword'
-    | 'string'
-    | 'number'
-    | 'comment'
-    | 'tag'
-    | 'attribute'
-    | 'operator'
-    | 'plain';
+  type: 'keyword' | 'string' | 'number' | 'comment' | 'tag' | 'attribute' | 'operator' | 'plain';
   value: string;
 }
 
@@ -717,16 +696,13 @@ function highlightSQL(code: string): ReactNode {
  */
 function renderTokens(tokens: Token[]): ReactNode {
   return (
-    <code className="block whitespace-pre-wrap break-words">
+    <code className="block break-words whitespace-pre-wrap">
       {tokens.map((token, index) => {
         const key = `${token.type}-${index}`;
         switch (token.type) {
           case 'keyword':
             return (
-              <span
-                key={key}
-                className="font-semibold text-purple-600 dark:text-purple-400"
-              >
+              <span key={key} className="font-semibold text-purple-600 dark:text-purple-400">
                 {token.value}
               </span>
             );
@@ -744,10 +720,7 @@ function renderTokens(tokens: Token[]): ReactNode {
             );
           case 'comment':
             return (
-              <span
-                key={key}
-                className="text-gray-500 italic dark:text-gray-500"
-              >
+              <span key={key} className="text-gray-500 italic dark:text-gray-500">
                 {token.value}
               </span>
             );
@@ -796,18 +769,14 @@ function highlightCode(code: string, language: Language): ReactNode {
     case 'sql':
       return highlightSQL(code);
     default:
-      return (
-        <code className="block whitespace-pre-wrap break-words">{code}</code>
-      );
+      return <code className="block break-words whitespace-pre-wrap">{code}</code>;
   }
 }
 
 /**
  * Creates a code renderer with syntax highlighting
  */
-export const createCodeRenderer = (
-  options: CodeRendererOptions = {},
-): Renderer => {
+export const createCodeRenderer = (options: CodeRendererOptions = {}): Renderer => {
   const enabled = options.enabled !== false;
   const minLength = options.minLength || 10;
   const maxLength = options.maxLength || 10000;
@@ -832,7 +801,7 @@ export const createCodeRenderer = (
 
     return (
       <GenericRenderer icon={Code2} type={languageLabel} value={value}>
-        <div className="rounded-md bg-muted/50 px-3 py-2 font-mono text-sm">
+        <div className="bg-muted/50 rounded-md px-3 py-2 font-mono text-sm">
           {highlightCode(value, detection.language)}
         </div>
       </GenericRenderer>

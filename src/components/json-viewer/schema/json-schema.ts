@@ -10,6 +10,7 @@
 
 import Ajv, { type ErrorObject, type ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
+import { stringifyUnknown } from '../utils/value-format';
 import type {
   ArraySchemaNode,
   NumberSchemaNode,
@@ -38,15 +39,7 @@ export interface JSONSchemaObject {
     | 'null'
     | 'object'
     | 'array'
-    | (
-        | 'string'
-        | 'number'
-        | 'integer'
-        | 'boolean'
-        | 'null'
-        | 'object'
-        | 'array'
-      )[];
+    | ('string' | 'number' | 'integer' | 'boolean' | 'null' | 'object' | 'array')[];
   properties?: Record<string, JSONSchemaObject>;
   required?: string[];
   additionalProperties?: boolean | JSONSchemaObject;
@@ -139,8 +132,9 @@ function createAjv(options: JSONSchemaValidationOptions = {}): Ajv {
   });
 
   // Add format validators (email, uri, date, etc.)
-  // @ts-expect-error - ajv-formats has a type mismatch with ajv due to different versions of internal types, but it works at runtime
-  addFormats(ajv);
+  // ajv-formats has a type mismatch with ajv due to different versions of internal types, but it works at runtime
+  // biome-ignore lint/suspicious/noExplicitAny: ajv-formats type mismatch
+  addFormats(ajv as any);
 
   return ajv;
 }
@@ -230,10 +224,10 @@ function ajvErrorToValidationError(error: ErrorObject): ValidationError {
         message = `Type mismatch: expected ${error.params.type}, got ${typeof error.data}`;
         break;
       case 'minimum':
-        message = `Value ${error.data} is less than minimum ${error.params.limit}`;
+        message = `Value ${stringifyUnknown(error.data)} is less than minimum ${error.params.limit}`;
         break;
       case 'maximum':
-        message = `Value ${error.data} is greater than maximum ${error.params.limit}`;
+        message = `Value ${stringifyUnknown(error.data)} is greater than maximum ${error.params.limit}`;
         break;
       case 'minLength':
         message = `String length ${(error.data as string)?.length || 0} is less than minimum ${error.params.limit}`;
@@ -260,7 +254,7 @@ function ajvErrorToValidationError(error: ErrorObject): ValidationError {
         message = `Additional property "${error.params.additionalProperty}" is not allowed`;
         break;
       case 'multipleOf':
-        message = `Number ${error.data} is not a multiple of ${error.params.multipleOf}`;
+        message = `Number ${stringifyUnknown(error.data)} is not a multiple of ${error.params.multipleOf}`;
         break;
     }
   }
@@ -269,7 +263,7 @@ function ajvErrorToValidationError(error: ErrorObject): ValidationError {
     path,
     message,
     expected: error.schema as string | undefined,
-    actual: String(error.data),
+    actual: stringifyUnknown(error.data),
     rule: keyword,
   };
 }
@@ -295,9 +289,7 @@ function ajvErrorToValidationError(error: ErrorObject): ValidationError {
  * const internalSchema = convertJSONSchemaToSchema(jsonSchema);
  * // Now you can use internalSchema with our existing validator
  */
-export function convertJSONSchemaToSchema(
-  jsonSchema: JSONSchemaObject,
-): Schema {
+export function convertJSONSchemaToSchema(jsonSchema: JSONSchemaObject): Schema {
   return {
     $schema: jsonSchema.$schema,
     title: jsonSchema.title,
@@ -313,9 +305,7 @@ export function convertJSONSchemaToSchema(
 /**
  * Converts a JSON Schema node to our internal SchemaNode format
  */
-function convertJSONSchemaNodeToSchemaNode(
-  jsonSchema: JSONSchemaObject,
-): SchemaNode {
+function convertJSONSchemaNodeToSchemaNode(jsonSchema: JSONSchemaObject): SchemaNode {
   // Handle type array (e.g., ["string", "null"])
   let type = jsonSchema.type;
   let nullable = jsonSchema.nullable ?? false;
@@ -447,9 +437,7 @@ function convertJSONSchemaNodeToSchemaNode(
           arrayNode.items = convertJSONSchemaNodeToSchemaNode(jsonSchema.items);
         } else if (jsonSchema.items.length > 0) {
           // For tuple validation, use the first schema (simplified)
-          arrayNode.items = convertJSONSchemaNodeToSchemaNode(
-            jsonSchema.items[0],
-          );
+          arrayNode.items = convertJSONSchemaNodeToSchemaNode(jsonSchema.items[0]);
         }
       }
 

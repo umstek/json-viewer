@@ -41,10 +41,7 @@ const DEFAULT_OPTIONS: Required<InferenceOptions> = {
  *   tags: ["developer", "typescript"]
  * });
  */
-export function inferSchema(
-  data: unknown,
-  options: InferenceOptions = {},
-): Schema {
+export function inferSchema(data: unknown, options: InferenceOptions = {}): Schema {
   const opts = { ...DEFAULT_OPTIONS, ...options };
 
   return {
@@ -72,10 +69,7 @@ export function inferSchema(
  *   { name: "Jane", age: 25, country: "USA" }
  * ]);
  */
-export function inferSchemaFromSamples(
-  samples: unknown[],
-  options: InferenceOptions = {},
-): Schema {
+export function inferSchemaFromSamples(samples: unknown[], options: InferenceOptions = {}): Schema {
   if (samples.length === 0) {
     throw new Error('At least one sample is required for schema inference');
   }
@@ -100,10 +94,7 @@ export function inferSchemaFromSamples(
 /**
  * Infers a schema node from a value
  */
-function inferSchemaNode(
-  value: unknown,
-  options: Required<InferenceOptions>,
-): SchemaNode {
+function inferSchemaNode(value: unknown, options: Required<InferenceOptions>): SchemaNode {
   // Handle null
   if (value === null) {
     return { type: 'null' };
@@ -139,10 +130,7 @@ function inferSchemaNode(
 /**
  * Infers a string schema with format detection
  */
-function inferStringSchema(
-  value: string,
-  options: Required<InferenceOptions>,
-): SchemaNode {
+function inferStringSchema(value: string, options: Required<InferenceOptions>): SchemaNode {
   const node: SchemaNode = {
     type: 'string',
   };
@@ -164,10 +152,7 @@ function inferStringSchema(
 /**
  * Infers a number schema
  */
-function inferNumberSchema(
-  value: number,
-  options: Required<InferenceOptions>,
-): SchemaNode {
+function inferNumberSchema(value: number, options: Required<InferenceOptions>): SchemaNode {
   const node: SchemaNode = {
     type: 'number',
   };
@@ -182,10 +167,7 @@ function inferNumberSchema(
 /**
  * Infers an array schema
  */
-function inferArraySchema(
-  value: unknown[],
-  options: Required<InferenceOptions>,
-): ArraySchemaNode {
+function inferArraySchema(value: unknown[], options: Required<InferenceOptions>): ArraySchemaNode {
   const node: ArraySchemaNode = {
     type: 'array',
   };

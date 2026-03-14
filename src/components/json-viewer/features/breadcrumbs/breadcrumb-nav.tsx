@@ -1,16 +1,9 @@
 import { Check, ChevronRight, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { TooltipWrapper } from '../../renderer/generic-renderer';
-import {
-  pathArrayToJsonPath,
-  pathArrayToJsonPointer,
-} from '../../utils/jsonpath';
+import { pathArrayToJsonPath, pathArrayToJsonPointer } from '../../utils/jsonpath';
 
 export interface BreadcrumbNavProps {
   /**
@@ -34,11 +27,7 @@ type PathFormat = 'array' | 'jsonpath' | 'json-pointer';
  * Breadcrumb navigation component that displays the current path in the JSON structure
  * and allows navigation by clicking on path segments.
  */
-export function BreadcrumbNav({
-  path,
-  onNavigate,
-  className = '',
-}: BreadcrumbNavProps) {
+export function BreadcrumbNav({ path, onNavigate, className = '' }: BreadcrumbNavProps) {
   const [copiedFormat, setCopiedFormat] = useState<PathFormat | null>(null);
 
   // If path is empty, show root only
@@ -89,7 +78,7 @@ export function BreadcrumbNav({
           variant="ghost"
           size="sm"
           onClick={handleRootClick}
-          className="h-7 px-2 text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground h-7 px-2"
         >
           root
         </Button>
@@ -101,14 +90,14 @@ export function BreadcrumbNav({
           const uniqueKey = path.slice(0, index + 1).join('.');
           return (
             <div key={uniqueKey} className="flex items-center gap-1">
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <ChevronRight className="text-muted-foreground h-4 w-4" />
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleSegmentClick(index)}
                 className={`h-7 px-2 ${
                   isLast
-                    ? 'font-medium text-foreground'
+                    ? 'text-foreground font-medium'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -131,19 +120,15 @@ export function BreadcrumbNav({
           <PopoverContent className="w-80" align="end">
             <div className="space-y-3">
               <div>
-                <h4 className="mb-2 font-medium text-sm">Copy Path Format</h4>
+                <h4 className="mb-2 text-sm font-medium">Copy Path Format</h4>
               </div>
 
               {/* JSONPath format */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground text-xs">
-                    JSONPath
-                  </span>
+                  <span className="text-muted-foreground text-xs">JSONPath</span>
                   <TooltipWrapper
-                    tooltip={
-                      copiedFormat === 'jsonpath' ? 'Copied!' : 'Copy JSONPath'
-                    }
+                    tooltip={copiedFormat === 'jsonpath' ? 'Copied!' : 'Copy JSONPath'}
                   >
                     <Button
                       variant="ghost"
@@ -159,7 +144,7 @@ export function BreadcrumbNav({
                     </Button>
                   </TooltipWrapper>
                 </div>
-                <code className="block w-full break-all rounded bg-muted px-2 py-1 text-xs">
+                <code className="bg-muted block w-full rounded px-2 py-1 text-xs break-all">
                   {jsonPath}
                 </code>
               </div>
@@ -167,22 +152,14 @@ export function BreadcrumbNav({
               {/* JSON Pointer format */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground text-xs">
-                    JSON Pointer (RFC 6901)
-                  </span>
+                  <span className="text-muted-foreground text-xs">JSON Pointer (RFC 6901)</span>
                   <TooltipWrapper
-                    tooltip={
-                      copiedFormat === 'json-pointer'
-                        ? 'Copied!'
-                        : 'Copy JSON Pointer'
-                    }
+                    tooltip={copiedFormat === 'json-pointer' ? 'Copied!' : 'Copy JSON Pointer'}
                   >
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() =>
-                        copyToClipboard(jsonPointer, 'json-pointer')
-                      }
+                      onClick={() => copyToClipboard(jsonPointer, 'json-pointer')}
                       className="h-6 px-2"
                     >
                       {copiedFormat === 'json-pointer' ? (
@@ -193,7 +170,7 @@ export function BreadcrumbNav({
                     </Button>
                   </TooltipWrapper>
                 </div>
-                <code className="block w-full break-all rounded bg-muted px-2 py-1 text-xs">
+                <code className="bg-muted block w-full rounded px-2 py-1 text-xs break-all">
                   {jsonPointer}
                 </code>
               </div>
@@ -201,14 +178,8 @@ export function BreadcrumbNav({
               {/* Array format */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground text-xs">
-                    Array Format
-                  </span>
-                  <TooltipWrapper
-                    tooltip={
-                      copiedFormat === 'array' ? 'Copied!' : 'Copy as Array'
-                    }
-                  >
+                  <span className="text-muted-foreground text-xs">Array Format</span>
+                  <TooltipWrapper tooltip={copiedFormat === 'array' ? 'Copied!' : 'Copy as Array'}>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -223,7 +194,7 @@ export function BreadcrumbNav({
                     </Button>
                   </TooltipWrapper>
                 </div>
-                <code className="block w-full break-all rounded bg-muted px-2 py-1 text-xs">
+                <code className="bg-muted block w-full rounded px-2 py-1 text-xs break-all">
                   {arrayFormat}
                 </code>
               </div>

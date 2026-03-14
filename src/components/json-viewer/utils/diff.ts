@@ -174,12 +174,7 @@ function computeArrayDiff(
     const leftItem = i < left.length ? left[i] : undefined;
     const rightItem = i < right.length ? right[i] : undefined;
 
-    const itemDiff = computeDiff(
-      leftItem,
-      rightItem,
-      [...path, String(i)],
-      seen,
-    );
+    const itemDiff = computeDiff(leftItem, rightItem, [...path, String(i)], seen);
     children.push({
       ...itemDiff,
       key: i,

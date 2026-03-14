@@ -3,11 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChevronRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useOptionalExpansion } from '../features/expansion';
 import { sortArrayItems, sortObjectEntries } from '../utils/sorting';
 import { CopyButton } from './copy-button';
@@ -62,21 +58,14 @@ function isPathAncestor(currentPath: string, targetPath: string): boolean {
   return targetParts.slice(0, currentParts.length).join('.') === currentPath;
 }
 
-export function ObjectRenderer({
-  value,
-  router,
-  path,
-  options,
-}: ObjectRendererProps) {
+export function ObjectRenderer({ value, router, path, options }: ObjectRendererProps) {
   const currentPath = path.join('.');
   const expansionContext = useOptionalExpansion();
 
   // Use context-based expansion if available, otherwise use local state
   const [localIsOpen, setLocalIsOpen] = useState(false);
 
-  const isOpen = expansionContext
-    ? expansionContext.isExpanded(currentPath)
-    : localIsOpen;
+  const isOpen = expansionContext ? expansionContext.isExpanded(currentPath) : localIsOpen;
 
   const setIsOpen = useCallback(
     (open: boolean) => {
@@ -91,13 +80,8 @@ export function ObjectRenderer({
   const parentRef = useRef<HTMLDivElement>(null);
 
   // Lazy loading logic
-  const {
-    currentDepth = 0,
-    maxInitialDepth = 3,
-    lazyLoadingEnabled = true,
-  } = options;
-  const shouldLazyLoad =
-    lazyLoadingEnabled && currentDepth >= maxInitialDepth && !isOpen;
+  const { currentDepth = 0, maxInitialDepth = 3, lazyLoadingEnabled = true } = options;
+  const shouldLazyLoad = lazyLoadingEnabled && currentDepth >= maxInitialDepth && !isOpen;
 
   // Memoize entries and filtering to avoid unnecessary recalculations
   const { filteredEntries, shouldVirtualize } = useMemo(() => {
@@ -110,15 +94,11 @@ export function ObjectRenderer({
 
       // Check value type
       if (options.filterOptions) {
-        if (typeof val === 'string' && !options.filterOptions.showStrings)
-          return false;
-        if (typeof val === 'number' && !options.filterOptions.showNumbers)
-          return false;
-        if (typeof val === 'boolean' && !options.filterOptions.showBooleans)
-          return false;
+        if (typeof val === 'string' && !options.filterOptions.showStrings) return false;
+        if (typeof val === 'number' && !options.filterOptions.showNumbers) return false;
+        if (typeof val === 'boolean' && !options.filterOptions.showBooleans) return false;
         if (val === null && !options.filterOptions.showNull) return false;
-        if (Array.isArray(val) && !options.filterOptions.showArrays)
-          return false;
+        if (Array.isArray(val) && !options.filterOptions.showArrays) return false;
         if (
           typeof val === 'object' &&
           val !== null &&
@@ -176,7 +156,7 @@ export function ObjectRenderer({
         }}
       >
         <div className="flex w-full min-w-0 gap-2">
-          <span className="whitespace-nowrap text-primary">
+          <span className="text-primary whitespace-nowrap">
             <HighlightText text={`${key}:`} searchQuery={options.searchQuery} />
           </span>
           <div className="min-w-0 flex-1 overflow-hidden">
@@ -199,11 +179,8 @@ export function ObjectRenderer({
 
     if (!shouldVirtualize) {
       return filteredEntries.map(([key, val]: [string, unknown]) => (
-        <div
-          key={`${path.join('.')}.${key}`}
-          className="flex w-full min-w-0 gap-2"
-        >
-          <span className="whitespace-nowrap text-primary">
+        <div key={`${path.join('.')}.${key}`} className="flex w-full min-w-0 gap-2">
+          <span className="text-primary whitespace-nowrap">
             <HighlightText text={`${key}:`} searchQuery={options.searchQuery} />
           </span>
           <div className="min-w-0 flex-1 overflow-hidden">
@@ -245,15 +222,9 @@ export function ObjectRenderer({
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="group flex items-center gap-1">
         <CollapsibleTrigger>
-          <ChevronRight
-            className={`h-4 w-4 transition-transform ${
-              isOpen ? 'rotate-90' : ''
-            }`}
-          />
+          <ChevronRight className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
         </CollapsibleTrigger>
-        <span className="text-muted-foreground">
-          {isOpen ? '{' : inlinePreview}
-        </span>
+        <span className="text-muted-foreground">{isOpen ? '{' : inlinePreview}</span>
         <CopyButton value={value} />
       </div>
       <CollapsibleContent>
@@ -264,12 +235,7 @@ export function ObjectRenderer({
   );
 }
 
-export function ArrayRenderer({
-  value,
-  router,
-  path,
-  options,
-}: ObjectRendererProps) {
+export function ArrayRenderer({ value, router, path, options }: ObjectRendererProps) {
   const currentPath = path.join('.');
   const expansionContext = useOptionalExpansion();
   const parentRef = useRef<HTMLDivElement>(null);
@@ -277,9 +243,7 @@ export function ArrayRenderer({
   // Use context-based expansion if available, otherwise use local state
   const [localIsOpen, setLocalIsOpen] = useState(false);
 
-  const isOpen = expansionContext
-    ? expansionContext.isExpanded(currentPath)
-    : localIsOpen;
+  const isOpen = expansionContext ? expansionContext.isExpanded(currentPath) : localIsOpen;
 
   const setIsOpen = useCallback(
     (open: boolean) => {
@@ -293,27 +257,18 @@ export function ArrayRenderer({
   );
 
   // Lazy loading logic
-  const {
-    currentDepth = 0,
-    maxInitialDepth = 3,
-    lazyLoadingEnabled = true,
-  } = options;
-  const shouldLazyLoad =
-    lazyLoadingEnabled && currentDepth >= maxInitialDepth && !isOpen;
+  const { currentDepth = 0, maxInitialDepth = 3, lazyLoadingEnabled = true } = options;
+  const shouldLazyLoad = lazyLoadingEnabled && currentDepth >= maxInitialDepth && !isOpen;
 
   // Memoize filtering to avoid unnecessary recalculations
   const { filteredItems, shouldVirtualize } = useMemo(() => {
     const filtered = value.filter((val: unknown) => {
       if (options.filterOptions) {
-        if (typeof val === 'string' && !options.filterOptions.showStrings)
-          return false;
-        if (typeof val === 'number' && !options.filterOptions.showNumbers)
-          return false;
-        if (typeof val === 'boolean' && !options.filterOptions.showBooleans)
-          return false;
+        if (typeof val === 'string' && !options.filterOptions.showStrings) return false;
+        if (typeof val === 'number' && !options.filterOptions.showNumbers) return false;
+        if (typeof val === 'boolean' && !options.filterOptions.showBooleans) return false;
         if (val === null && !options.filterOptions.showNull) return false;
-        if (Array.isArray(val) && !options.filterOptions.showArrays)
-          return false;
+        if (Array.isArray(val) && !options.filterOptions.showArrays) return false;
         if (
           typeof val === 'object' &&
           val !== null &&
@@ -370,11 +325,8 @@ export function ArrayRenderer({
         }}
       >
         <div className="flex w-full min-w-0 gap-2">
-          <span className="whitespace-nowrap text-primary">
-            <HighlightText
-              text={`${virtualRow.index}:`}
-              searchQuery={options.searchQuery}
-            />
+          <span className="text-primary whitespace-nowrap">
+            <HighlightText text={`${virtualRow.index}:`} searchQuery={options.searchQuery} />
           </span>
           <div className="min-w-0 flex-1 overflow-hidden">
             {router(val, [...path, String(virtualRow.index)], options)}
@@ -396,15 +348,9 @@ export function ArrayRenderer({
 
     if (!shouldVirtualize) {
       return filteredItems.map((val: unknown, index: number) => (
-        <div
-          key={`${path.join('.')}.${index}`}
-          className="flex w-full min-w-0 gap-2"
-        >
-          <span className="whitespace-nowrap text-primary">
-            <HighlightText
-              text={`${index}:`}
-              searchQuery={options.searchQuery}
-            />
+        <div key={`${path.join('.')}.${index}`} className="flex w-full min-w-0 gap-2">
+          <span className="text-primary whitespace-nowrap">
+            <HighlightText text={`${index}:`} searchQuery={options.searchQuery} />
           </span>
           <div className="min-w-0 flex-1 overflow-hidden">
             {router(val, [...path, String(index)], options)}
@@ -445,15 +391,9 @@ export function ArrayRenderer({
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="group flex items-center gap-1">
         <CollapsibleTrigger>
-          <ChevronRight
-            className={`h-4 w-4 transition-transform ${
-              isOpen ? 'rotate-90' : ''
-            }`}
-          />
+          <ChevronRight className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
         </CollapsibleTrigger>
-        <span className="text-muted-foreground">
-          {isOpen ? '[' : inlinePreview}
-        </span>
+        <span className="text-muted-foreground">{isOpen ? '[' : inlinePreview}</span>
         <CopyButton value={value} />
       </div>
       <CollapsibleContent>

@@ -214,14 +214,8 @@ const flexibleSchema: JSONSchemaObject = {
 const validFlexible1 = { id: '123', value: 'test' };
 const validFlexible2 = { id: 123, value: null };
 
-console.log(
-  'Flexible 1:',
-  validateWithJSONSchema(validFlexible1, flexibleSchema).valid,
-);
-console.log(
-  'Flexible 2:',
-  validateWithJSONSchema(validFlexible2, flexibleSchema).valid,
-);
+console.log('Flexible 1:', validateWithJSONSchema(validFlexible1, flexibleSchema).valid);
+console.log('Flexible 2:', validateWithJSONSchema(validFlexible2, flexibleSchema).valid);
 
 // Example 8: Schema with patterns and formats
 const advancedSchema: JSONSchemaObject = {
@@ -258,10 +252,7 @@ const advancedData = {
   ipAddress: '192.168.1.1',
 };
 
-console.log(
-  'Advanced validation:',
-  validateWithJSONSchema(advancedData, advancedSchema).valid,
-);
+console.log('Advanced validation:', validateWithJSONSchema(advancedData, advancedSchema).valid);
 
 export {
   advancedData,

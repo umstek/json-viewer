@@ -70,9 +70,7 @@ export class RendererRegistry {
   constructor(config: RegistryConfig = {}) {
     this.pathRenderers = config.pathRenderers ?? [];
     // Sort by priority (lower first = more specific)
-    this.typeRenderers = [...(config.typeRenderers ?? [])].sort(
-      (a, b) => a.priority - b.priority,
-    );
+    this.typeRenderers = [...(config.typeRenderers ?? [])].sort((a, b) => a.priority - b.priority);
   }
 
   /**

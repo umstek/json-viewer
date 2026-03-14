@@ -18,9 +18,7 @@ export function createPathTransformer(
   return ({ value, path }) => {
     const pathString = path.join('.');
     const matches =
-      typeof pathPattern === 'string'
-        ? pathString === pathPattern
-        : pathPattern.test(pathString);
+      typeof pathPattern === 'string' ? pathString === pathPattern : pathPattern.test(pathString);
 
     return matches ? transform(value) : value;
   };
@@ -39,10 +37,7 @@ export function createTypeTransformer(
       (type === 'number' && typeof value === 'number') ||
       (type === 'boolean' && typeof value === 'boolean') ||
       (type === 'array' && Array.isArray(value)) ||
-      (type === 'object' &&
-        typeof value === 'object' &&
-        value !== null &&
-        !Array.isArray(value));
+      (type === 'object' && typeof value === 'object' && value !== null && !Array.isArray(value));
 
     return matches ? transform(value) : value;
   };
@@ -68,11 +63,8 @@ export function chainTransformers(...transformers: Transformer[]): Transformer {
 /**
  * Converts string values to uppercase
  */
-export function createUppercaseTransformer(
-  pathPattern?: string | RegExp,
-): Transformer {
-  const transform = (value: unknown) =>
-    typeof value === 'string' ? value.toUpperCase() : value;
+export function createUppercaseTransformer(pathPattern?: string | RegExp): Transformer {
+  const transform = (value: unknown) => (typeof value === 'string' ? value.toUpperCase() : value);
 
   return pathPattern
     ? createPathTransformer(pathPattern, transform)
@@ -82,11 +74,8 @@ export function createUppercaseTransformer(
 /**
  * Converts string values to lowercase
  */
-export function createLowercaseTransformer(
-  pathPattern?: string | RegExp,
-): Transformer {
-  const transform = (value: unknown) =>
-    typeof value === 'string' ? value.toLowerCase() : value;
+export function createLowercaseTransformer(pathPattern?: string | RegExp): Transformer {
+  const transform = (value: unknown) => (typeof value === 'string' ? value.toLowerCase() : value);
 
   return pathPattern
     ? createPathTransformer(pathPattern, transform)
@@ -96,11 +85,8 @@ export function createLowercaseTransformer(
 /**
  * Trims whitespace from string values
  */
-export function createTrimTransformer(
-  pathPattern?: string | RegExp,
-): Transformer {
-  const transform = (value: unknown) =>
-    typeof value === 'string' ? value.trim() : value;
+export function createTrimTransformer(pathPattern?: string | RegExp): Transformer {
+  const transform = (value: unknown) => (typeof value === 'string' ? value.trim() : value);
 
   return pathPattern
     ? createPathTransformer(pathPattern, transform)
@@ -117,9 +103,7 @@ export function createTruncateTransformer(
 ): Transformer {
   const transform = (value: unknown) => {
     if (typeof value !== 'string') return value;
-    return value.length > maxLength
-      ? value.slice(0, maxLength) + suffix
-      : value;
+    return value.length > maxLength ? value.slice(0, maxLength) + suffix : value;
   };
 
   return pathPattern
@@ -134,8 +118,7 @@ export function createStringFormatTransformer(
   formatter: (value: string) => string,
   pathPattern?: string | RegExp,
 ): Transformer {
-  const transform = (value: unknown) =>
-    typeof value === 'string' ? formatter(value) : value;
+  const transform = (value: unknown) => (typeof value === 'string' ? formatter(value) : value);
 
   return pathPattern
     ? createPathTransformer(pathPattern, transform)
@@ -149,10 +132,7 @@ export function createStringFormatTransformer(
 /**
  * Rounds number values to a specified number of decimal places
  */
-export function createRoundTransformer(
-  decimals = 0,
-  pathPattern?: string | RegExp,
-): Transformer {
+export function createRoundTransformer(decimals = 0, pathPattern?: string | RegExp): Transformer {
   const transform = (value: unknown) => {
     if (typeof value !== 'number') return value;
     const multiplier = 10 ** decimals;
@@ -209,8 +189,7 @@ export function createNumberFormatTransformer(
   formatter: (value: number) => string | number,
   pathPattern?: string | RegExp,
 ): Transformer {
-  const transform = (value: unknown) =>
-    typeof value === 'number' ? formatter(value) : value;
+  const transform = (value: unknown) => (typeof value === 'number' ? formatter(value) : value);
 
   return pathPattern
     ? createPathTransformer(pathPattern, transform)
@@ -251,9 +230,7 @@ export function createDateFormatTransformer(
 /**
  * Converts date strings/timestamps to ISO 8601 format
  */
-export function createISODateTransformer(
-  pathPattern?: string | RegExp,
-): Transformer {
+export function createISODateTransformer(pathPattern?: string | RegExp): Transformer {
   const transform = (value: unknown) => {
     if (typeof value === 'string') {
       const date = new Date(value);

@@ -10,28 +10,11 @@
  * - uuid → copy button
  */
 
-import {
-  Calendar,
-  Copy,
-  ExternalLink,
-  Globe,
-  Mail,
-  Phone,
-  Server,
-} from 'lucide-react';
+import { Calendar, Copy, ExternalLink, Globe, Mail, Phone, Server } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
-  type ActionableFormat,
-  detectFormat,
-  getPhoneMetadata,
-} from '../../validation/validators';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { type ActionableFormat, detectFormat, getPhoneMetadata } from '../../validation/validators';
 import type { Renderer } from '../renderer';
 
 /**
@@ -67,10 +50,7 @@ function ActionableValue({ value, format }: ActionableValueProps) {
       return (
         <span className="inline-flex items-center gap-1">
           <Mail className="h-3.5 w-3.5 text-blue-500" />
-          <a
-            href={`mailto:${value}`}
-            className="font-mono text-sm text-blue-600 hover:underline"
-          >
+          <a href={`mailto:${value}`} className="font-mono text-sm text-blue-600 hover:underline">
             {value}
           </a>
         </span>
@@ -81,10 +61,7 @@ function ActionableValue({ value, format }: ActionableValueProps) {
       return (
         <span className="inline-flex items-center gap-1">
           <Phone className="h-3.5 w-3.5 text-green-500" />
-          <a
-            href={meta.uri}
-            className="font-mono text-sm text-green-600 hover:underline"
-          >
+          <a href={meta.uri} className="font-mono text-sm text-green-600 hover:underline">
             {meta.formatted || value}
           </a>
         </span>
@@ -104,7 +81,7 @@ function ActionableValue({ value, format }: ActionableValueProps) {
           >
             {value.length > 50 ? `${value.slice(0, 50)}...` : value}
           </a>
-          <ExternalLink className="h-3 w-3 text-muted-foreground" />
+          <ExternalLink className="text-muted-foreground h-3 w-3" />
           {isImage && (
             <TooltipProvider>
               <Tooltip>
@@ -119,11 +96,7 @@ function ActionableValue({ value, format }: ActionableValueProps) {
                   />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <img
-                    src={value}
-                    alt="preview"
-                    className="max-h-64 max-w-64"
-                  />
+                  <img src={value} alt="preview" className="max-h-64 max-w-64" />
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -141,13 +114,13 @@ function ActionableValue({ value, format }: ActionableValueProps) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="inline-flex items-center gap-1 cursor-help">
+              <span className="inline-flex cursor-help items-center gap-1">
                 <Calendar className="h-3.5 w-3.5 text-orange-500" />
                 <span className="font-mono text-sm">{local}</span>
               </span>
             </TooltipTrigger>
             <TooltipContent>
-              <div className="text-sm space-y-1">
+              <div className="space-y-1 text-sm">
                 <div>
                   <strong>Local:</strong> {local}
                 </div>
@@ -172,9 +145,7 @@ function ActionableValue({ value, format }: ActionableValueProps) {
           <span className="font-mono text-sm">
             {segments.map((seg, i) => (
               <span key={i}>
-                <span className="bg-purple-100 dark:bg-purple-900/30 px-1 rounded">
-                  {seg}
-                </span>
+                <span className="rounded bg-purple-100 px-1 dark:bg-purple-900/30">{seg}</span>
                 {i < 3 && <span className="text-muted-foreground">.</span>}
               </span>
             ))}
@@ -186,18 +157,9 @@ function ActionableValue({ value, format }: ActionableValueProps) {
     case 'uuid':
       return (
         <span className="inline-flex items-center gap-1">
-          <span className="font-mono text-sm text-muted-foreground">
-            {value}
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-5 w-5 p-0"
-            onClick={copyToClipboard}
-          >
-            <Copy
-              className={`h-3 w-3 ${copied ? 'text-green-500' : 'text-muted-foreground'}`}
-            />
+          <span className="text-muted-foreground font-mono text-sm">{value}</span>
+          <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={copyToClipboard}>
+            <Copy className={`h-3 w-3 ${copied ? 'text-green-500' : 'text-muted-foreground'}`} />
           </Button>
         </span>
       );

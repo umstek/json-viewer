@@ -33,11 +33,11 @@ The schema infrastructure provides:
 import { inferSchema, validate } from './schema';
 
 // Infer schema from data
-const data = { name: "John", age: 30, email: "john@example.com" };
+const data = { name: 'John', age: 30, email: 'john@example.com' };
 const schema = inferSchema(data, { inferFormats: true });
 
 // Validate new data
-const result = validate({ name: "Jane", age: 25, email: "jane@example.com" }, schema);
+const result = validate({ name: 'Jane', age: 25, email: 'jane@example.com' }, schema);
 if (!result.valid) {
   console.error(result.errors);
 }
@@ -94,12 +94,12 @@ if (!result.valid) {
 
 ```typescript
 interface InferenceOptions {
-  strictRequired?: boolean;      // Mark all properties as required (default: true)
-  inferFormats?: boolean;         // Detect string formats (default: true)
-  includeExamples?: boolean;      // Include sample values (default: false)
-  maxExamples?: number;           // Max examples per node (default: 3)
-  inferEnums?: boolean;           // Infer enums from repeated values (default: false)
-  enumThreshold?: number;         // Min occurrences for enum (default: 3)
+  strictRequired?: boolean; // Mark all properties as required (default: true)
+  inferFormats?: boolean; // Detect string formats (default: true)
+  includeExamples?: boolean; // Include sample values (default: false)
+  maxExamples?: number; // Max examples per node (default: 3)
+  inferEnums?: boolean; // Infer enums from repeated values (default: false)
+  enumThreshold?: number; // Min occurrences for enum (default: 3)
 }
 ```
 
@@ -112,11 +112,11 @@ interface ValidationResult {
 }
 
 interface ValidationError {
-  path: string[];        // JSONPath to the error
-  message: string;       // Human-readable error message
-  expected?: string;     // Expected type/value
-  actual?: string;       // Actual type/value
-  rule?: string;         // Validation rule that failed
+  path: string[]; // JSONPath to the error
+  message: string; // Human-readable error message
+  expected?: string; // Expected type/value
+  actual?: string; // Actual type/value
+  rule?: string; // Validation rule that failed
 }
 ```
 
@@ -125,16 +125,16 @@ interface ValidationError {
 ### 1. Basic Inference and Validation
 
 ```typescript
-const schema = inferSchema({ name: "John", age: 30 });
-const result = validate({ name: "Jane", age: 25 }, schema);
+const schema = inferSchema({ name: 'John', age: 30 });
+const result = validate({ name: 'Jane', age: 25 }, schema);
 ```
 
 ### 2. Multiple Samples
 
 ```typescript
 const samples = [
-  { name: "John", age: 30, city: "NYC" },
-  { name: "Jane", age: 25, country: "USA" }
+  { name: 'John', age: 30, city: 'NYC' },
+  { name: 'Jane', age: 25, country: 'USA' },
 ];
 const schema = inferSchemaFromSamples(samples);
 // Schema includes all properties: name, age, city, country
@@ -145,9 +145,9 @@ const schema = inferSchemaFromSamples(samples);
 
 ```typescript
 const data = {
-  email: "test@example.com",
-  website: "https://example.com",
-  date: "2024-01-15"
+  email: 'test@example.com',
+  website: 'https://example.com',
+  date: '2024-01-15',
 };
 const schema = inferSchema(data, { inferFormats: true });
 ```
@@ -159,8 +159,8 @@ const passwordSchema: Schema = {
   root: {
     type: 'string',
     minLength: 8,
-    pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$'
-  }
+    pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$',
+  },
 };
 ```
 
@@ -222,6 +222,7 @@ bun run test src/components/json-viewer/schema/
 ```
 
 All 29 tests passing:
+
 - 12 inference tests
 - 17 validation tests
 

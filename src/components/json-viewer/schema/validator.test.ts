@@ -2,7 +2,7 @@
  * @vitest-environment node
  */
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 import { inferSchema } from './inference';
 import { matches, matchesType, validate } from './validator';
 
@@ -111,9 +111,7 @@ describe('Schema Validation', () => {
         inferFormats: true,
       });
 
-      expect(
-        validate('987e6543-e21c-43d1-b234-567890123456', schema).valid,
-      ).toBe(true);
+      expect(validate('987e6543-e21c-43d1-b234-567890123456', schema).valid).toBe(true);
       expect(validate('not-a-uuid', schema).valid).toBe(false);
     });
 
@@ -177,9 +175,7 @@ describe('Schema Validation', () => {
 
     it('should return false for non-matching values', () => {
       const schema = inferSchema({ name: 'John', age: 30 });
-      expect(matches({ name: 'Jane', age: 'invalid' }, schema.root)).toBe(
-        false,
-      );
+      expect(matches({ name: 'Jane', age: 'invalid' }, schema.root)).toBe(false);
     });
   });
 

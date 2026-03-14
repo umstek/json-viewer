@@ -86,10 +86,7 @@ const sampleData = {
       deadline: '2024-06-30T23:59:59Z',
       repository: 'https://github.com/techcorp/customer-portal',
       budget: 250000,
-      team: [
-        'alice.chen@techcorp.example.com',
-        'bob.martinez@techcorp.example.com',
-      ],
+      team: ['alice.chen@techcorp.example.com', 'bob.martinez@techcorp.example.com'],
       milestones: [
         { name: 'MVP Launch', date: '2024-03-01', completed: true },
         { name: 'Beta Release', date: '2024-04-15', completed: true },
@@ -274,17 +271,20 @@ function App() {
 
   useEffect(() => {
     if (useRealData) {
-      fetch(dataUrls.githubRepos)
+      void fetch(dataUrls.githubRepos)
         .then((res) => res.json())
-        .then((data) => setJson(JSON.stringify(data, null, 2)));
+        .then((data) => setJson(JSON.stringify(data, null, 2)))
+        .catch((error: unknown) => {
+          console.error('Failed to load GitHub repository data:', error);
+        });
     }
   }, [useRealData]);
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-background p-8 text-foreground">
+      <div className="bg-background text-foreground min-h-screen p-8">
         <div className="mx-auto max-w-6xl">
-          <h1 className="mb-6 font-bold text-3xl">JSON Viewer Demo</h1>
+          <h1 className="mb-6 text-3xl font-bold">JSON Viewer Demo</h1>
 
           <div className="mb-4 flex gap-4">
             <button

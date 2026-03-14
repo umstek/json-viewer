@@ -139,9 +139,7 @@ export function jsonPathToPathArray(jsonPath: string): string[] {
 /**
  * Detects the query type based on the input string
  */
-export function detectQueryType(
-  query: string,
-): 'json-pointer' | 'jsonpath' | 'text' {
+export function detectQueryType(query: string): 'json-pointer' | 'jsonpath' | 'text' {
   if (query.startsWith('/')) return 'json-pointer';
   if (query.startsWith('$')) return 'jsonpath';
   return 'text';
@@ -203,10 +201,7 @@ function findPathsByTextSearch(
       }
 
       // Search in string values
-      if (
-        typeof value === 'string' &&
-        value.toLowerCase().includes(lowerQuery)
-      ) {
+      if (typeof value === 'string' && value.toLowerCase().includes(lowerQuery)) {
         results.push({
           path,
           value,

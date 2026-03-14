@@ -25,12 +25,7 @@ import {
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   getPhoneMetadata,
   validateDate,
@@ -107,17 +102,18 @@ export const emailRenderer: TypeRenderer = {
   name: 'email',
   priority: 32,
   matches: (value) => typeof value === 'string' && validateEmail(value),
-  render: ({ value }) => (
-    <span className="inline-flex items-center gap-1">
-      <Mail className="h-3.5 w-3.5 text-blue-500" />
-      <a
-        href={`mailto:${value}`}
-        className="font-mono text-sm text-blue-600 hover:underline"
-      >
-        {value as string}
-      </a>
-    </span>
-  ),
+  render: ({ value }) => {
+    const email = value as string;
+
+    return (
+      <span className="inline-flex items-center gap-1">
+        <Mail className="h-3.5 w-3.5 text-blue-500" />
+        <a href={`mailto:${email}`} className="font-mono text-sm text-blue-600 hover:underline">
+          {email}
+        </a>
+      </span>
+    );
+  },
 };
 
 export const urlRenderer: TypeRenderer = {
@@ -177,11 +173,7 @@ export const objectRenderer: TypeRenderer = {
   priority: 60,
   matches: (value) => typeof value === 'object' && value !== null,
   render: ({ value, path, registry }) => (
-    <ObjectDisplay
-      value={value as Record<string, unknown>}
-      path={path}
-      registry={registry}
-    />
+    <ObjectDisplay value={value as Record<string, unknown>} path={path} registry={registry} />
   ),
 };
 
@@ -198,13 +190,13 @@ function DateTimeDisplay({ value }: { value: string }) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className="inline-flex items-center gap-1 cursor-help">
+          <span className="inline-flex cursor-help items-center gap-1">
             <Calendar className="h-3.5 w-3.5 text-orange-500" />
             <span className="font-mono text-sm">{local}</span>
           </span>
         </TooltipTrigger>
         <TooltipContent>
-          <div className="text-sm space-y-1">
+          <div className="space-y-1 text-sm">
             <div>
               <strong>Local:</strong> {local}
             </div>
@@ -235,7 +227,7 @@ function UrlDisplay({ value }: { value: string }) {
       >
         {value.length > 50 ? `${value.slice(0, 50)}...` : value}
       </a>
-      <ExternalLink className="h-3 w-3 text-muted-foreground" />
+      <ExternalLink className="text-muted-foreground h-3 w-3" />
       {isImage && (
         <TooltipProvider>
           <Tooltip>
@@ -270,16 +262,9 @@ function UuidDisplay({ value }: { value: string }) {
 
   return (
     <span className="inline-flex items-center gap-1">
-      <span className="font-mono text-sm text-muted-foreground">{value}</span>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-5 w-5 p-0"
-        onClick={copyToClipboard}
-      >
-        <Copy
-          className={`h-3 w-3 ${copied ? 'text-green-500' : 'text-muted-foreground'}`}
-        />
+      <span className="text-muted-foreground font-mono text-sm">{value}</span>
+      <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={copyToClipboard}>
+        <Copy className={`h-3 w-3 ${copied ? 'text-green-500' : 'text-muted-foreground'}`} />
       </Button>
     </span>
   );
@@ -294,9 +279,7 @@ function Ipv4Display({ value }: { value: string }) {
       <span className="font-mono text-sm">
         {segments.map((seg, i) => (
           <span key={i}>
-            <span className="bg-purple-100 dark:bg-purple-900/30 px-1 rounded">
-              {seg}
-            </span>
+            <span className="rounded bg-purple-100 px-1 dark:bg-purple-900/30">{seg}</span>
             {i < 3 && <span className="text-muted-foreground">.</span>}
           </span>
         ))}
@@ -311,10 +294,7 @@ function PhoneDisplay({ value }: { value: string }) {
   return (
     <span className="inline-flex items-center gap-1">
       <Phone className="h-3.5 w-3.5 text-green-500" />
-      <a
-        href={meta.uri}
-        className="font-mono text-sm text-green-600 hover:underline"
-      >
+      <a href={meta.uri} className="font-mono text-sm text-green-600 hover:underline">
         {meta.formatted || value}
       </a>
     </span>
@@ -341,7 +321,7 @@ function ArrayDisplay({
   }
 
   return (
-    <div className="pl-4 border-l border-border">
+    <div className="border-border border-l pl-4">
       {value.map((item, index) => (
         <div key={index} className="flex gap-2">
           <span className="text-muted-foreground select-none">{index}:</span>
@@ -368,12 +348,10 @@ function ObjectDisplay({
   }
 
   return (
-    <div className="pl-4 border-l border-border">
+    <div className="border-border border-l pl-4">
       {keys.map((key) => (
         <div key={key} className="flex gap-2">
-          <span className="text-blue-600 dark:text-blue-400 font-medium">
-            {key}:
-          </span>
+          <span className="font-medium text-blue-600 dark:text-blue-400">{key}:</span>
           {registry.render(value[key], [...path, key])}
         </div>
       ))}

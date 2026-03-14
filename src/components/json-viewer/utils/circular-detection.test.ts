@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 import {
   CIRCULAR_REF_PLACEHOLDER,
   cloneWithoutCircular,
@@ -18,9 +18,7 @@ describe('hasCircularReference', () => {
   it('should return false for simple objects', () => {
     expect(hasCircularReference({})).toBe(false);
     expect(hasCircularReference({ a: 1, b: 2 })).toBe(false);
-    expect(hasCircularReference({ nested: { deep: { value: 1 } } })).toBe(
-      false,
-    );
+    expect(hasCircularReference({ nested: { deep: { value: 1 } } })).toBe(false);
   });
 
   it('should return false for simple arrays', () => {
@@ -155,9 +153,7 @@ describe('cloneWithoutCircular', () => {
         level2: {},
       },
     };
-    (
-      (obj.level1 as Record<string, unknown>).level2 as Record<string, unknown>
-    ).back = obj;
+    ((obj.level1 as Record<string, unknown>).level2 as Record<string, unknown>).back = obj;
 
     const clone = cloneWithoutCircular(obj);
     expect(hasCircularReference(clone)).toBe(false);

@@ -1,11 +1,7 @@
 import { Check, Clipboard, Download } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   convertToFormat,
   type ExportFormat,
@@ -105,10 +101,8 @@ export function ExportButton({
       <PopoverContent className="w-64">
         <div className="grid gap-4">
           <div className="space-y-2">
-            <h4 className="font-medium leading-none">Export Format</h4>
-            <p className="text-muted-foreground text-xs">
-              Choose a format to download the data
-            </p>
+            <h4 className="leading-none font-medium">Export Format</h4>
+            <p className="text-muted-foreground text-xs">Choose a format to download the data</p>
           </div>
           <div className="grid gap-2">
             <Button

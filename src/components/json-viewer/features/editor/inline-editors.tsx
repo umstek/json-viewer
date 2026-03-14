@@ -29,14 +29,10 @@ export interface EditorProps<T> {
 /**
  * Validates a value against a schema node and returns validation errors
  */
-function validateValue(
-  value: unknown,
-  schema: SchemaNode,
-): ValidationError | null {
+function validateValue(value: unknown, schema: SchemaNode): ValidationError | null {
   // Type validation
   if (!matchesType(value, schema)) {
-    const actualType =
-      value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value;
+    const actualType = value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value;
     return {
       path: [],
       message: `Type mismatch: expected ${schema.type}, got ${actualType}`,
@@ -50,10 +46,7 @@ function validateValue(
   if (schema.type === 'string' && typeof value === 'string') {
     const stringSchema = schema as StringSchemaNode;
 
-    if (
-      stringSchema.minLength !== undefined &&
-      value.length < stringSchema.minLength
-    ) {
+    if (stringSchema.minLength !== undefined && value.length < stringSchema.minLength) {
       return {
         path: [],
         message: `String length ${value.length} is less than minimum ${stringSchema.minLength}`,
@@ -63,10 +56,7 @@ function validateValue(
       };
     }
 
-    if (
-      stringSchema.maxLength !== undefined &&
-      value.length > stringSchema.maxLength
-    ) {
+    if (stringSchema.maxLength !== undefined && value.length > stringSchema.maxLength) {
       return {
         path: [],
         message: `String length ${value.length} is greater than maximum ${stringSchema.maxLength}`,
@@ -124,10 +114,7 @@ function validateValue(
       };
     }
 
-    if (
-      numberSchema.multipleOf !== undefined &&
-      value % numberSchema.multipleOf !== 0
-    ) {
+    if (numberSchema.multipleOf !== undefined && value % numberSchema.multipleOf !== 0) {
       return {
         path: [],
         message: `Number ${value} is not a multiple of ${numberSchema.multipleOf}`,
@@ -209,16 +196,11 @@ export function StringEditor({
         >
           <Check className="h-4 w-4 text-green-600" />
         </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onCancel}
-          className="h-8 w-8 p-0"
-        >
+        <Button size="sm" variant="ghost" onClick={onCancel} className="h-8 w-8 p-0">
           <X className="h-4 w-4 text-red-600" />
         </Button>
       </div>
-      {error && <span className="text-red-500 text-xs">{error.message}</span>}
+      {error && <span className="text-xs text-red-500">{error.message}</span>}
     </div>
   );
 }
@@ -297,16 +279,11 @@ export function NumberEditor({
         >
           <Check className="h-4 w-4 text-green-600" />
         </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onCancel}
-          className="h-8 w-8 p-0"
-        >
+        <Button size="sm" variant="ghost" onClick={onCancel} className="h-8 w-8 p-0">
           <X className="h-4 w-4 text-red-600" />
         </Button>
       </div>
-      {error && <span className="text-red-500 text-xs">{error.message}</span>}
+      {error && <span className="text-xs text-red-500">{error.message}</span>}
     </div>
   );
 }
@@ -314,12 +291,7 @@ export function NumberEditor({
 /**
  * Boolean editor (checkbox or dropdown)
  */
-export function BooleanEditor({
-  value,
-  onSave,
-  onCancel,
-  readOnly = false,
-}: EditorProps<boolean>) {
+export function BooleanEditor({ value, onSave, onCancel, readOnly = false }: EditorProps<boolean>) {
   const [editedValue, setEditedValue] = useState(value);
 
   const handleSave = () => {
@@ -345,12 +317,7 @@ export function BooleanEditor({
       >
         <Check className="h-4 w-4 text-green-600" />
       </Button>
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={onCancel}
-        className="h-8 w-8 p-0"
-      >
+      <Button size="sm" variant="ghost" onClick={onCancel} className="h-8 w-8 p-0">
         <X className="h-4 w-4 text-red-600" />
       </Button>
     </div>
@@ -360,11 +327,7 @@ export function BooleanEditor({
 /**
  * Null editor (just shows a message and save/cancel buttons)
  */
-export function NullEditor({
-  onSave,
-  onCancel,
-  readOnly = false,
-}: EditorProps<null>) {
+export function NullEditor({ onSave, onCancel, readOnly = false }: EditorProps<null>) {
   const handleSave = () => {
     onSave(null);
   };
@@ -381,12 +344,7 @@ export function NullEditor({
       >
         <Check className="h-4 w-4 text-green-600" />
       </Button>
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={onCancel}
-        className="h-8 w-8 p-0"
-      >
+      <Button size="sm" variant="ghost" onClick={onCancel} className="h-8 w-8 p-0">
         <X className="h-4 w-4 text-red-600" />
       </Button>
     </div>
