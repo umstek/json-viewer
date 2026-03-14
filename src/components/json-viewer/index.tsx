@@ -1,19 +1,15 @@
-import { ArrowDownAZ, Filter, Search } from 'lucide-react';
-import { type ChangeEvent, type KeyboardEvent, useMemo, useRef, useState } from 'react';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useRef, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '../ui/button';
 import { BreadcrumbNav } from './features/breadcrumbs';
 import { ExportButton } from './features/export';
 import {
   type CustomKeyboardShortcut,
   ShortcutsHelp,
-  ShortcutsHelpButton,
   useKeyboardNavigation,
 } from './features/keyboard';
-import { ThemeToggle } from './features/theme';
+import { useParsedJson } from './hooks/use-parsed-json';
+import { useSchemaValidation } from './hooks/use-schema-validation';
+import { useSearch } from './hooks/use-search';
 import type { FilterOptions } from './pojo-viewer';
 import PojoViewer from './pojo-viewer';
 import type { CodeRendererOptions } from './renderer/advanced/code';
@@ -27,22 +23,11 @@ import {
 } from './renderer/advanced/schema-validation';
 import { createActionableRenderer } from './renderer/advanced/validation';
 import type { JSONSchemaObject, JSONSchemaValidationOptions } from './schema/json-schema';
-import { validateWithJSONSchema } from './schema/json-schema';
-import type { ValidationResult } from './schema/types';
-import {
-  detectQueryType,
-  executeQuery,
-  pathArrayToJsonPath,
-  type QueryResult,
-} from './utils/jsonpath';
-import {
-  type ArrayItemSortMode,
-  defaultSortOptions,
-  getArrayItemSortLabel,
-  getObjectKeySortLabel,
-  type ObjectKeySortMode,
-  type SortOptions,
-} from './utils/sorting';
+import { FilterControls, FilterPopoverContent } from './toolbar/filter-controls';
+import { SearchBar } from './toolbar/search-bar';
+import { SortControls, SortPopoverContent } from './toolbar/sort-controls';
+import type { SortOptions } from './utils/sorting';
+import { defaultSortOptions } from './utils/sorting';
 import type { Transformer } from './utils/transforms';
 
 export interface JsonViewerProps {
@@ -57,10 +42,6 @@ export interface JsonViewerProps {
   showValidationErrors?: boolean;
   keyboardShortcuts?: boolean;
   customShortcuts?: CustomKeyboardShortcut[];
-}
-
-interface SearchableObject {
-  [key: string]: unknown;
 }
 
 const defaultFilterOptions: FilterOptions = {
@@ -97,117 +78,48 @@ export default function JsonViewer({
   customShortcuts,
 }: JsonViewerProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
-  // Validate JSON data against JSON Schema if provided
-  const schemaValidation: ValidationResult | null = useMemo(() => {
-    if (!jsonSchema) return null;
 
-    try {
-      const data = JSON.parse(json);
-      return validateWithJSONSchema(data, jsonSchema, jsonSchemaOptions);
-    } catch {
-      // Invalid JSON, return null and let the JSON parsing error handle it
-      return null;
-    }
-  }, [json, jsonSchema, jsonSchemaOptions]);
+  const { data, error } = useParsedJson(json);
 
-  const renderers = useMemo(() => {
-    const baseRenderers = [
-      createCodeRenderer(codeOptions),
-      createDateRenderer(dateOptions),
-      createLinkRenderer(),
-    ];
+  const schemaValidation = useSchemaValidation(data, jsonSchema, jsonSchemaOptions);
 
-    // Add JSON Schema validation renderer if schema is provided
-    if (jsonSchema && schemaValidation && !schemaValidation.valid) {
-      baseRenderers.push(
-        createSchemaValidationRenderer({
-          validationErrors: schemaValidation.errors,
-          showErrors: showValidationErrors,
-        }),
-      );
-    }
+  const { searchState, handleSearch, navigateResults, navigateToPath } = useSearch(data);
 
-    // Add actionable format renderer if enabled
-    if (enableValidation) {
-      baseRenderers.push(createActionableRenderer());
-    }
-
-    return baseRenderers;
-  }, [
-    codeOptions,
-    dateOptions,
-    enableValidation,
-    jsonSchema,
-    schemaValidation,
-    showValidationErrors,
-  ]);
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<QueryResult[]>([]);
-  const [currentResultIndex, setCurrentResultIndex] = useState(0);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>(defaultFilterOptions);
   const [excludeKeyInput, setExcludeKeyInput] = useState('');
-  const [queryType, setQueryType] = useState<'json-pointer' | 'jsonpath' | 'text'>('text');
   const [sortOptions, setSortOptions] = useState<SortOptions>(defaultSortOptions);
 
-  // Parse data once for keyboard navigation
-  const parsedData = useMemo(() => {
-    try {
-      return JSON.parse(json);
-    } catch {
-      return null;
-    }
-  }, [json]);
-
-  // Keyboard navigation
-  const keyboard = useKeyboardNavigation(parsedData, {
+  const keyboard = useKeyboardNavigation(data, {
     enabled: keyboardShortcuts,
     customShortcuts,
     onFocusChange: (path) => {
       if (path) {
-        // Navigate to the focused path by setting it as search result
-        const jsonPath = pathArrayToJsonPath(path);
-        handleSearch(jsonPath);
+        navigateToPath(path);
       }
     },
     onCopy: () => {
-      // Copy notification could be added here
       console.log('Value copied to clipboard');
     },
   });
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    if (!query) {
-      setSearchResults([]);
-      setCurrentResultIndex(0);
-      setQueryType('text');
-      return;
-    }
+  const renderers = [
+    createCodeRenderer(codeOptions),
+    createDateRenderer(dateOptions),
+    createLinkRenderer(),
+  ];
 
-    try {
-      const data = JSON.parse(json) as SearchableObject;
-      const results = executeQuery(data, query);
-      const detectedType = detectQueryType(query);
+  if (jsonSchema && schemaValidation && !schemaValidation.valid) {
+    renderers.push(
+      createSchemaValidationRenderer({
+        validationErrors: schemaValidation.errors,
+        showErrors: showValidationErrors,
+      }),
+    );
+  }
 
-      setSearchResults(results);
-      setCurrentResultIndex(0);
-      setQueryType(detectedType);
-    } catch (error) {
-      console.error('Search error:', error);
-      setSearchResults([]);
-    }
-  };
-
-  const navigateResults = (direction: 'next' | 'prev') => {
-    if (searchResults.length === 0) return;
-
-    if (direction === 'next') {
-      setCurrentResultIndex((prev) => (prev + 1) % searchResults.length);
-    } else {
-      setCurrentResultIndex((prev) => (prev === 0 ? searchResults.length - 1 : prev - 1));
-    }
-  };
+  if (enableValidation) {
+    renderers.push(createActionableRenderer());
+  }
 
   const handleFilterChange = (key: keyof Omit<FilterOptions, 'excludedKeys'>) => {
     setFilterOptions((prev) => ({
@@ -232,246 +144,111 @@ export default function JsonViewer({
     }));
   };
 
-  const handleObjectKeySortChange = (mode: ObjectKeySortMode) => {
+  const handleObjectKeySortChange = (mode: string) => {
     setSortOptions((prev) => ({
       ...prev,
-      objectKeySort: mode,
+      objectKeySort: mode as SortOptions['objectKeySort'],
     }));
   };
 
-  const handleArrayItemSortChange = (mode: ArrayItemSortMode) => {
+  const handleArrayItemSortChange = (mode: string) => {
     setSortOptions((prev) => ({
       ...prev,
-      arrayItemSort: mode,
+      arrayItemSort: mode as SortOptions['arrayItemSort'],
     }));
   };
 
-  const handleBreadcrumbNavigate = (path: string[]) => {
-    // Convert path to JSONPath and search for it
-    const jsonPath = pathArrayToJsonPath(path);
-    handleSearch(jsonPath);
-  };
-
-  try {
-    const data = JSON.parse(json);
-    return (
-      <div ref={keyboard.containerRef} className="w-full space-y-4 overflow-hidden">
-        {jsonSchema && schemaValidation && showValidationErrors && (
-          <ValidationErrorPanel errors={schemaValidation.errors} />
-        )}
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
-            <Input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search, JSONPath ($.path), or JSON Pointer (/path)..."
-              value={searchQuery}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
-              className="pr-24 pl-8"
-            />
-            {searchQuery && (
-              <div className="text-muted-foreground absolute top-2.5 right-2 text-xs">
-                {queryType === 'json-pointer' && 'JSON Pointer'}
-                {queryType === 'jsonpath' && 'JSONPath'}
-                {queryType === 'text' && 'Text Search'}
-              </div>
-            )}
-          </div>
-          {showThemeToggle && <ThemeToggle />}
-          <ExportButton data={data} filename="json-data" />
-          {keyboardShortcuts && <ShortcutsHelpButton onClick={() => keyboard.setShowHelp(true)} />}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="icon">
-                <ArrowDownAZ className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <h4 className="leading-none font-medium">Sort Object Keys</h4>
-                  <div className="grid gap-2">
-                    {(
-                      ['original', 'alphabetical', 'reverse-alphabetical'] as ObjectKeySortMode[]
-                    ).map((mode) => (
-                      <Button
-                        key={mode}
-                        variant={sortOptions.objectKeySort === mode ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handleObjectKeySortChange(mode)}
-                        className="justify-start"
-                      >
-                        {getObjectKeySortLabel(mode)}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <h4 className="leading-none font-medium">Sort Array Items</h4>
-                  <div className="grid gap-2">
-                    {(
-                      [
-                        'original',
-                        'ascending',
-                        'descending',
-                        'alphabetical',
-                        'reverse-alphabetical',
-                      ] as ArrayItemSortMode[]
-                    ).map((mode) => (
-                      <Button
-                        key={mode}
-                        variant={sortOptions.arrayItemSort === mode ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handleArrayItemSortChange(mode)}
-                        className="justify-start"
-                      >
-                        {getArrayItemSortLabel(mode)}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Filter className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <h4 className="leading-none font-medium">Show/Hide Types</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="show-strings"
-                        checked={filterOptions.showStrings}
-                        onCheckedChange={() => handleFilterChange('showStrings')}
-                      />
-                      <Label htmlFor="show-strings">Strings</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="show-numbers"
-                        checked={filterOptions.showNumbers}
-                        onCheckedChange={() => handleFilterChange('showNumbers')}
-                      />
-                      <Label htmlFor="show-numbers">Numbers</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="show-booleans"
-                        checked={filterOptions.showBooleans}
-                        onCheckedChange={() => handleFilterChange('showBooleans')}
-                      />
-                      <Label htmlFor="show-booleans">Booleans</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="show-null"
-                        checked={filterOptions.showNull}
-                        onCheckedChange={() => handleFilterChange('showNull')}
-                      />
-                      <Label htmlFor="show-null">Null</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="show-objects"
-                        checked={filterOptions.showObjects}
-                        onCheckedChange={() => handleFilterChange('showObjects')}
-                      />
-                      <Label htmlFor="show-objects">Objects</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="show-arrays"
-                        checked={filterOptions.showArrays}
-                        onCheckedChange={() => handleFilterChange('showArrays')}
-                      />
-                      <Label htmlFor="show-arrays">Arrays</Label>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <h4 className="leading-none font-medium">Exclude Keys</h4>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Key to exclude..."
-                      value={excludeKeyInput}
-                      onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                        setExcludeKeyInput(e.target.value)
-                      }
-                      onKeyDown={(e: KeyboardEvent<HTMLInputElement>) =>
-                        e.key === 'Enter' && handleAddExcludedKey()
-                      }
-                    />
-                    <Button onClick={handleAddExcludedKey} size="sm">
-                      Add
-                    </Button>
-                  </div>
-                  <div className="space-y-1">
-                    {filterOptions.excludedKeys.map((key) => (
-                      <div key={key} className="flex items-center gap-2">
-                        <span className="text-sm">{key}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveExcludedKey(key)}
-                          className="h-6 px-2"
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-          {searchResults.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-sm">
-                {currentResultIndex + 1} of {searchResults.length}
-              </span>
-              <Button variant="outline" size="sm" onClick={() => navigateResults('prev')}>
-                Previous
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => navigateResults('next')}>
-                Next
-              </Button>
-            </div>
-          )}
-        </div>
-        {searchResults.length > 0 && searchResults[currentResultIndex] && (
-          <BreadcrumbNav
-            path={searchResults[currentResultIndex].path}
-            onNavigate={handleBreadcrumbNavigate}
-            className="bg-muted/50 rounded-md px-1 py-2"
-          />
-        )}
-        <PojoViewer
-          data={data}
-          renderers={renderers}
-          transformers={transformers}
-          highlightedPath={searchResults[currentResultIndex]?.path || []}
-          filterOptions={filterOptions}
-          searchQuery={queryType === 'text' ? searchQuery : ''}
-          sortOptions={sortOptions}
-          focusedPath={keyboard.focusState.focusedPath}
-        />
-        {keyboardShortcuts && (
-          <ShortcutsHelp
-            open={keyboard.showHelp}
-            onOpenChange={keyboard.setShowHelp}
-            shortcuts={keyboard.shortcuts}
-          />
-        )}
-      </div>
-    );
-  } catch (error) {
-    return <div>Invalid JSON: {(error as Error).message}</div>;
+  if (error) {
+    return <div>Invalid JSON: {error.message}</div>;
   }
+
+  return (
+    <div ref={keyboard.containerRef} className="w-full space-y-4 overflow-hidden">
+      {jsonSchema && schemaValidation && showValidationErrors && (
+        <ValidationErrorPanel errors={schemaValidation.errors} />
+      )}
+      <div className="flex items-center gap-2">
+        <SearchBar
+          searchState={searchState}
+          onSearch={handleSearch}
+          onNavigatePrev={() => navigateResults('prev')}
+          onNavigateNext={() => navigateResults('next')}
+          inputRef={searchInputRef}
+        />
+        {showThemeToggle && <ExportButton data={data} filename="json-data" />}
+        {keyboardShortcuts && (
+          <button
+            type="button"
+            onClick={() => keyboard.setShowHelp(true)}
+            className="focus-visible:ring-ring hover:bg-accent hover:text-accent-foreground border-input bg-background inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md border text-sm font-medium whitespace-nowrap shadow-xs transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
+            aria-label="Keyboard shortcuts"
+          >
+            <span className="text-xs font-bold">⌘K</span>
+          </button>
+        )}
+        <Popover>
+          <PopoverTrigger asChild>
+            <SortControls
+              sortOptions={sortOptions}
+              onObjectKeySortChange={handleObjectKeySortChange}
+              onArrayItemSortChange={handleArrayItemSortChange}
+            />
+          </PopoverTrigger>
+          <PopoverContent className="w-80">
+            <SortPopoverContent
+              sortOptions={sortOptions}
+              onObjectKeySortChange={handleObjectKeySortChange}
+              onArrayItemSortChange={handleArrayItemSortChange}
+            />
+          </PopoverContent>
+        </Popover>
+        <Popover>
+          <PopoverTrigger asChild>
+            <FilterControls
+              filterOptions={filterOptions}
+              onFilterChange={handleFilterChange}
+              excludeKeyInput={excludeKeyInput}
+              onExcludeKeyInputChange={setExcludeKeyInput}
+              onAddExcludedKey={handleAddExcludedKey}
+              onRemoveExcludedKey={handleRemoveExcludedKey}
+            />
+          </PopoverTrigger>
+          <PopoverContent className="w-80">
+            <FilterPopoverContent
+              filterOptions={filterOptions}
+              onFilterChange={handleFilterChange}
+              excludeKeyInput={excludeKeyInput}
+              onExcludeKeyInputChange={setExcludeKeyInput}
+              onAddExcludedKey={handleAddExcludedKey}
+              onRemoveExcludedKey={handleRemoveExcludedKey}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+      {searchState.results.length > 0 && searchState.results[searchState.currentResultIndex] && (
+        <BreadcrumbNav
+          path={searchState.results[searchState.currentResultIndex].path}
+          onNavigate={navigateToPath}
+          className="bg-muted/50 rounded-md px-1 py-2"
+        />
+      )}
+      <PojoViewer
+        data={data}
+        renderers={renderers}
+        transformers={transformers}
+        highlightedPath={searchState.results[searchState.currentResultIndex]?.path || []}
+        filterOptions={filterOptions}
+        searchQuery={searchState.queryType === 'text' ? searchState.query : ''}
+        sortOptions={sortOptions}
+        focusedPath={keyboard.focusState.focusedPath}
+      />
+      {keyboardShortcuts && (
+        <ShortcutsHelp
+          open={keyboard.showHelp}
+          onOpenChange={keyboard.setShowHelp}
+          shortcuts={keyboard.shortcuts}
+        />
+      )}
+    </div>
+  );
 }
