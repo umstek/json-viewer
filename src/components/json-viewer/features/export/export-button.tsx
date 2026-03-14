@@ -1,5 +1,5 @@
 import { Check, Clipboard, Download } from 'lucide-react';
-import { useState } from 'react';
+import { forwardRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -37,109 +37,107 @@ export interface ExportButtonProps {
  * Export button component that allows downloading JSON data in various formats
  * Supports JSON (formatted/minified), YAML, and CSV formats
  */
-export function ExportButton({
-  data,
-  filename = 'data',
-  onExport,
-  variant = 'icon',
-}: ExportButtonProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [hasCopied, setHasCopied] = useState(false);
+export const ExportButton = forwardRef<HTMLButtonElement, ExportButtonProps>(
+  ({ data, filename = 'data', onExport, variant = 'icon' }, ref) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
+    const [hasCopied, setHasCopied] = useState(false);
 
-  const handleExport = async (format: ExportFormat) => {
-    try {
-      setIsExporting(true);
+    const handleExport = async (format: ExportFormat) => {
+      try {
+        setIsExporting(true);
 
-      // Call export function
-      exportData(data, format, filename);
+        // Call export function
+        exportData(data, format, filename);
 
-      // Notify parent component
-      onExport?.(format);
+        // Notify parent component
+        onExport?.(format);
 
-      // Close popover after successful export
-      setIsOpen(false);
-    } catch (error) {
-      console.error('Export failed:', error);
-      alert(`Export failed: ${(error as Error).message}`);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleCopyToClipboard = async () => {
-    try {
-      const content = convertToFormat(data, 'json');
-      await navigator.clipboard.writeText(content);
-      setHasCopied(true);
-      setTimeout(() => {
-        setHasCopied(false);
+        // Close popover after successful export
         setIsOpen(false);
-      }, 1000);
-    } catch (error) {
-      console.error('Copy failed:', error);
-      alert(`Copy failed: ${(error as Error).message}`);
-    }
-  };
+      } catch (error) {
+        console.error('Export failed:', error);
+        alert(`Export failed: ${(error as Error).message}`);
+      } finally {
+        setIsExporting(false);
+      }
+    };
 
-  const formats: ExportFormat[] = ['json', 'json-minified', 'yaml', 'csv'];
+    const handleCopyToClipboard = async () => {
+      try {
+        const content = convertToFormat(data, 'json');
+        await navigator.clipboard.writeText(content);
+        setHasCopied(true);
+        setTimeout(() => {
+          setHasCopied(false);
+          setIsOpen(false);
+        }, 1000);
+      } catch (error) {
+        console.error('Copy failed:', error);
+        alert(`Copy failed: ${(error as Error).message}`);
+      }
+    };
 
-  return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        {variant === 'icon' ? (
-          <Button variant="outline" size="icon" title="Export data">
-            <Download className="h-4 w-4" />
-          </Button>
-        ) : (
-          <Button variant="outline" title="Export data">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
-        )}
-      </PopoverTrigger>
-      <PopoverContent className="w-64">
-        <div className="grid gap-4">
-          <div className="space-y-2">
-            <h4 className="leading-none font-medium">Export Format</h4>
-            <p className="text-muted-foreground text-xs">Choose a format to download the data</p>
-          </div>
-          <div className="grid gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCopyToClipboard}
-              disabled={isExporting}
-              className="justify-start gap-2"
-            >
-              {hasCopied ? (
-                <>
-                  <Check className="h-4 w-4 text-green-600" />
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <Clipboard className="h-4 w-4" />
-                  Copy to clipboard
-                </>
-              )}
+    const formats: ExportFormat[] = ['json', 'json-minified', 'yaml', 'csv'];
+
+    return (
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          {variant === 'icon' ? (
+            <Button variant="outline" size="icon" title="Export data" ref={ref}>
+              <Download className="h-4 w-4" />
             </Button>
-            <div className="my-1 border-t" />
-            {formats.map((format) => (
+          ) : (
+            <Button variant="outline" title="Export data" ref={ref}>
+              <Download className="h-4 w-4" />
+              Export
+            </Button>
+          )}
+        </PopoverTrigger>
+        <PopoverContent className="w-64">
+          <div className="grid gap-4">
+            <div className="space-y-2">
+              <h4 className="leading-none font-medium">Export Format</h4>
+              <p className="text-muted-foreground text-xs">Choose a format to download the data</p>
+            </div>
+            <div className="grid gap-2">
               <Button
-                key={format}
                 variant="outline"
                 size="sm"
-                onClick={() => handleExport(format)}
+                onClick={handleCopyToClipboard}
                 disabled={isExporting}
-                className="justify-start"
+                className="justify-start gap-2"
               >
-                {formatLabels[format]}
+                {hasCopied ? (
+                  <>
+                    <Check className="h-4 w-4 text-green-600" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Clipboard className="h-4 w-4" />
+                    Copy to clipboard
+                  </>
+                )}
               </Button>
-            ))}
+              <div className="my-1 border-t" />
+              {formats.map((format) => (
+                <Button
+                  key={format}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleExport(format)}
+                  disabled={isExporting}
+                  className="justify-start"
+                >
+                  {formatLabels[format]}
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
+        </PopoverContent>
+      </Popover>
+    );
+  },
+);
+ExportButton.displayName = 'ExportButton';

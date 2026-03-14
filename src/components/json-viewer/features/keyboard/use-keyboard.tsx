@@ -60,7 +60,16 @@ function mergeShortcuts(
  * Custom hook for keyboard navigation in the JSON viewer
  */
 export function useKeyboardNavigation(data: unknown, options: KeyboardNavigationOptions = {}) {
-  const { enabled = true, customShortcuts, onFocusChange, onToggleExpand, onCopy } = options;
+  const {
+    enabled = true,
+    customShortcuts,
+    onFocusChange,
+    onToggleExpand,
+    onCopy,
+    searchInputRef,
+    exportButtonRef,
+    bookmarksButtonRef,
+  } = options;
 
   const [focusState, setFocusState] = useState<FocusState>({
     focusedPath: null,
@@ -254,39 +263,22 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
    * Focus search input
    */
   const focusSearch = useCallback(() => {
-    const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
-    searchInput?.focus();
-  }, []);
+    searchInputRef?.current?.focus();
+  }, [searchInputRef]);
 
   /**
    * Open export menu
    */
   const openExport = useCallback(() => {
-    // Find and click the export button
-    const exportButton = containerRef.current?.querySelector(
-      'button[title="Export data"]',
-    ) as HTMLButtonElement;
-    exportButton?.click();
-  }, []);
+    exportButtonRef?.current?.click();
+  }, [exportButtonRef]);
 
   /**
    * Toggle bookmarks panel
    */
   const toggleBookmarks = useCallback(() => {
-    // Find and click the bookmarks button
-    const bookmarksButton = containerRef.current?.querySelector(
-      'button[aria-label="Bookmarks"]',
-    ) as HTMLButtonElement;
-    if (!bookmarksButton) {
-      // Try alternative selector
-      const bookmarkButtons = containerRef.current?.querySelectorAll('button[data-state]');
-      bookmarkButtons?.[bookmarkButtons.length - 1]?.dispatchEvent(
-        new MouseEvent('click', { bubbles: true }),
-      );
-    } else {
-      bookmarksButton.click();
-    }
-  }, []);
+    bookmarksButtonRef?.current?.click();
+  }, [bookmarksButtonRef]);
 
   /**
    * Show help panel
@@ -366,8 +358,11 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('keydown', handleKeyDown);
+      return () => container.removeEventListener('keydown', handleKeyDown);
+    }
   }, [enabled, shortcuts, handlers]);
 
   return {

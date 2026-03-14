@@ -78,6 +78,12 @@ export interface KeyboardNavigationOptions {
   onToggleExpand?: (path: string[]) => void;
   /** Callback when copy shortcut is triggered */
   onCopy?: (path: string[], value: unknown) => void;
+  /** Ref to the search input element */
+  searchInputRef?: React.RefObject<HTMLInputElement | null>;
+  /** Ref to the export button element */
+  exportButtonRef?: React.RefObject<HTMLButtonElement | null>;
+  /** Ref to the bookmarks button element */
+  bookmarksButtonRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 /**
