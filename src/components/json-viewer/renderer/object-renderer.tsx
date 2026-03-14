@@ -5,7 +5,11 @@ import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useOptionalExpansion } from '../features/expansion';
-import { sortArrayItems, sortObjectEntries } from '../utils/sorting';
+import {
+  type ArrayItemWithSource,
+  sortArrayItemsWithSource,
+  sortObjectEntries,
+} from '../utils/sorting';
 import { CopyButton } from './copy-button';
 import type { RouterOptions } from './router';
 
@@ -262,7 +266,12 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
 
   // Memoize filtering to avoid unnecessary recalculations
   const { filteredItems, shouldVirtualize } = useMemo(() => {
-    const filtered = value.filter((val: unknown) => {
+    const indexedItems: ArrayItemWithSource[] = value.map((item: unknown, sourceIndex: number) => ({
+      sourceIndex,
+      value: item,
+    }));
+
+    const filtered = indexedItems.filter(({ value: val }) => {
       if (options.filterOptions) {
         if (typeof val === 'string' && !options.filterOptions.showStrings) return false;
         if (typeof val === 'number' && !options.filterOptions.showNumbers) return false;
@@ -282,7 +291,7 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
 
     // Apply sorting
     const sorted = options.sortOptions?.arrayItemSort
-      ? sortArrayItems(filtered, options.sortOptions.arrayItemSort)
+      ? sortArrayItemsWithSource(filtered, options.sortOptions.arrayItemSort)
       : filtered;
 
     return {
@@ -313,10 +322,10 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
   }
 
   const renderVirtualRow = (virtualRow: VirtualItem) => {
-    const val = filteredItems[virtualRow.index];
+    const item = filteredItems[virtualRow.index];
     return (
       <div
-        key={virtualRow.key}
+        key={`${path.join('.')}.${item.sourceIndex}`}
         data-index={virtualRow.index}
         ref={virtualizer.measureElement}
         className="absolute top-0 left-0 w-full overflow-hidden"
@@ -329,7 +338,7 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
             <HighlightText text={`${virtualRow.index}:`} searchQuery={options.searchQuery} />
           </span>
           <div className="min-w-0 flex-1 overflow-hidden">
-            {router(val, [...path, String(virtualRow.index)], options)}
+            {router(item.value, [...path, String(item.sourceIndex)], options)}
           </div>
         </div>
       </div>
@@ -347,13 +356,13 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
     }
 
     if (!shouldVirtualize) {
-      return filteredItems.map((val: unknown, index: number) => (
-        <div key={`${path.join('.')}.${index}`} className="flex w-full min-w-0 gap-2">
+      return filteredItems.map((item: ArrayItemWithSource, index: number) => (
+        <div key={`${path.join('.')}.${item.sourceIndex}`} className="flex w-full min-w-0 gap-2">
           <span className="text-primary whitespace-nowrap">
             <HighlightText text={`${index}:`} searchQuery={options.searchQuery} />
           </span>
           <div className="min-w-0 flex-1 overflow-hidden">
-            {router(val, [...path, String(index)], options)}
+            {router(item.value, [...path, String(item.sourceIndex)], options)}
           </div>
         </div>
       ));

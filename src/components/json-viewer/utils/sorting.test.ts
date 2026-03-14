@@ -3,6 +3,7 @@ import {
   getArrayItemSortLabel,
   getObjectKeySortLabel,
   sortArrayItems,
+  sortArrayItemsWithSource,
   sortObjectEntries,
 } from './sorting';
 
@@ -84,6 +85,24 @@ describe('sortArrayItems', () => {
     const result = sortArrayItems(items, 'alphabetical');
     // All items are converted to strings for comparison
     expect(result).toEqual([1, 2, 3, 'apple', 'zebra']);
+  });
+});
+
+describe('sortArrayItemsWithSource', () => {
+  test('should preserve source indexes while sorting by value', () => {
+    const items = [
+      { sourceIndex: 0, value: 'zebra' },
+      { sourceIndex: 1, value: 'apple' },
+      { sourceIndex: 2, value: 'monkey' },
+    ];
+
+    const result = sortArrayItemsWithSource(items, 'alphabetical');
+
+    expect(result).toEqual([
+      { sourceIndex: 1, value: 'apple' },
+      { sourceIndex: 2, value: 'monkey' },
+      { sourceIndex: 0, value: 'zebra' },
+    ]);
   });
 });
 

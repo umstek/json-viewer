@@ -16,6 +16,11 @@ export interface SortOptions {
   arrayItemSort: ArrayItemSortMode;
 }
 
+export interface ArrayItemWithSource {
+  sourceIndex: number;
+  value: unknown;
+}
+
 export const defaultSortOptions: SortOptions = {
   objectKeySort: 'original',
   arrayItemSort: 'original',
@@ -52,36 +57,48 @@ export function sortArrayItems(items: unknown[], sortMode: ArrayItemSortMode): u
   }
 
   const sorted = [...items];
-
-  if (sortMode === 'ascending') {
-    sorted.sort((a, b) => {
-      if (typeof a === 'number' && typeof b === 'number') {
-        return a - b;
-      }
-      return 0; // Keep original order for non-numbers
-    });
-  } else if (sortMode === 'descending') {
-    sorted.sort((a, b) => {
-      if (typeof a === 'number' && typeof b === 'number') {
-        return b - a;
-      }
-      return 0; // Keep original order for non-numbers
-    });
-  } else if (sortMode === 'alphabetical') {
-    sorted.sort((a, b) => {
-      const strA = String(a);
-      const strB = String(b);
-      return strA.localeCompare(strB);
-    });
-  } else if (sortMode === 'reverse-alphabetical') {
-    sorted.sort((a, b) => {
-      const strA = String(a);
-      const strB = String(b);
-      return strB.localeCompare(strA);
-    });
-  }
+  sorted.sort((a, b) => compareArrayValues(a, b, sortMode));
 
   return sorted;
+}
+
+export function sortArrayItemsWithSource(
+  items: ArrayItemWithSource[],
+  sortMode: ArrayItemSortMode,
+): ArrayItemWithSource[] {
+  if (sortMode === 'original') {
+    return items;
+  }
+
+  const sorted = [...items];
+  sorted.sort((a, b) => compareArrayValues(a.value, b.value, sortMode));
+  return sorted;
+}
+
+function compareArrayValues(a: unknown, b: unknown, sortMode: ArrayItemSortMode): number {
+  if (sortMode === 'ascending') {
+    if (typeof a === 'number' && typeof b === 'number') {
+      return a - b;
+    }
+    return 0;
+  }
+
+  if (sortMode === 'descending') {
+    if (typeof a === 'number' && typeof b === 'number') {
+      return b - a;
+    }
+    return 0;
+  }
+
+  if (sortMode === 'alphabetical') {
+    return String(a).localeCompare(String(b));
+  }
+
+  if (sortMode === 'reverse-alphabetical') {
+    return String(b).localeCompare(String(a));
+  }
+
+  return 0;
 }
 
 /**
