@@ -1,3 +1,5 @@
+import './index.css';
+
 // Main components
 export type { JsonViewerProps } from './components/json-viewer';
 export { default as JsonViewer } from './components/json-viewer';
