@@ -60,7 +60,7 @@ export const createDateRenderer = (options: DateRendererOptions = {}): Renderer 
     return (
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <GenericRenderer icon={Calendar} type="date" value={value}>
               <pre>{date.toString()}</pre>
             </GenericRenderer>

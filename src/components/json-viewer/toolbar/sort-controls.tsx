@@ -1,28 +1,39 @@
 import { ArrowDownAZ } from 'lucide-react';
+import { type ComponentPropsWithoutRef, forwardRef } from 'react';
 import type { ArrayItemSortMode, ObjectKeySortMode, SortOptions } from '../utils/sorting';
 import { getArrayItemSortLabel, getObjectKeySortLabel } from '../utils/sorting';
 
-export interface SortControlsProps {
+type SortButtonProps = ComponentPropsWithoutRef<'button'>;
+
+export interface SortControlsProps extends SortButtonProps {
   sortOptions: SortOptions;
   onObjectKeySortChange: (mode: ObjectKeySortMode) => void;
   onArrayItemSortChange: (mode: ArrayItemSortMode) => void;
 }
 
-export function SortControls({
-  sortOptions: _sortOptions,
-  onObjectKeySortChange: _onObjectKeySortChange,
-  onArrayItemSortChange: _onArrayItemSortChange,
-}: SortControlsProps) {
+export const SortControls = forwardRef<HTMLButtonElement, SortControlsProps>(function SortControls(
+  {
+    sortOptions: _sortOptions,
+    onObjectKeySortChange: _onObjectKeySortChange,
+    onArrayItemSortChange: _onArrayItemSortChange,
+    className,
+    type = 'button',
+    ...buttonProps
+  },
+  ref,
+) {
   return (
     <button
-      type="button"
-      className="focus-visible:ring-ring hover:bg-accent hover:text-accent-foreground border-input bg-background inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md border text-sm font-medium whitespace-nowrap shadow-xs transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
+      ref={ref}
+      type={type}
+      className={`focus-visible:ring-ring hover:bg-accent hover:text-accent-foreground border-input bg-background inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md border text-sm font-medium whitespace-nowrap shadow-xs transition-colors focus-visible:ring-1 focus-visible:outline-hidden ${className ?? ''}`.trim()}
       aria-label="Sort"
+      {...buttonProps}
     >
       <ArrowDownAZ className="h-4 w-4" />
     </button>
   );
-}
+});
 
 export function SortPopoverContent({
   sortOptions,

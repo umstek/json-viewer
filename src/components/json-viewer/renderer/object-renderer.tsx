@@ -54,6 +54,8 @@ function HighlightText({ text, searchQuery }: HighlightTextProps) {
 
 export function ObjectRenderer({ value, router, path, options }: ObjectRendererProps) {
   const expansionContext = useOptionalExpansion();
+  const pathKey = pathArrayToInternalKey(path);
+  const highlightedPath = options.highlightedPath;
 
   // Use context-based expansion if available, otherwise use local state
   const [localIsOpen, setLocalIsOpen] = useState(false);
@@ -117,12 +119,10 @@ export function ObjectRenderer({ value, router, path, options }: ObjectRendererP
 
   // Auto-expand if this path is part of the highlighted path
   useEffect(() => {
-    if (options.highlightedPath?.length) {
-      if (isPathAncestor(path, options.highlightedPath)) {
-        setIsOpen(true);
-      }
+    if (highlightedPath?.length && !isOpen && isPathAncestor(path, highlightedPath)) {
+      setIsOpen(true);
     }
-  }, [options.highlightedPath, path, setIsOpen]);
+  }, [highlightedPath, isOpen, path, setIsOpen]);
 
   const virtualizer = useVirtualizer({
     count: filteredEntries.length,
@@ -171,7 +171,7 @@ export function ObjectRenderer({ value, router, path, options }: ObjectRendererP
 
     if (!shouldVirtualize) {
       return filteredEntries.map(([key, val]: [string, unknown]) => (
-        <div key={`${pathArrayToInternalKey(path)}/${key}`} className="flex w-full min-w-0 gap-2">
+        <div key={`${pathKey}/${key}`} className="flex w-full min-w-0 gap-2">
           <span className="text-primary whitespace-nowrap">
             <HighlightText text={`${key}:`} searchQuery={options.searchQuery} />
           </span>
@@ -229,6 +229,8 @@ export function ObjectRenderer({ value, router, path, options }: ObjectRendererP
 
 export function ArrayRenderer({ value, router, path, options }: ObjectRendererProps) {
   const expansionContext = useOptionalExpansion();
+  const pathKey = pathArrayToInternalKey(path);
+  const highlightedPath = options.highlightedPath;
   const parentRef = useRef<HTMLDivElement>(null);
 
   // Use context-based expansion if available, otherwise use local state
@@ -289,12 +291,10 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
 
   // Auto-expand if this path is part of the highlighted path
   useEffect(() => {
-    if (options.highlightedPath?.length) {
-      if (isPathAncestor(path, options.highlightedPath)) {
-        setIsOpen(true);
-      }
+    if (highlightedPath?.length && !isOpen && isPathAncestor(path, highlightedPath)) {
+      setIsOpen(true);
     }
-  }, [options.highlightedPath, path, setIsOpen]);
+  }, [highlightedPath, isOpen, path, setIsOpen]);
 
   const virtualizer = useVirtualizer({
     count: filteredItems.length,
@@ -311,7 +311,7 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
     const item = filteredItems[virtualRow.index];
     return (
       <div
-        key={`${pathArrayToInternalKey(path)}/${item.sourceIndex}`}
+        key={`${pathKey}/${item.sourceIndex}`}
         data-index={virtualRow.index}
         ref={virtualizer.measureElement}
         className="absolute top-0 left-0 w-full overflow-hidden"
@@ -343,10 +343,7 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
 
     if (!shouldVirtualize) {
       return filteredItems.map((item: ArrayItemWithSource, index: number) => (
-        <div
-          key={`${pathArrayToInternalKey(path)}/${item.sourceIndex}`}
-          className="flex w-full min-w-0 gap-2"
-        >
+        <div key={`${pathKey}/${item.sourceIndex}`} className="flex w-full min-w-0 gap-2">
           <span className="text-primary whitespace-nowrap">
             <HighlightText text={`${index}:`} searchQuery={options.searchQuery} />
           </span>

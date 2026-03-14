@@ -1,5 +1,10 @@
 import type { LucideIcon } from 'lucide-react';
-import type { ReactNode } from 'react';
+import {
+  type ComponentPropsWithoutRef,
+  forwardRef,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { CopyButton } from './copy-button';
@@ -43,13 +48,22 @@ export function GenericRenderer(props: {
  *
  * @returns A JSX element with tooltip functionality.
  */
-export function TooltipWrapper(props: { children: ReactNode; tooltip: string }) {
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger>{props.children}</TooltipTrigger>
-        <TooltipContent>{props.tooltip}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
+interface TooltipWrapperProps extends ComponentPropsWithoutRef<typeof TooltipTrigger> {
+  children: ReactElement;
+  tooltip: string;
 }
+
+export const TooltipWrapper = forwardRef<HTMLButtonElement, TooltipWrapperProps>(
+  function TooltipWrapper({ children, tooltip, ...triggerProps }, ref) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild ref={ref} {...triggerProps}>
+            {children}
+          </TooltipTrigger>
+          <TooltipContent>{tooltip}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  },
+);

@@ -1,12 +1,19 @@
 import { Filter } from 'lucide-react';
-import type { ChangeEvent, KeyboardEvent } from 'react';
+import {
+  type ChangeEvent,
+  type ComponentPropsWithoutRef,
+  forwardRef,
+  type KeyboardEvent,
+} from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { FilterOptions } from '../pojo-viewer';
 
-export interface FilterControlsProps {
+type FilterButtonProps = ComponentPropsWithoutRef<'button'>;
+
+export interface FilterControlsProps extends FilterButtonProps {
   filterOptions: FilterOptions;
   onFilterChange: (key: keyof Omit<FilterOptions, 'excludedKeys'>) => void;
   excludeKeyInput: string;
@@ -15,24 +22,34 @@ export interface FilterControlsProps {
   onRemoveExcludedKey: (key: string) => void;
 }
 
-export function FilterControls({
-  filterOptions: _filterOptions,
-  onFilterChange: _onFilterChange,
-  excludeKeyInput: _excludeKeyInput,
-  onExcludeKeyInputChange: _onExcludeKeyInputChange,
-  onAddExcludedKey: _onAddExcludedKey,
-  onRemoveExcludedKey: _onRemoveExcludedKey,
-}: FilterControlsProps) {
-  return (
-    <button
-      type="button"
-      className="focus-visible:ring-ring hover:bg-accent hover:text-accent-foreground border-input bg-background inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md border text-sm font-medium whitespace-nowrap shadow-xs transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
-      aria-label="Filter"
-    >
-      <Filter className="h-4 w-4" />
-    </button>
-  );
-}
+export const FilterControls = forwardRef<HTMLButtonElement, FilterControlsProps>(
+  function FilterControls(
+    {
+      filterOptions: _filterOptions,
+      onFilterChange: _onFilterChange,
+      excludeKeyInput: _excludeKeyInput,
+      onExcludeKeyInputChange: _onExcludeKeyInputChange,
+      onAddExcludedKey: _onAddExcludedKey,
+      onRemoveExcludedKey: _onRemoveExcludedKey,
+      className,
+      type = 'button',
+      ...buttonProps
+    },
+    ref,
+  ) {
+    return (
+      <button
+        ref={ref}
+        type={type}
+        className={`focus-visible:ring-ring hover:bg-accent hover:text-accent-foreground border-input bg-background inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md border text-sm font-medium whitespace-nowrap shadow-xs transition-colors focus-visible:ring-1 focus-visible:outline-hidden ${className ?? ''}`.trim()}
+        aria-label="Filter"
+        {...buttonProps}
+      >
+        <Filter className="h-4 w-4" />
+      </button>
+    );
+  },
+);
 
 export function FilterPopoverContent({
   filterOptions,

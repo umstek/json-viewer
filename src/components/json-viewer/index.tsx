@@ -65,7 +65,7 @@ const defaultFilterOptions: FilterOptions = {
  *
  * @returns A JSX tree, or an error message if the JSON is invalid.
  */
-export default function JsonViewer({
+function JsonViewerContent({
   json,
   dateOptions,
   codeOptions,
@@ -172,96 +172,100 @@ export default function JsonViewer({
   }
 
   return (
-    <ExpansionProvider>
-      <div ref={keyboard.containerRef} className="w-full space-y-4 overflow-hidden">
-        {jsonSchema && schemaValidation && showValidationErrors && (
-          <ValidationErrorPanel errors={schemaValidation.errors} />
-        )}
-        <div className="flex items-center gap-2">
-          <SearchBar
-            searchState={searchState}
-            onSearch={handleSearch}
-            onNavigatePrev={() => navigateResults('prev')}
-            onNavigateNext={() => navigateResults('next')}
-            inputRef={searchInputRef}
-          />
-          {showThemeToggle && (
-            <ExportButton data={data} filename="json-data" ref={exportButtonRef} />
-          )}
-          {keyboardShortcuts && (
-            <button
-              type="button"
-              onClick={() => keyboard.setShowHelp(true)}
-              className="focus-visible:ring-ring hover:bg-accent hover:text-accent-foreground border-input bg-background inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md border text-sm font-medium whitespace-nowrap shadow-xs transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
-              aria-label="Keyboard shortcuts"
-            >
-              <span className="text-xs font-bold">⌘K</span>
-            </button>
-          )}
-          <Popover>
-            <PopoverTrigger asChild>
-              <SortControls
-                sortOptions={sortOptions}
-                onObjectKeySortChange={handleObjectKeySortChange}
-                onArrayItemSortChange={handleArrayItemSortChange}
-              />
-            </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <SortPopoverContent
-                sortOptions={sortOptions}
-                onObjectKeySortChange={handleObjectKeySortChange}
-                onArrayItemSortChange={handleArrayItemSortChange}
-              />
-            </PopoverContent>
-          </Popover>
-          <Popover>
-            <PopoverTrigger asChild>
-              <FilterControls
-                filterOptions={filterOptions}
-                onFilterChange={handleFilterChange}
-                excludeKeyInput={excludeKeyInput}
-                onExcludeKeyInputChange={setExcludeKeyInput}
-                onAddExcludedKey={handleAddExcludedKey}
-                onRemoveExcludedKey={handleRemoveExcludedKey}
-              />
-            </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <FilterPopoverContent
-                filterOptions={filterOptions}
-                onFilterChange={handleFilterChange}
-                excludeKeyInput={excludeKeyInput}
-                onExcludeKeyInputChange={setExcludeKeyInput}
-                onAddExcludedKey={handleAddExcludedKey}
-                onRemoveExcludedKey={handleRemoveExcludedKey}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-        {searchState.results.length > 0 && searchState.results[searchState.currentResultIndex] && (
-          <BreadcrumbNav
-            path={searchState.results[searchState.currentResultIndex].path}
-            onNavigate={navigateToPath}
-            className="bg-muted/50 rounded-md px-1 py-2"
-          />
-        )}
-        <PojoViewer
-          data={data}
-          renderers={renderers}
-          transformers={transformers}
-          highlightedPath={searchState.results[searchState.currentResultIndex]?.path || []}
-          filterOptions={filterOptions}
-          searchQuery={searchState.queryType === 'text' ? searchState.query : ''}
-          sortOptions={sortOptions}
-          focusedPath={keyboard.focusState.focusedPath}
+    <div ref={keyboard.containerRef} className="w-full space-y-4 overflow-hidden">
+      {jsonSchema && schemaValidation && showValidationErrors && (
+        <ValidationErrorPanel errors={schemaValidation.errors} />
+      )}
+      <div className="flex items-center gap-2">
+        <SearchBar
+          searchState={searchState}
+          onSearch={handleSearch}
+          onNavigatePrev={() => navigateResults('prev')}
+          onNavigateNext={() => navigateResults('next')}
+          inputRef={searchInputRef}
         />
+        {showThemeToggle && <ExportButton data={data} filename="json-data" ref={exportButtonRef} />}
         {keyboardShortcuts && (
-          <ShortcutsHelp
-            open={keyboard.showHelp}
-            onOpenChange={keyboard.setShowHelp}
-            shortcuts={keyboard.shortcuts}
-          />
+          <button
+            type="button"
+            onClick={() => keyboard.setShowHelp(true)}
+            className="focus-visible:ring-ring hover:bg-accent hover:text-accent-foreground border-input bg-background inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md border text-sm font-medium whitespace-nowrap shadow-xs transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
+            aria-label="Keyboard shortcuts"
+          >
+            <span className="text-xs font-bold">⌘K</span>
+          </button>
         )}
+        <Popover>
+          <PopoverTrigger asChild>
+            <SortControls
+              sortOptions={sortOptions}
+              onObjectKeySortChange={handleObjectKeySortChange}
+              onArrayItemSortChange={handleArrayItemSortChange}
+            />
+          </PopoverTrigger>
+          <PopoverContent className="w-80">
+            <SortPopoverContent
+              sortOptions={sortOptions}
+              onObjectKeySortChange={handleObjectKeySortChange}
+              onArrayItemSortChange={handleArrayItemSortChange}
+            />
+          </PopoverContent>
+        </Popover>
+        <Popover>
+          <PopoverTrigger asChild>
+            <FilterControls
+              filterOptions={filterOptions}
+              onFilterChange={handleFilterChange}
+              excludeKeyInput={excludeKeyInput}
+              onExcludeKeyInputChange={setExcludeKeyInput}
+              onAddExcludedKey={handleAddExcludedKey}
+              onRemoveExcludedKey={handleRemoveExcludedKey}
+            />
+          </PopoverTrigger>
+          <PopoverContent className="w-80">
+            <FilterPopoverContent
+              filterOptions={filterOptions}
+              onFilterChange={handleFilterChange}
+              excludeKeyInput={excludeKeyInput}
+              onExcludeKeyInputChange={setExcludeKeyInput}
+              onAddExcludedKey={handleAddExcludedKey}
+              onRemoveExcludedKey={handleRemoveExcludedKey}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
+      {searchState.results.length > 0 && searchState.results[searchState.currentResultIndex] && (
+        <BreadcrumbNav
+          path={searchState.results[searchState.currentResultIndex].path}
+          onNavigate={navigateToPath}
+          className="bg-muted/50 rounded-md px-1 py-2"
+        />
+      )}
+      <PojoViewer
+        data={data}
+        renderers={renderers}
+        transformers={transformers}
+        highlightedPath={searchState.results[searchState.currentResultIndex]?.path || []}
+        filterOptions={filterOptions}
+        searchQuery={searchState.queryType === 'text' ? searchState.query : ''}
+        sortOptions={sortOptions}
+        focusedPath={keyboard.focusState.focusedPath}
+      />
+      {keyboardShortcuts && (
+        <ShortcutsHelp
+          open={keyboard.showHelp}
+          onOpenChange={keyboard.setShowHelp}
+          shortcuts={keyboard.shortcuts}
+        />
+      )}
+    </div>
+  );
+}
+
+export default function JsonViewer(props: JsonViewerProps) {
+  return (
+    <ExpansionProvider>
+      <JsonViewerContent {...props} />
     </ExpansionProvider>
   );
 }

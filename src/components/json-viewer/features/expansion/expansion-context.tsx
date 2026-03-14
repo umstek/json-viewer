@@ -83,6 +83,10 @@ export function ExpansionProvider({ children, defaultExpanded = false }: Expansi
   const setExpanded = useCallback((path: string[], expanded: boolean) => {
     const pathKey = pathArrayToInternalKey(path);
     setExpansionMap((prev) => {
+      if (prev.get(pathKey) === expanded) {
+        return prev;
+      }
+
       const next = new Map(prev);
       next.set(pathKey, expanded);
       return next;
