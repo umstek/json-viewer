@@ -219,7 +219,7 @@ export function BookmarkManager({
                     key={bookmark.id}
                     className="group border-border hover:bg-muted/50 flex items-start gap-2 rounded-md border p-2 transition-colors"
                   >
-                    <Star className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 fill-yellow-400 text-yellow-400" />
+                    <Star className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-yellow-400 text-yellow-400" />
                     <button
                       type="button"
                       className="flex-1 cursor-pointer space-y-1 text-left"
@@ -235,7 +235,7 @@ export function BookmarkManager({
                         variant="ghost"
                         size="icon"
                         onClick={() => onRemoveBookmark(bookmark.id)}
-                        className="h-6 w-6 flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                        className="h-6 w-6 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
                       >
                         <Trash2 className="text-destructive h-3.5 w-3.5" />
                       </Button>

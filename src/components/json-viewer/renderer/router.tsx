@@ -90,7 +90,7 @@ export function createRouter(
           data-path={isFocused ? path.join('.') : undefined}
         >
           {isBookmarked && (
-            <Star className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 fill-yellow-400 text-yellow-400" />
+            <Star className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-yellow-400 text-yellow-400" />
           )}
           <div className="flex-1">{element}</div>
         </div>

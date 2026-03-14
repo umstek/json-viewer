@@ -696,7 +696,7 @@ function highlightSQL(code: string): ReactNode {
  */
 function renderTokens(tokens: Token[]): ReactNode {
   return (
-    <code className="block break-words whitespace-pre-wrap">
+    <code className="block wrap-break-word whitespace-pre-wrap">
       {tokens.map((token, index) => {
         const key = `${token.type}-${index}`;
         switch (token.type) {
@@ -769,7 +769,7 @@ function highlightCode(code: string, language: Language): ReactNode {
     case 'sql':
       return highlightSQL(code);
     default:
-      return <code className="block break-words whitespace-pre-wrap">{code}</code>;
+      return <code className="block wrap-break-word whitespace-pre-wrap">{code}</code>;
   }
 }
 
