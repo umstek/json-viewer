@@ -65,7 +65,11 @@ export function createRouter(
 
     // Try custom renderers first (using transformed value)
     for (const renderer of customRenderers) {
-      const result = renderer({ value: transformedValue, path });
+      const result = renderer({
+        value: transformedValue,
+        path,
+        render: (nextValue, nextPath = path) => renderValue(nextValue, nextPath, options),
+      });
       if (result !== null) return result;
     }
 

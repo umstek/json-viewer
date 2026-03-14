@@ -23,6 +23,8 @@ import {
   ValidationErrorPanel,
 } from './renderer/advanced/schema-validation';
 import { createActionableRenderer } from './renderer/advanced/validation';
+import type { InlineRenderer } from './renderer/inline-renderer';
+import type { Renderer } from './renderer/renderer';
 import type { JSONSchemaObject, JSONSchemaValidationOptions } from './schema/json-schema';
 import { FilterControls, FilterPopoverContent } from './toolbar/filter-controls';
 import { SearchBar } from './toolbar/search-bar';
@@ -33,6 +35,8 @@ import type { Transformer } from './utils/transforms';
 
 export interface JsonViewerProps {
   json: string;
+  renderers?: Renderer[];
+  inlineRenderers?: InlineRenderer[];
   dateOptions?: DateRendererOptions;
   codeOptions?: CodeRendererOptions;
   transformers?: Transformer[];
@@ -67,6 +71,8 @@ const defaultFilterOptions: FilterOptions = {
  */
 function JsonViewerContent({
   json,
+  renderers: customRenderers = [],
+  inlineRenderers = [],
   dateOptions,
   codeOptions,
   transformers = [],
@@ -111,14 +117,14 @@ function JsonViewerContent({
     exportButtonRef,
   });
 
-  const renderers = [
+  const builtInRenderers: Renderer[] = [
     createCodeRenderer(codeOptions),
     createDateRenderer(dateOptions),
     createLinkRenderer(),
   ];
 
   if (jsonSchema && schemaValidation && !schemaValidation.valid) {
-    renderers.push(
+    builtInRenderers.push(
       createSchemaValidationRenderer({
         validationErrors: schemaValidation.errors,
         showErrors: showValidationErrors,
@@ -127,8 +133,10 @@ function JsonViewerContent({
   }
 
   if (enableValidation) {
-    renderers.push(createActionableRenderer());
+    builtInRenderers.push(createActionableRenderer());
   }
+
+  const renderers = [...customRenderers, ...builtInRenderers];
 
   const handleFilterChange = (key: keyof Omit<FilterOptions, 'excludedKeys'>) => {
     setFilterOptions((prev) => ({
@@ -244,6 +252,7 @@ function JsonViewerContent({
       <PojoViewer
         data={data}
         renderers={renderers}
+        inlineRenderers={inlineRenderers}
         transformers={transformers}
         highlightedPath={searchState.results[searchState.currentResultIndex]?.path || []}
         filterOptions={filterOptions}

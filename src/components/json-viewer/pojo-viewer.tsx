@@ -14,7 +14,7 @@ export interface FilterOptions {
   excludedKeys: string[];
 }
 
-interface PojoViewerProps {
+export interface PojoViewerProps {
   // biome-ignore lint/suspicious/noExplicitAny: Legacy code
   data: any;
   renderers?: Renderer[];

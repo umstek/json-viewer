@@ -57,27 +57,22 @@ export {
 export type { ThemeProviderProps, ThemeToggleProps } from './components/json-viewer/features/theme';
 // Features
 export { ThemeProvider, ThemeToggle, useTheme } from './components/json-viewer/features/theme';
+export type { FilterOptions, PojoViewerProps } from './components/json-viewer/pojo-viewer';
 export { default as PojoViewer } from './components/json-viewer/pojo-viewer';
+export type { CodeRendererOptions } from './components/json-viewer/renderer/advanced/code';
+export { createCodeRenderer } from './components/json-viewer/renderer/advanced/code';
+export type { DateRendererOptions } from './components/json-viewer/renderer/advanced/date';
+export { createDateRenderer } from './components/json-viewer/renderer/advanced/date';
+export { createLinkRenderer } from './components/json-viewer/renderer/advanced/link';
+export type { SchemaValidationRendererOptions } from './components/json-viewer/renderer/advanced/schema-validation';
+export {
+  createSchemaValidationRenderer,
+  ValidationErrorPanel,
+} from './components/json-viewer/renderer/advanced/schema-validation';
 export {
   createActionableRenderer,
   defaultValidationRenderer,
 } from './components/json-viewer/renderer/advanced/validation';
-export {
-  arrayRenderer,
-  booleanRenderer,
-  dateRenderer,
-  dateTimeRenderer,
-  defaultTypeRenderers,
-  emailRenderer,
-  ipv4Renderer,
-  nullRenderer,
-  numberRenderer,
-  objectRenderer,
-  phoneRenderer,
-  stringRenderer,
-  urlRenderer,
-  uuidRenderer,
-} from './components/json-viewer/renderer/default-renderers';
 export type {
   InlineRenderer,
   InlineRenderProps,
@@ -88,21 +83,13 @@ export {
   defaultObjectInlineRenderer,
   defaultStringInlineRenderer,
 } from './components/json-viewer/renderer/inline-renderer';
-// Renderer Registry - composable rendering system
-export type {
-  PathRenderer,
-  RegistryConfig,
-  RendererFn,
-  RendererProps,
-  TypeRenderer,
-} from './components/json-viewer/renderer/registry';
-export {
-  createDefaultRegistry,
-  createRegistry,
-  RendererRegistry,
-} from './components/json-viewer/renderer/registry';
 // Renderers
-export type { Renderer, RenderProps } from './components/json-viewer/renderer/renderer';
+export type {
+  Renderer,
+  RenderProps,
+  RenderValue,
+} from './components/json-viewer/renderer/renderer';
+export { createPathRenderer, createTypeRenderer } from './components/json-viewer/renderer/renderer';
 export type {
   JSONSchemaObject,
   Schema,

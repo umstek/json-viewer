@@ -35,7 +35,13 @@ describe('renderer regressions', () => {
   test('date renderer does not wrap GenericRenderer in an extra button', () => {
     const renderer = createDateRenderer();
     const markup = renderToStaticMarkup(
-      <>{renderer({ value: '2024-01-02T03:04:05', path: ['createdAt'] })}</>,
+      <>
+        {renderer({
+          value: '2024-01-02T03:04:05',
+          path: ['createdAt'],
+          render: () => null,
+        })}
+      </>,
     );
 
     expect((markup.match(/<button/g) ?? []).length).toBe(1);

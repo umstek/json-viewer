@@ -4,6 +4,7 @@ import { describe, expect, test } from 'vite-plus/test';
 import DiffViewer from './diff-viewer';
 import { ExpansionProvider } from './features/expansion';
 import JsonViewer from './index';
+import { createPathRenderer } from './renderer/renderer';
 import { createRouter } from './renderer/router';
 import { pathArrayToInternalKey } from './utils/jsonpath';
 
@@ -141,6 +142,43 @@ describe('JsonViewer integration', () => {
         />,
       ),
     ).not.toThrow();
+  });
+
+  test('uses custom renderers on JsonViewer and can delegate nested content', () => {
+    const markup = renderToStaticMarkup(
+      <JsonViewer
+        json={JSON.stringify({
+          user: {
+            name: 'Ada',
+            address: {
+              city: 'Paris',
+            },
+          },
+        })}
+        renderers={[
+          createPathRenderer('$', ({ value, render }) => {
+            const data = value as {
+              user: {
+                name: string;
+                address: { city: string };
+              };
+            };
+
+            return (
+              <section data-user-card="true">
+                <h2>{data.user.name}</h2>
+                {render(data.user.address.city, ['user', 'address', 'city'])}
+              </section>
+            );
+          }),
+        ]}
+        keyboardShortcuts={false}
+      />,
+    );
+
+    expect(markup).toContain('data-user-card="true"');
+    expect(markup).toContain('Ada');
+    expect(markup).toContain('Paris');
   });
 });
 
