@@ -53,6 +53,17 @@ describe('JSONPath Utilities', () => {
     it('should handle numeric indices', () => {
       expect(pathArrayToJsonPath(['items', '0', 'name'])).toBe('$.items[0].name');
     });
+
+    it('uses bracket notation for keys that are not valid dot identifiers', () => {
+      expect(pathArrayToJsonPath(['a.b', 'space key', '0', 'x[y]'])).toBe(
+        '$["a.b"]["space key"][0]["x[y]"]',
+      );
+    });
+
+    it('round-trips quoted keys with escaped characters', () => {
+      const path = ['quote"key', 'slash\\key'];
+      expect(jsonPathToPathArray(pathArrayToJsonPath(path))).toEqual(path);
+    });
   });
 
   describe('jsonPointerToPathArray', () => {

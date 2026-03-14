@@ -5,7 +5,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, test } from 'vite-plus/test';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger } from '@/components/ui/popover';
-import { ExpansionProvider, useExpansion } from '../features/expansion';
+import { type ExpansionContextValue, ExpansionProvider, useExpansion } from '../features/expansion';
+import PojoViewer from '../pojo-viewer';
 import { createDateRenderer } from './advanced/date';
 import { CopyButton } from './copy-button';
 import { TooltipWrapper } from './generic-renderer';
@@ -47,6 +48,16 @@ describe('renderer regressions', () => {
     expect((markup.match(/<button/g) ?? []).length).toBe(1);
   });
 
+  test('text highlight treats search text literally instead of as a regex', () => {
+    expect(() =>
+      renderToStaticMarkup(
+        <ExpansionProvider defaultExpanded>
+          <PojoViewer data={{ '[meta]': 'value [x]' }} searchQuery="[" lazyLoadingEnabled={false} />
+        </ExpansionProvider>,
+      ),
+    ).not.toThrow();
+  });
+
   test('re-setting the same expansion state does not trigger an update loop', async () => {
     const container = document.createElement('div');
     document.body.appendChild(container);
@@ -75,6 +86,47 @@ describe('renderer regressions', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(renderCount).toBe(2);
+    } finally {
+      flushSync(() => {
+        root.unmount();
+      });
+      container.remove();
+    }
+  });
+
+  test('toggleExpanded can collapse nodes inherited from expandAll', async () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    let expansionApi: ExpansionContextValue | null = null;
+
+    function ExpansionToggleProbe() {
+      expansionApi = useExpansion();
+      return <div data-status={expansionApi.isExpanded(['items']) ? 'open' : 'closed'} />;
+    }
+
+    try {
+      flushSync(() => {
+        root.render(
+          <ExpansionProvider>
+            <ExpansionToggleProbe />
+          </ExpansionProvider>,
+        );
+      });
+
+      if (!expansionApi) {
+        throw new Error('Expansion context did not initialize');
+      }
+      const expansion = expansionApi as ExpansionContextValue;
+
+      flushSync(() => {
+        expansion.expandAll();
+      });
+      flushSync(() => {
+        expansion.toggleExpanded(['items']);
+      });
+
+      expect(expansion.isExpanded(['items'])).toBe(false);
     } finally {
       flushSync(() => {
         root.unmount();

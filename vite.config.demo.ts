@@ -1,9 +1,11 @@
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite-plus';
 
 export default defineConfig({
+  base: '/json-viewer/',
   resolve: {
     tsconfigPaths: true,
   },
-  plugins: [react()],
+  plugins: [tailwindcss(), react()],
 });

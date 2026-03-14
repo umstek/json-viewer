@@ -93,15 +93,25 @@ export function ExpansionProvider({ children, defaultExpanded = false }: Expansi
     });
   }, []);
 
-  const toggleExpanded = useCallback((path: string[]) => {
-    const pathKey = pathArrayToInternalKey(path);
-    setExpansionMap((prev) => {
-      const next = new Map(prev);
-      const current = next.get(pathKey);
-      next.set(pathKey, !current);
-      return next;
-    });
-  }, []);
+  const toggleExpanded = useCallback(
+    (path: string[]) => {
+      const pathKey = pathArrayToInternalKey(path);
+      setExpansionMap((prev) => {
+        const next = new Map(prev);
+        const override = next.get(pathKey);
+        const current =
+          override !== undefined
+            ? override
+            : targetDepth !== null
+              ? path.length <= targetDepth
+              : (globalExpanded ?? false);
+
+        next.set(pathKey, !current);
+        return next;
+      });
+    },
+    [globalExpanded, targetDepth],
+  );
 
   const value = useMemo(
     () => ({

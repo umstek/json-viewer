@@ -1,6 +1,6 @@
 {
   "name": "@umstek/json-viewer",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "license": "MIT",
   "files": [
     "dist",
@@ -22,7 +22,7 @@
   "scripts": {
     "dev": "vp dev",
     "build": "tsc && vp build",
-    "build:demo": "vp build --config vite.config.demo.ts --base=/json-viewer",
+    "build:demo": "vp build --config vite.config.demo.ts",
     "preview": "vp preview",
     "test": "vp test",
     "coverage": "vp test run --coverage",

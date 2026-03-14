@@ -80,12 +80,12 @@ export function pathArrayToJsonPath(path: string[]): string {
 
   let result = '$';
   for (const segment of path) {
-    // Check if segment is a number (array index)
     if (/^\d+$/.test(segment)) {
       result += `[${segment}]`;
-    } else {
-      // Property access
+    } else if (/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(segment)) {
       result += `.${segment}`;
+    } else {
+      result += `[${JSON.stringify(segment)}]`;
     }
   }
   return result;
@@ -136,9 +136,12 @@ export function jsonPathToPathArray(jsonPath: string): string[] {
     const char = normalized[i];
 
     if (inQuote) {
-      if (char === quoteChar && normalized[i - 1] !== '\\') {
+      if (char === '\\' && i + 1 < normalized.length) {
+        i += 1;
+        current += normalized[i];
+      } else if (char === quoteChar) {
         inQuote = false;
-      } else if (char !== quoteChar) {
+      } else {
         current += char;
       }
     } else if (char === '"' || char === "'") {

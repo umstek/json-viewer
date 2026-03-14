@@ -8,6 +8,7 @@ import {
   ShortcutsHelp,
   useKeyboardNavigation,
 } from './features/keyboard';
+import { ThemeToggle } from './features/theme';
 import { useParsedJson } from './hooks/use-parsed-json';
 import { useSchemaValidation } from './hooks/use-schema-validation';
 import { useSearch } from './hooks/use-search';
@@ -192,7 +193,8 @@ function JsonViewerContent({
           onNavigateNext={() => navigateResults('next')}
           inputRef={searchInputRef}
         />
-        {showThemeToggle && <ExportButton data={data} filename="json-data" ref={exportButtonRef} />}
+        <ExportButton data={data} filename="json-data" ref={exportButtonRef} />
+        {showThemeToggle && <ThemeToggle />}
         {keyboardShortcuts && (
           <button
             type="button"

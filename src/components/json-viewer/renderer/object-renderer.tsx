@@ -29,10 +29,14 @@ interface HighlightTextProps {
   searchQuery?: string;
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function HighlightText({ text, searchQuery }: HighlightTextProps) {
   if (!searchQuery) return <>{text}</>;
 
-  const parts = text.split(new RegExp(`(${searchQuery})`, 'gi'));
+  const parts = text.split(new RegExp(`(${escapeRegExp(searchQuery)})`, 'gi'));
   return (
     <>
       {parts.map((part, i) => {

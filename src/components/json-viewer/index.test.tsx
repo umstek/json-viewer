@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, test } from 'vite-plus/test';
 import DiffViewer from './diff-viewer';
 import { ExpansionProvider } from './features/expansion';
+import { ThemeProvider } from './features/theme';
 import JsonViewer from './index';
 import { createPathRenderer } from './renderer/renderer';
 import { createRouter } from './renderer/router';
@@ -116,6 +117,28 @@ describe('JsonViewer integration', () => {
     );
 
     expect(markup).toContain('Filter');
+  });
+
+  test('shows the export button without requiring the theme toggle prop', () => {
+    const markup = renderToStaticMarkup(
+      <JsonViewer json={JSON.stringify({ foo: 'bar' })} keyboardShortcuts={false} />,
+    );
+
+    expect(markup).toContain('Export data');
+  });
+
+  test('shows the theme toggle when requested', () => {
+    const markup = renderToStaticMarkup(
+      <ThemeProvider defaultTheme="light">
+        <JsonViewer
+          json={JSON.stringify({ foo: 'bar' })}
+          keyboardShortcuts={false}
+          showThemeToggle
+        />
+      </ThemeProvider>,
+    );
+
+    expect(markup).toContain('Switch to dark mode');
   });
 
   test('renders with excludedKeys filter', () => {
