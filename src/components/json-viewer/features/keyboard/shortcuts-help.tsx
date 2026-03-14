@@ -28,8 +28,7 @@ function formatKeys(shortcut: KeyboardShortcut): string {
 
   // Detect if user is on Mac
   const isMac =
-    typeof navigator !== 'undefined' &&
-    /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
+    typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
 
   if (shortcut.ctrl) {
     parts.push(isMac ? '⌘' : 'Ctrl');
@@ -135,60 +134,45 @@ export function ShortcutsHelp({
             </Button>
           </div>
           <DialogDescription>
-            Use these keyboard shortcuts to navigate and interact with the JSON
-            viewer
+            Use these keyboard shortcuts to navigate and interact with the JSON viewer
           </DialogDescription>
         </DialogHeader>
 
-        <div
-          className="mt-4 space-y-6 overflow-y-auto pr-2"
-          style={{ minHeight: 0, flex: 1 }}
-        >
-          {Object.entries(groupedShortcuts).map(
-            ([category, categoryShortcuts]) => {
-              if (categoryShortcuts.length === 0) return null;
+        <div className="mt-4 space-y-6 overflow-y-auto pr-2" style={{ minHeight: 0, flex: 1 }}>
+          {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]) => {
+            if (categoryShortcuts.length === 0) return null;
 
-              return (
-                <div key={category} className="space-y-3">
-                  <h3 className="font-semibold text-muted-foreground text-sm">
-                    {categoryNames[category] || category}
-                  </h3>
-                  <div className="space-y-2">
-                    {categoryShortcuts.map((shortcut) => (
-                      <div
-                        key={shortcut.id}
-                        className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2"
-                      >
-                        <div className="flex-1">
-                          <div className="font-medium text-sm">
-                            {shortcut.name}
-                          </div>
-                          <div className="text-muted-foreground text-xs">
-                            {shortcut.description}
-                          </div>
-                        </div>
-                        <kbd className="ml-4 inline-flex items-center gap-1 rounded border border-border bg-background px-2 py-1 font-mono text-sm shadow-sm">
-                          {formatKeys(shortcut)}
-                        </kbd>
+            return (
+              <div key={category} className="space-y-3">
+                <h3 className="text-muted-foreground text-sm font-semibold">
+                  {categoryNames[category] || category}
+                </h3>
+                <div className="space-y-2">
+                  {categoryShortcuts.map((shortcut) => (
+                    <div
+                      key={shortcut.id}
+                      className="bg-muted/50 flex items-center justify-between rounded-md px-3 py-2"
+                    >
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">{shortcut.name}</div>
+                        <div className="text-muted-foreground text-xs">{shortcut.description}</div>
                       </div>
-                    ))}
-                  </div>
+                      <kbd className="border-border bg-background ml-4 inline-flex items-center gap-1 rounded border px-2 py-1 font-mono text-sm shadow-sm">
+                        {formatKeys(shortcut)}
+                      </kbd>
+                    </div>
+                  ))}
                 </div>
-              );
-            },
-          )}
+              </div>
+            );
+          })}
         </div>
 
-        <div className="mt-6 rounded-md border border-border bg-muted/30 p-3">
+        <div className="border-border bg-muted/30 mt-6 rounded-md border p-3">
           <p className="text-muted-foreground text-xs">
             <strong>Tip:</strong> Press{' '}
-            <kbd className="rounded bg-background px-1.5 py-0.5 font-mono text-xs">
-              ?
-            </kbd>{' '}
-            or{' '}
-            <kbd className="rounded bg-background px-1.5 py-0.5 font-mono text-xs">
-              Ctrl+/
-            </kbd>{' '}
+            <kbd className="bg-background rounded px-1.5 py-0.5 font-mono text-xs">?</kbd> or{' '}
+            <kbd className="bg-background rounded px-1.5 py-0.5 font-mono text-xs">Ctrl+/</kbd>{' '}
             anytime to view these shortcuts
           </p>
         </div>
@@ -207,10 +191,7 @@ export interface ShortcutsHelpButtonProps {
   className?: string;
 }
 
-export function ShortcutsHelpButton({
-  onClick,
-  className = '',
-}: ShortcutsHelpButtonProps) {
+export function ShortcutsHelpButton({ onClick, className = '' }: ShortcutsHelpButtonProps) {
   return (
     <Button
       variant="outline"

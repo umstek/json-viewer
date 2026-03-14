@@ -4,11 +4,7 @@
 
 import yaml from 'js-yaml';
 import Papa from 'papaparse';
-import {
-  cloneWithoutCircular,
-  hasCircularReference,
-  safeStringify,
-} from './circular-detection';
+import { cloneWithoutCircular, hasCircularReference, safeStringify } from './circular-detection';
 
 export type ExportFormat = 'json' | 'json-minified' | 'yaml' | 'csv';
 
@@ -50,9 +46,7 @@ function flattenObject(
     }
 
     // Check if array contains only primitives
-    const allPrimitives = obj.every(
-      (item) => item === null || typeof item !== 'object',
-    );
+    const allPrimitives = obj.every((item) => item === null || typeof item !== 'object');
 
     if (allPrimitives) {
       result[prefix] = JSON.stringify(obj);
@@ -142,9 +136,7 @@ function toCSV(data: unknown): string {
  */
 export function convertToFormat(data: unknown, format: ExportFormat): string {
   // Handle circular references for all formats
-  const safeData = hasCircularReference(data)
-    ? cloneWithoutCircular(data)
-    : data;
+  const safeData = hasCircularReference(data) ? cloneWithoutCircular(data) : data;
 
   switch (format) {
     case 'json':
@@ -160,7 +152,7 @@ export function convertToFormat(data: unknown, format: ExportFormat): string {
       return toCSV(safeData);
 
     default:
-      throw new Error(`Unsupported format: ${format}`);
+      throw new Error('Unsupported format');
   }
 }
 
@@ -207,11 +199,7 @@ export function getFileExtension(format: ExportFormat): string {
 /**
  * Triggers a browser download of the given content
  */
-export function downloadFile(
-  content: string,
-  filename: string,
-  mimeType: string,
-): void {
+export function downloadFile(content: string, filename: string, mimeType: string): void {
   // Create blob
   const blob = new Blob([content], { type: mimeType });
 
@@ -233,11 +221,7 @@ export function downloadFile(
 /**
  * Exports data in the specified format
  */
-export function exportData(
-  data: unknown,
-  format: ExportFormat,
-  baseFilename = 'data',
-): void {
+export function exportData(data: unknown, format: ExportFormat, baseFilename = 'data'): void {
   try {
     const content = convertToFormat(data, format);
     const extension = getFileExtension(format);

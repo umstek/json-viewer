@@ -146,7 +146,7 @@ function validateString(
           rule: 'pattern',
         });
       }
-    } catch (_e) {
+    } catch {
       errors.push({
         path,
         message: `Invalid regex pattern: ${node.pattern}`,
@@ -269,12 +269,7 @@ function validateObject(
           rule: 'additionalProperties',
         });
       } else if (typeof node.additionalProperties === 'object') {
-        validateNode(
-          propValue,
-          node.additionalProperties,
-          [...path, key],
-          errors,
-        );
+        validateNode(propValue, node.additionalProperties, [...path, key], errors);
       }
     }
   }
@@ -384,9 +379,7 @@ function isValidIPv6(value: string): boolean {
 
     // Validate each group
     const allGroups = [...left, ...right];
-    return allGroups.every(
-      (group) => group === '' || /^[0-9a-f]{1,4}$/i.test(group),
-    );
+    return allGroups.every((group) => group === '' || /^[0-9a-f]{1,4}$/i.test(group));
   }
 
   // Full form - must have exactly 8 groups
@@ -416,10 +409,7 @@ function validateFormat(
 
     case 'date-time':
       pattern = 'ISO 8601 date-time';
-      isValid =
-        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]\d{2}:\d{2})?$/.test(
-          value,
-        );
+      isValid = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]\d{2}:\d{2})?$/.test(value);
       break;
 
     case 'time':
@@ -440,10 +430,7 @@ function validateFormat(
 
     case 'uuid':
       pattern = 'valid UUID';
-      isValid =
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-          value,
-        );
+      isValid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
       break;
 
     case 'ipv4':

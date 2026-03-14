@@ -1,10 +1,4 @@
-import {
-  createContext,
-  type ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -43,9 +37,7 @@ export function ThemeProvider({
   defaultTheme,
   storageKey = THEME_STORAGE_KEY,
 }: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<Theme>(
-    () => defaultTheme ?? getInitialTheme(),
-  );
+  const [theme, setThemeState] = useState<Theme>(() => defaultTheme ?? getInitialTheme());
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -70,9 +62,7 @@ export function ThemeProvider({
     toggleTheme,
   };
 
-  return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {

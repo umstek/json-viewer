@@ -1,7 +1,7 @@
 /**
  * @vitest-environment node
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 import {
   detectQueryType,
   executeQuery,
@@ -19,9 +19,7 @@ describe('JSONPath Utilities', () => {
     });
 
     it('should convert simple path to JSON Pointer', () => {
-      expect(pathArrayToJsonPointer(['store', 'book', '0', 'title'])).toBe(
-        '/store/book/0/title',
-      );
+      expect(pathArrayToJsonPointer(['store', 'book', '0', 'title'])).toBe('/store/book/0/title');
     });
 
     it('should escape special characters', () => {
@@ -35,15 +33,11 @@ describe('JSONPath Utilities', () => {
     });
 
     it('should convert simple path to JSONPath', () => {
-      expect(pathArrayToJsonPath(['store', 'book', '0', 'title'])).toBe(
-        '$.store.book[0].title',
-      );
+      expect(pathArrayToJsonPath(['store', 'book', '0', 'title'])).toBe('$.store.book[0].title');
     });
 
     it('should handle numeric indices', () => {
-      expect(pathArrayToJsonPath(['items', '0', 'name'])).toBe(
-        '$.items[0].name',
-      );
+      expect(pathArrayToJsonPath(['items', '0', 'name'])).toBe('$.items[0].name');
     });
   });
 
@@ -80,34 +74,19 @@ describe('JSONPath Utilities', () => {
     });
 
     it('should convert bracket notation with numbers', () => {
-      expect(jsonPathToPathArray('$.items[0].name')).toEqual([
-        'items',
-        '0',
-        'name',
-      ]);
+      expect(jsonPathToPathArray('$.items[0].name')).toEqual(['items', '0', 'name']);
     });
 
     it('should convert bracket notation with strings', () => {
-      expect(jsonPathToPathArray('$["store"]["book"]')).toEqual([
-        'store',
-        'book',
-      ]);
+      expect(jsonPathToPathArray('$["store"]["book"]')).toEqual(['store', 'book']);
     });
 
     it('should convert mixed notation', () => {
-      expect(jsonPathToPathArray('$.store.book[0].title')).toEqual([
-        'store',
-        'book',
-        '0',
-        'title',
-      ]);
+      expect(jsonPathToPathArray('$.store.book[0].title')).toEqual(['store', 'book', '0', 'title']);
     });
 
     it('should handle single quotes', () => {
-      expect(jsonPathToPathArray("$['store']['book']")).toEqual([
-        'store',
-        'book',
-      ]);
+      expect(jsonPathToPathArray("$['store']['book']")).toEqual(['store', 'book']);
     });
   });
 
@@ -225,9 +204,7 @@ describe('JSONPath Utilities', () => {
     it('should match recursive descent', () => {
       expect(matchPath(['a', 'b', 'c', 'name'], '$..name')).toBe(true);
       expect(matchPath(['name'], '$..name')).toBe(true);
-      expect(matchPath(['users', '0', 'address', 'city'], '$..city')).toBe(
-        true,
-      );
+      expect(matchPath(['users', '0', 'address', 'city'], '$..city')).toBe(true);
     });
 
     it('should not match shorter paths', () => {
@@ -236,9 +213,7 @@ describe('JSONPath Utilities', () => {
     });
 
     it('should not match longer paths', () => {
-      expect(
-        matchPath(['users', '0', 'name', 'extra'], '$.users[*].name'),
-      ).toBe(false);
+      expect(matchPath(['users', '0', 'name', 'extra'], '$.users[*].name')).toBe(false);
     });
 
     it('should match root with empty path', () => {
@@ -246,9 +221,7 @@ describe('JSONPath Utilities', () => {
     });
 
     it('should handle bracket notation with quotes', () => {
-      expect(
-        matchPath(['special-key', 'value'], "$['special-key'].value"),
-      ).toBe(true);
+      expect(matchPath(['special-key', 'value'], "$['special-key'].value")).toBe(true);
     });
   });
 });

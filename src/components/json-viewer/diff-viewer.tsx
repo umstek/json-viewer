@@ -1,13 +1,10 @@
 import { ChevronRight, GitCompare, LayoutGrid, List } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '../ui/button';
 import type { DiffNode, DiffStats, DiffType } from './utils/diff';
 import { calculateDiffStats, computeDiff, filterUnchanged } from './utils/diff';
+import { stringifyUnknown } from './utils/value-format';
 
 export type DiffViewMode = 'side-by-side' | 'unified' | 'inline';
 
@@ -86,7 +83,7 @@ function formatValue(value: unknown): string {
     }
     return `{${Object.keys(value).length} props}`;
   }
-  return String(value);
+  return stringifyUnknown(value);
 }
 
 /**
@@ -125,7 +122,7 @@ function DiffNodeRenderer({
   const renderKey = () => {
     if (node.key !== undefined) {
       return (
-        <span className="font-semibold text-primary">
+        <span className="text-primary font-semibold">
           {typeof node.key === 'number' ? `[${node.key}]` : `${node.key}`}:
         </span>
       );
@@ -156,15 +153,13 @@ function DiffNodeRenderer({
               <Collapsible open={isOpen} onOpenChange={setIsOpen}>
                 <CollapsibleTrigger>
                   <ChevronRight
-                    className={`h-4 w-4 transition-transform ${
-                      isOpen ? 'rotate-90' : ''
-                    }`}
+                    className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-90' : ''}`}
                   />
                 </CollapsibleTrigger>
               </Collapsible>
             )}
             {!isContainer && <span className="w-4" />}
-            <span className={`font-semibold text-xs ${colors.text}`}>
+            <span className={`text-xs font-semibold ${colors.text}`}>
               {getDiffTypeLabel(node.type)}
             </span>
             {renderKey()}
@@ -215,15 +210,13 @@ function DiffNodeRenderer({
               <Collapsible open={isOpen} onOpenChange={setIsOpen}>
                 <CollapsibleTrigger>
                   <ChevronRight
-                    className={`h-4 w-4 transition-transform ${
-                      isOpen ? 'rotate-90' : ''
-                    }`}
+                    className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-90' : ''}`}
                   />
                 </CollapsibleTrigger>
               </Collapsible>
             )}
             {!isContainer && <span className="w-4" />}
-            <span className={`font-semibold text-xs ${colors.text}`}>
+            <span className={`text-xs font-semibold ${colors.text}`}>
               {getDiffTypeLabel(node.type)}
             </span>
             {renderKey()}
@@ -283,15 +276,13 @@ function DiffNodeRenderer({
           <Collapsible open={isOpen} onOpenChange={setIsOpen}>
             <CollapsibleTrigger>
               <ChevronRight
-                className={`h-4 w-4 transition-transform ${
-                  isOpen ? 'rotate-90' : ''
-                }`}
+                className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-90' : ''}`}
               />
             </CollapsibleTrigger>
           </Collapsible>
         )}
         {!isContainer && <span className="w-4" />}
-        <span className={`font-semibold text-xs ${colors.text}`}>
+        <span className={`text-xs font-semibold ${colors.text}`}>
           {getDiffTypeLabel(node.type)}
         </span>
         {renderKey()}
@@ -337,15 +328,11 @@ function DiffStatsDisplay({ stats }: { stats: DiffStats }) {
   return (
     <div className="flex gap-4 text-sm">
       <div className="flex items-center gap-1">
-        <span className="font-semibold text-green-600 dark:text-green-400">
-          +{stats.added}
-        </span>
+        <span className="font-semibold text-green-600 dark:text-green-400">+{stats.added}</span>
         <span className="text-muted-foreground">added</span>
       </div>
       <div className="flex items-center gap-1">
-        <span className="font-semibold text-red-600 dark:text-red-400">
-          -{stats.removed}
-        </span>
+        <span className="font-semibold text-red-600 dark:text-red-400">-{stats.removed}</span>
         <span className="text-muted-foreground">removed</span>
       </div>
       <div className="flex items-center gap-1">
@@ -355,9 +342,7 @@ function DiffStatsDisplay({ stats }: { stats: DiffStats }) {
         <span className="text-muted-foreground">modified</span>
       </div>
       <div className="flex items-center gap-1">
-        <span className="font-semibold text-muted-foreground">
-          ={stats.unchanged}
-        </span>
+        <span className="text-muted-foreground font-semibold">={stats.unchanged}</span>
         <span className="text-muted-foreground">unchanged</span>
       </div>
     </div>
@@ -437,9 +422,9 @@ export default function DiffViewer({
 
       {/* Labels for side-by-side mode */}
       {viewMode === 'side-by-side' && (
-        <div className="grid grid-cols-2 gap-4 text-center font-semibold text-sm">
-          <div className="rounded-md bg-muted p-2">{leftLabel}</div>
-          <div className="rounded-md bg-muted p-2">{rightLabel}</div>
+        <div className="grid grid-cols-2 gap-4 text-center text-sm font-semibold">
+          <div className="bg-muted rounded-md p-2">{leftLabel}</div>
+          <div className="bg-muted rounded-md p-2">{rightLabel}</div>
         </div>
       )}
 
@@ -454,7 +439,7 @@ export default function DiffViewer({
             viewMode={viewMode}
           />
         ) : (
-          <div className="rounded-md border p-4 text-center text-muted-foreground">
+          <div className="text-muted-foreground rounded-md border p-4 text-center">
             No differences found
           </div>
         )}

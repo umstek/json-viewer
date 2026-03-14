@@ -1,3 +1,9 @@
 {
-  "conventionalCommits.scopes": ["project", "deps"]
+  "conventionalCommits.scopes": ["project", "deps"],
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.oxc": "explicit"
+  }
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { stringifyUnknown } from '../../utils/value-format';
 import type {
   CustomKeyboardShortcut,
   FocusState,
@@ -11,18 +12,14 @@ import { DEFAULT_SHORTCUTS } from './types';
 /**
  * Utility to check if a keyboard event matches a shortcut
  */
-function matchesShortcut(
-  event: KeyboardEvent,
-  shortcut: KeyboardShortcut,
-): boolean {
+function matchesShortcut(event: KeyboardEvent, shortcut: KeyboardShortcut): boolean {
   // Check modifiers
   const ctrlPressed = event.ctrlKey || event.metaKey;
   const altPressed = event.altKey;
   const shiftPressed = event.shiftKey;
 
   if (shortcut.ctrl && !ctrlPressed) return false;
-  if (!shortcut.ctrl && ctrlPressed && shortcut.id !== 'show-help')
-    return false;
+  if (!shortcut.ctrl && ctrlPressed && shortcut.id !== 'show-help') return false;
   if (shortcut.alt && !altPressed) return false;
   if (shortcut.shift && !shiftPressed) return false;
 
@@ -62,17 +59,8 @@ function mergeShortcuts(
 /**
  * Custom hook for keyboard navigation in the JSON viewer
  */
-export function useKeyboardNavigation(
-  data: unknown,
-  options: KeyboardNavigationOptions = {},
-) {
-  const {
-    enabled = true,
-    customShortcuts,
-    onFocusChange,
-    onToggleExpand,
-    onCopy,
-  } = options;
+export function useKeyboardNavigation(data: unknown, options: KeyboardNavigationOptions = {}) {
+  const { enabled = true, customShortcuts, onFocusChange, onToggleExpand, onCopy } = options;
 
   const [focusState, setFocusState] = useState<FocusState>({
     focusedPath: null,
@@ -233,10 +221,7 @@ export function useKeyboardNavigation(
     if (!focusState.focusedPath) return;
 
     const value = getValueAtPath(focusState.focusedPath);
-    const text =
-      typeof value === 'object'
-        ? JSON.stringify(value, null, 2)
-        : String(value);
+    const text = stringifyUnknown(value);
 
     navigator.clipboard.writeText(text).catch((err) => {
       console.error('Failed to copy:', err);
@@ -269,9 +254,7 @@ export function useKeyboardNavigation(
    * Focus search input
    */
   const focusSearch = useCallback(() => {
-    const searchInput = document.querySelector(
-      'input[type="text"]',
-    ) as HTMLInputElement;
+    const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
     searchInput?.focus();
   }, []);
 
@@ -296,8 +279,7 @@ export function useKeyboardNavigation(
     ) as HTMLButtonElement;
     if (!bookmarksButton) {
       // Try alternative selector
-      const bookmarkButtons =
-        containerRef.current?.querySelectorAll('button[data-state]');
+      const bookmarkButtons = containerRef.current?.querySelectorAll('button[data-state]');
       bookmarkButtons?.[bookmarkButtons.length - 1]?.dispatchEvent(
         new MouseEvent('click', { bubbles: true }),
       );
@@ -356,10 +338,7 @@ export function useKeyboardNavigation(
 
     const handleKeyDown = (event: KeyboardEvent) => {
       // Don't handle shortcuts when typing in an input
-      if (
-        event.target instanceof HTMLInputElement ||
-        event.target instanceof HTMLTextAreaElement
-      ) {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         // Allow Escape to work in inputs
         if (event.key !== 'Escape') {
           return;

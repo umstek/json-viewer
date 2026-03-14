@@ -13,7 +13,7 @@ npm install @umstek/json-viewer
 ```tsx
 import { JsonViewer } from '@umstek/json-viewer';
 
-<JsonViewer json={jsonString} />
+<JsonViewer json={jsonString} />;
 ```
 
 Or for plain objects:
@@ -21,7 +21,7 @@ Or for plain objects:
 ```tsx
 import { PojoViewer } from '@umstek/json-viewer';
 
-<PojoViewer data={object} />
+<PojoViewer data={object} />;
 ```
 
 ## Custom Renderers
@@ -36,9 +36,7 @@ const registry = createRegistry({
     {
       pattern: '$.users[*]',
       render: ({ value, path, registry }) => (
-        <UserCard user={value}>
-          {registry.render(value.address, [...path, 'address'])}
-        </UserCard>
+        <UserCard user={value}>{registry.render(value.address, [...path, 'address'])}</UserCard>
       ),
     },
   ],
@@ -49,14 +47,14 @@ const registry = createRegistry({
 
 Automatically detects and renders actionable formats:
 
-| Format | Action |
-|--------|--------|
-| Email | `mailto:` link |
-| Phone | `tel:` link |
-| URL | Clickable link, image preview |
-| Date/DateTime | Timezone display |
-| IPv4 | Segmented display |
-| UUID | Copy button |
+| Format        | Action                        |
+| ------------- | ----------------------------- |
+| Email         | `mailto:` link                |
+| Phone         | `tel:` link                   |
+| URL           | Clickable link, image preview |
+| Date/DateTime | Timezone display              |
+| IPv4          | Segmented display             |
+| UUID          | Copy button                   |
 
 ## Other Features
 

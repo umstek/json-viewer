@@ -3,16 +3,9 @@ import { type ChangeEvent, type KeyboardEvent, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { TooltipWrapper } from '../../renderer/generic-renderer';
-import {
-  pathArrayToJsonPath,
-  pathArrayToJsonPointer,
-} from '../../utils/jsonpath';
+import { pathArrayToJsonPath, pathArrayToJsonPointer } from '../../utils/jsonpath';
 
 /**
  * Represents a single bookmark entry
@@ -65,8 +58,7 @@ export function BookmarkManager({
   const handleAddCurrentPath = () => {
     if (!currentPath || currentPath.length === 0) return;
 
-    const name =
-      bookmarkName || `Bookmark at ${pathArrayToJsonPath(currentPath)}`;
+    const name = bookmarkName || `Bookmark at ${pathArrayToJsonPath(currentPath)}`;
 
     onAddBookmark({
       name,
@@ -129,7 +121,7 @@ export function BookmarkManager({
           <Button variant="outline" size="icon" className={className}>
             <Bookmark className="h-4 w-4" />
             {bookmarks.length > 0 && (
-              <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
+              <span className="bg-primary text-primary-foreground absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full text-xs">
                 {bookmarks.length}
               </span>
             )}
@@ -139,7 +131,7 @@ export function BookmarkManager({
       <PopoverContent className="w-96" align="end">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="font-medium leading-none">Bookmarks</h4>
+            <h4 className="leading-none font-medium">Bookmarks</h4>
             <Button
               variant="ghost"
               size="icon"
@@ -152,20 +144,15 @@ export function BookmarkManager({
 
           {/* Add bookmark from current path */}
           {currentPath && currentPath.length > 0 && (
-            <div className="space-y-2 rounded-md border border-border p-3">
+            <div className="border-border space-y-2 rounded-md border p-3">
               <Label className="text-xs">Bookmark Current Path</Label>
               <div className="flex items-center gap-2">
-                <code className="flex-1 truncate rounded bg-muted px-2 py-1 text-xs">
+                <code className="bg-muted flex-1 truncate rounded px-2 py-1 text-xs">
                   {pathArrayToJsonPath(currentPath)}
                 </code>
                 {isCurrentPathBookmarked ? (
                   <TooltipWrapper tooltip="Already bookmarked">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-7 px-2"
-                      disabled
-                    >
+                    <Button variant="outline" size="sm" className="h-7 px-2" disabled>
                       <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                     </Button>
                   </TooltipWrapper>
@@ -185,23 +172,19 @@ export function BookmarkManager({
               <Input
                 placeholder="Optional: Give it a name..."
                 value={bookmarkName}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setBookmarkName(e.target.value)
-                }
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setBookmarkName(e.target.value)}
                 className="h-7 text-xs"
               />
             </div>
           )}
 
           {/* Add bookmark from custom path */}
-          <div className="space-y-2 rounded-md border border-border p-3">
+          <div className="border-border space-y-2 rounded-md border p-3">
             <Label className="text-xs">Bookmark Custom Path</Label>
             <Input
               placeholder="$.path.to.value or /path/to/value"
               value={customPath}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setCustomPath(e.target.value)
-              }
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setCustomPath(e.target.value)}
               onKeyDown={(e: KeyboardEvent<HTMLInputElement>) =>
                 e.key === 'Enter' && handleAddCustomPath()
               }
@@ -210,9 +193,7 @@ export function BookmarkManager({
             <Input
               placeholder="Optional: Give it a name..."
               value={bookmarkName}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setBookmarkName(e.target.value)
-              }
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setBookmarkName(e.target.value)}
               onKeyDown={(e: KeyboardEvent<HTMLInputElement>) =>
                 e.key === 'Enter' && handleAddCustomPath()
               }
@@ -236,16 +217,16 @@ export function BookmarkManager({
                 {bookmarks.map((bookmark) => (
                   <div
                     key={bookmark.id}
-                    className="group flex items-start gap-2 rounded-md border border-border p-2 transition-colors hover:bg-muted/50"
+                    className="group border-border hover:bg-muted/50 flex items-start gap-2 rounded-md border p-2 transition-colors"
                   >
-                    <Star className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 fill-yellow-400 text-yellow-400" />
+                    <Star className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-yellow-400 text-yellow-400" />
                     <button
                       type="button"
                       className="flex-1 cursor-pointer space-y-1 text-left"
                       onClick={() => handleNavigate(bookmark)}
                     >
-                      <div className="font-medium text-sm">{bookmark.name}</div>
-                      <code className="block truncate text-muted-foreground text-xs">
+                      <div className="text-sm font-medium">{bookmark.name}</div>
+                      <code className="text-muted-foreground block truncate text-xs">
                         {bookmark.jsonPath}
                       </code>
                     </button>
@@ -254,9 +235,9 @@ export function BookmarkManager({
                         variant="ghost"
                         size="icon"
                         onClick={() => onRemoveBookmark(bookmark.id)}
-                        className="h-6 w-6 flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                        className="h-6 w-6 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
                       >
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        <Trash2 className="text-destructive h-3.5 w-3.5" />
                       </Button>
                     </TooltipWrapper>
                   </div>
@@ -264,7 +245,7 @@ export function BookmarkManager({
               </div>
             </div>
           ) : (
-            <div className="py-8 text-center text-muted-foreground text-sm">
+            <div className="text-muted-foreground py-8 text-center text-sm">
               No bookmarks yet. Add your first bookmark above!
             </div>
           )}

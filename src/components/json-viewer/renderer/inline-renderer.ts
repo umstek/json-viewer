@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { stringifyUnknown } from '../utils/value-format';
 
 /**
  * Props passed to inline renderers
@@ -33,9 +34,7 @@ const MAX_STRING_LENGTH = 50;
  * Default inline renderer for arrays
  * Shows [1, 2, 3] for small arrays or [5 items] for larger ones
  */
-export function defaultArrayInlineRenderer(
-  props: InlineRenderProps,
-): ReactNode {
+export function defaultArrayInlineRenderer(props: InlineRenderProps): ReactNode {
   const { value, count } = props;
 
   if (!Array.isArray(value)) return null;
@@ -51,8 +50,7 @@ export function defaultArrayInlineRenderer(
         if (typeof item === 'number') return String(item);
         if (typeof item === 'boolean') return String(item);
         if (item === null) return 'null';
-        if (typeof item === 'object')
-          return Array.isArray(item) ? '[...]' : '{...}';
+        if (typeof item === 'object') return Array.isArray(item) ? '[...]' : '{...}';
         return String(item);
       })
       .join(', ');
@@ -67,9 +65,7 @@ export function defaultArrayInlineRenderer(
  * Default inline renderer for objects
  * Shows {name: "...", age: 25} for small objects or {3 properties} for larger ones
  */
-export function defaultObjectInlineRenderer(
-  props: InlineRenderProps,
-): ReactNode {
+export function defaultObjectInlineRenderer(props: InlineRenderProps): ReactNode {
   const { value, count } = props;
 
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
@@ -89,8 +85,7 @@ export function defaultObjectInlineRenderer(
         else if (typeof val === 'number') valueStr = String(val);
         else if (typeof val === 'boolean') valueStr = String(val);
         else if (val === null) valueStr = 'null';
-        else if (typeof val === 'object')
-          valueStr = Array.isArray(val) ? '[...]' : '{...}';
+        else if (typeof val === 'object') valueStr = Array.isArray(val) ? '[...]' : '{...}';
         else valueStr = String(val);
 
         return `${key}: ${valueStr}`;
@@ -107,9 +102,7 @@ export function defaultObjectInlineRenderer(
  * Default inline renderer for strings
  * Truncates long strings with ellipsis
  */
-export function defaultStringInlineRenderer(
-  props: InlineRenderProps,
-): ReactNode {
+export function defaultStringInlineRenderer(props: InlineRenderProps): ReactNode {
   const { value } = props;
 
   if (typeof value !== 'string') return null;
@@ -133,11 +126,7 @@ export function createInlineRouter(customRenderers: InlineRenderer[] = []) {
     defaultStringInlineRenderer,
   ];
 
-  return function renderInline(
-    value: unknown,
-    path: string[] = [],
-    count?: number,
-  ): ReactNode {
+  return function renderInline(value: unknown, path: string[] = [], count?: number): ReactNode {
     const props: InlineRenderProps = { value, path, count };
 
     // Try custom renderers first
@@ -159,6 +148,6 @@ export function createInlineRouter(customRenderers: InlineRenderer[] = []) {
     if (value === null) return 'null';
     if (Array.isArray(value)) return '[...]';
     if (typeof value === 'object') return '{...}';
-    return String(value);
+    return stringifyUnknown(value);
   };
 }

@@ -37,16 +37,9 @@
  */
 
 // Inference functions
-export {
-  getJsonType,
-  inferSchema,
-  inferSchemaFromSamples,
-} from './inference';
+export { getJsonType, inferSchema, inferSchemaFromSamples } from './inference';
 // JSON Schema support
-export type {
-  JSONSchemaObject,
-  JSONSchemaValidationOptions,
-} from './json-schema';
+export type { JSONSchemaObject, JSONSchemaValidationOptions } from './json-schema';
 export {
   clearValidatorCache,
   convertJSONSchemaToSchema,

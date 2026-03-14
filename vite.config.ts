@@ -1,33 +1,65 @@
-/// <reference types="vitest" />
+/// <reference types="vite-plus/test" />
 
-import { resolve } from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
-import react from '@vitejs/plugin-react-swc';
-import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 import dts from 'vite-plugin-dts';
-import tsconfigPaths from 'vite-tsconfig-paths';
+import { defineConfig } from 'vite-plus';
 
-import { dependencies, name, peerDependencies } from './package.json';
+const libraryName = 'json_viewer';
 
-const libraryName = (
-  name.indexOf('/') > -1 ? name.split('/').pop() : name
-)?.replace(/-/g, '_');
-
-// Combine peerDependencies and dependencies for externalization
 const externalDeps = [
   'react/jsx-runtime',
-  ...Object.keys(peerDependencies || {}),
-  ...Object.keys(dependencies || {}),
+  'react',
+  'react-dom',
+  '@js-temporal/polyfill',
+  '@radix-ui/react-checkbox',
+  '@radix-ui/react-collapsible',
+  '@radix-ui/react-dialog',
+  '@radix-ui/react-label',
+  '@radix-ui/react-popover',
+  '@radix-ui/react-slot',
+  '@radix-ui/react-tooltip',
+  '@tanstack/react-table',
+  '@tanstack/react-virtual',
+  'ajv',
+  'ajv-formats',
+  'class-variance-authority',
+  'clsx',
+  'js-yaml',
+  'libphonenumber-js',
+  'lucide-react',
+  'papaparse',
+  'zod',
 ];
 
-// https://vitejs.dev/config/
 export default defineConfig({
+  resolve: {
+    tsconfigPaths: true,
+  },
+  staged: {
+    '*': 'vp check --fix',
+  },
+  fmt: {
+    singleQuote: true,
+    indentStyle: 'space',
+    sortTailwindcss: {
+      functions: ['cn', 'cx', 'clsx'],
+    },
+  },
+  lint: {
+    options: {
+      typeAware: true,
+      typeCheck: true,
+    },
+    rules: {
+      'no-unused-variables': 'error',
+    },
+  },
   define: {
     'import.meta.vitest': 'undefined',
   },
   plugins: [
     tailwindcss(),
-    tsconfigPaths(),
     react(),
     dts({
       rollupTypes: true,
@@ -39,9 +71,9 @@ export default defineConfig({
     target: 'esnext',
     minify: true,
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: 'src/index.ts',
       name: libraryName,
-      formats: ['es', 'cjs'], // Specify desired formats
+      formats: ['es', 'cjs'],
       fileName: (format) => `index.${format}.js`,
     },
     rollupOptions: {
@@ -50,12 +82,10 @@ export default defineConfig({
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',
-          // Add other globals if needed
         },
       },
     },
   },
-  // Ensure Vitest doesn't try to bundle external dependencies
   test: {
     globals: true,
     environment: 'jsdom',

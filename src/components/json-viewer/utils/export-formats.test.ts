@@ -1,9 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import {
-  convertToFormat,
-  getFileExtension,
-  getMimeType,
-} from './export-formats';
+import { describe, expect, it } from 'vite-plus/test';
+import { convertToFormat, getFileExtension, getMimeType } from './export-formats';
 
 describe('export-formats', () => {
   describe('convertToFormat', () => {
@@ -82,9 +78,7 @@ describe('export-formats', () => {
       const result = convertToFormat(data, 'csv');
       expect(result).toContain('tags');
       // papaparse properly escapes the JSON array with CSV quote escaping
-      expect(result).toMatch(
-        /\["one","two","three"\]|"?\[""one"",""two"",""three""\]"?/,
-      );
+      expect(result).toMatch(/\["one","two","three"\]|"?\[""one"",""two"",""three""\]"?/);
     });
 
     it('should escape CSV values with commas', () => {

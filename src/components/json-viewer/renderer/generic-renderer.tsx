@@ -1,12 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { CopyButton } from './copy-button';
 
 /**
@@ -48,10 +43,7 @@ export function GenericRenderer(props: {
  *
  * @returns A JSX element with tooltip functionality.
  */
-export function TooltipWrapper(props: {
-  children: ReactNode;
-  tooltip: string;
-}) {
+export function TooltipWrapper(props: { children: ReactNode; tooltip: string }) {
   return (
     <TooltipProvider>
       <Tooltip>

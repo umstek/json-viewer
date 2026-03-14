@@ -1,11 +1,6 @@
 import { Temporal } from '@js-temporal/polyfill';
 import { Calendar } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { GenericRenderer } from '../generic-renderer';
 import type { Renderer } from '../renderer';
 
@@ -23,9 +18,7 @@ export interface DateRendererOptions {
   timeZone?: string;
 }
 
-export const createDateRenderer = (
-  options: DateRendererOptions = {},
-): Renderer => {
+export const createDateRenderer = (options: DateRendererOptions = {}): Renderer => {
   const minDate = options.minDate || new Date(2000, 0, 1);
   const minTimestamp = minDate.getTime();
   const timeZone = options.timeZone || Temporal.Now.timeZoneId();
@@ -33,20 +26,12 @@ export const createDateRenderer = (
   const parseDate = (value: unknown): Temporal.ZonedDateTime | null => {
     try {
       // Try ISO string format
-      if (
-        typeof value === 'string' &&
-        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)
-      ) {
-        return Temporal.ZonedDateTime.from(`${value}[UTC]`).withTimeZone(
-          timeZone,
-        );
+      if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
+        return Temporal.ZonedDateTime.from(`${value}[UTC]`).withTimeZone(timeZone);
       }
 
       // Try unix timestamp (in seconds or milliseconds)
-      if (
-        typeof value === 'number' ||
-        (typeof value === 'string' && /^\d+$/.test(value))
-      ) {
+      if (typeof value === 'number' || (typeof value === 'string' && /^\d+$/.test(value))) {
         const timestamp = Number(value);
         // If timestamp is in seconds, convert to milliseconds
         const ms = timestamp < 1e12 ? timestamp * 1000 : timestamp;

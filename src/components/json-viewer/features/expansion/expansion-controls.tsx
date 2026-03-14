@@ -1,11 +1,6 @@
 import { ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useExpansion } from './expansion-context';
 
 export interface ExpansionControlsProps {
@@ -20,12 +15,7 @@ export function ExpansionControls({ className }: ExpansionControlsProps) {
       <div className={className}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={expandAll}
-              aria-label="Expand all"
-            >
+            <Button variant="outline" size="icon" onClick={expandAll} aria-label="Expand all">
               <ChevronsUpDown className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -36,12 +26,7 @@ export function ExpansionControls({ className }: ExpansionControlsProps) {
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={collapseAll}
-              aria-label="Collapse all"
-            >
+            <Button variant="outline" size="icon" onClick={collapseAll} aria-label="Collapse all">
               <ChevronsDownUp className="h-4 w-4" />
             </Button>
           </TooltipTrigger>

@@ -3,12 +3,8 @@ import type { ReactNode } from 'react';
 import type { FilterOptions } from '../pojo-viewer';
 import type { SortOptions } from '../utils/sorting';
 import { applyTransformers, type Transformer } from '../utils/transforms';
-import {
-  BooleanRenderer,
-  NullRenderer,
-  NumberRenderer,
-  StringRenderer,
-} from './common-renderers';
+import { stringifyUnknown } from '../utils/value-format';
+import { BooleanRenderer, NullRenderer, NumberRenderer, StringRenderer } from './common-renderers';
 import { createInlineRouter, type InlineRenderer } from './inline-renderer';
 import { ArrayRenderer, ObjectRenderer } from './object-renderer';
 import type { Renderer } from './renderer';
@@ -30,10 +26,7 @@ export interface RouterOptions {
   focusedPath?: string[] | null;
 }
 
-function isPathMatch(
-  currentPath: string[],
-  highlightedPath: string[],
-): boolean {
+function isPathMatch(currentPath: string[], highlightedPath: string[]): boolean {
   if (!currentPath.length || !highlightedPath.length) return false;
   return currentPath.join('.') === highlightedPath.join('.');
 }
@@ -50,11 +43,7 @@ export function createRouter(
   // Create the inline router once for reuse
   const inlineRouter = createInlineRouter(inlineRenderers);
 
-  return function renderValue(
-    value: unknown,
-    path: string[] = [],
-    options: RouterOptions = {},
-  ) {
+  return function renderValue(value: unknown, path: string[] = [], options: RouterOptions = {}) {
     const { filterOptions, currentDepth = 0 } = options;
 
     // Apply transformations to the value before rendering
@@ -83,12 +72,9 @@ export function createRouter(
       ? isPathMatch(path, options.highlightedPath)
       : false;
 
-    const isBookmarked =
-      path.length > 0 && options.bookmarkedPaths?.has(path.join('.'));
+    const isBookmarked = path.length > 0 && options.bookmarkedPaths?.has(path.join('.'));
 
-    const isFocused = options.focusedPath?.length
-      ? isPathMatch(path, options.focusedPath)
-      : false;
+    const isFocused = options.focusedPath?.length ? isPathMatch(path, options.focusedPath) : false;
 
     const wrapWithHighlight = (element: ReactNode) => {
       const hasIndicator = isHighlighted || isBookmarked || isFocused;
@@ -98,17 +84,13 @@ export function createRouter(
         <div
           className={`-mx-2 flex items-start gap-1 rounded px-2 ${
             isHighlighted ? 'bg-yellow-100 dark:bg-yellow-900/30' : ''
-          } ${
-            isFocused
-              ? 'ring-2 ring-blue-500 ring-offset-2 dark:ring-blue-400'
-              : ''
-          }`}
+          } ${isFocused ? 'ring-2 ring-blue-500 ring-offset-2 dark:ring-blue-400' : ''}`}
           tabIndex={isFocused ? 0 : -1}
           data-focused={isFocused ? 'true' : undefined}
           data-path={isFocused ? path.join('.') : undefined}
         >
           {isBookmarked && (
-            <Star className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 fill-yellow-400 text-yellow-400" />
+            <Star className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-yellow-400 text-yellow-400" />
           )}
           <div className="flex-1">{element}</div>
         </div>
@@ -117,15 +99,11 @@ export function createRouter(
 
     // Apply type-based filtering (using transformed value)
     if (filterOptions) {
-      if (typeof transformedValue === 'string' && !filterOptions.showStrings)
-        return null;
-      if (typeof transformedValue === 'number' && !filterOptions.showNumbers)
-        return null;
-      if (typeof transformedValue === 'boolean' && !filterOptions.showBooleans)
-        return null;
+      if (typeof transformedValue === 'string' && !filterOptions.showStrings) return null;
+      if (typeof transformedValue === 'number' && !filterOptions.showNumbers) return null;
+      if (typeof transformedValue === 'boolean' && !filterOptions.showBooleans) return null;
       if (transformedValue === null && !filterOptions.showNull) return null;
-      if (Array.isArray(transformedValue) && !filterOptions.showArrays)
-        return null;
+      if (Array.isArray(transformedValue) && !filterOptions.showArrays) return null;
       if (
         typeof transformedValue === 'object' &&
         transformedValue !== null &&
@@ -201,6 +179,6 @@ export function createRouter(
     }
 
     // Fallback for any other types
-    return wrapWithHighlight(<pre>{String(transformedValue)}</pre>);
+    return wrapWithHighlight(<pre>{stringifyUnknown(transformedValue)}</pre>);
   };
 }

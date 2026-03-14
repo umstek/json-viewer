@@ -2,7 +2,7 @@
  * @vitest-environment node
  */
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 import { inferSchema, inferSchemaFromSamples } from './inference';
 
 describe('Schema Inference', () => {
@@ -120,9 +120,7 @@ describe('Schema Inference', () => {
         expect((props.email as { format?: string }).format).toBe('email');
         expect((props.website as { format?: string }).format).toBe('uri');
         expect((props.date as { format?: string }).format).toBe('date');
-        expect((props.datetime as { format?: string }).format).toBe(
-          'date-time',
-        );
+        expect((props.datetime as { format?: string }).format).toBe('date-time');
         expect((props.uuid as { format?: string }).format).toBe('uuid');
       }
     });

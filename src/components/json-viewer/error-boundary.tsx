@@ -24,10 +24,7 @@ interface ErrorBoundaryState {
  *   <JsonViewer json={data} />
  * </JsonViewerErrorBoundary>
  */
-export class JsonViewerErrorBoundary extends Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class JsonViewerErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -53,22 +50,15 @@ export class JsonViewerErrorBoundary extends Component<
       }
 
       return (
-        <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
-          <AlertTriangle className="h-10 w-10 text-destructive" />
+        <div className="border-destructive/50 bg-destructive/10 flex flex-col items-center justify-center gap-4 rounded-lg border p-6 text-center">
+          <AlertTriangle className="text-destructive h-10 w-10" />
           <div className="space-y-2">
-            <h3 className="font-semibold text-destructive">
-              Something went wrong
-            </h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="text-destructive font-semibold">Something went wrong</h3>
+            <p className="text-muted-foreground text-sm">
               {this.state.error?.message || 'An unexpected error occurred'}
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={this.handleRetry}
-            className="gap-2"
-          >
+          <Button variant="outline" size="sm" onClick={this.handleRetry} className="gap-2">
             <RotateCcw className="h-4 w-4" />
             Try again
           </Button>

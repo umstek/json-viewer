@@ -3,10 +3,7 @@
  * Provides functions to sort object keys and array items
  */
 
-export type ObjectKeySortMode =
-  | 'original'
-  | 'alphabetical'
-  | 'reverse-alphabetical';
+export type ObjectKeySortMode = 'original' | 'alphabetical' | 'reverse-alphabetical';
 export type ArrayItemSortMode =
   | 'original'
   | 'ascending'
@@ -49,10 +46,7 @@ export function sortObjectEntries(
 /**
  * Sorts array items based on the specified sort mode
  */
-export function sortArrayItems(
-  items: unknown[],
-  sortMode: ArrayItemSortMode,
-): unknown[] {
+export function sortArrayItems(items: unknown[], sortMode: ArrayItemSortMode): unknown[] {
   if (sortMode === 'original') {
     return items;
   }

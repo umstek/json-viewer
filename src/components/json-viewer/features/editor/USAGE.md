@@ -15,10 +15,10 @@ import PojoViewer from './components/json-viewer/pojo-viewer';
 import { Schema } from './components/json-viewer/schema/types';
 
 const data = {
-  name: "John Doe",
+  name: 'John Doe',
   age: 30,
   active: true,
-  notes: null
+  notes: null,
 };
 
 const schema: Schema = {
@@ -28,9 +28,9 @@ const schema: Schema = {
       name: { type: 'string', minLength: 1, maxLength: 100 },
       age: { type: 'number', minimum: 0, maximum: 150 },
       active: { type: 'boolean' },
-      notes: { type: 'null', nullable: true }
-    }
-  }
+      notes: { type: 'null', nullable: true },
+    },
+  },
 };
 
 function MyComponent() {
@@ -102,14 +102,14 @@ function MyComponent() {
 
   return (
     <div>
-      <button onClick={undo} disabled={!canUndo}>Undo</button>
-      <button onClick={redo} disabled={!canRedo}>Redo</button>
+      <button onClick={undo} disabled={!canUndo}>
+        Undo
+      </button>
+      <button onClick={redo} disabled={!canRedo}>
+        Redo
+      </button>
 
-      <PojoViewer
-        data={data}
-        editable={true}
-        onChange={handleChange}
-      />
+      <PojoViewer data={data} editable={true} onChange={handleChange} />
     </div>
   );
 }
@@ -120,21 +120,25 @@ function MyComponent() {
 The editor validates values against schema constraints in real-time:
 
 ### String Validation
+
 - `minLength`: Minimum string length
 - `maxLength`: Maximum string length
 - `pattern`: Regular expression pattern
 - `enum`: List of allowed values
 
 ### Number Validation
+
 - `minimum`: Minimum value (inclusive)
 - `maximum`: Maximum value (inclusive)
 - `multipleOf`: Number must be a multiple of this value
 - `enum`: List of allowed values
 
 ### Boolean Validation
+
 - No additional constraints (always valid true/false)
 
 ### Null Validation
+
 - No additional constraints (always valid null)
 
 ## UI Behavior
@@ -164,12 +168,14 @@ When a value fails validation, an error message is displayed:
 ## Props Reference
 
 ### PojoViewer Props
+
 - `editable?: boolean` - Enable editing mode (default: false)
 - `schema?: Schema` - Schema for validation
 - `onChange?: (path: string[], newValue: unknown) => void` - Change handler
 - `readOnly?: boolean` - Make viewer read-only (default: false)
 
 ### Editor Component Props
+
 - `value: T` - Current value
 - `schema?: SchemaNode` - Schema for validation
 - `onSave: (value: T) => void` - Save handler
@@ -187,12 +193,12 @@ import { useJsonEditor } from './components/json-viewer/features/editor';
 function JsonEditorDemo() {
   const initialData = {
     user: {
-      name: "Jane Doe",
-      email: "jane@example.com",
+      name: 'Jane Doe',
+      email: 'jane@example.com',
       age: 28,
       verified: true,
-      bio: null
-    }
+      bio: null,
+    },
   };
 
   const schema: Schema = {
@@ -206,11 +212,11 @@ function JsonEditorDemo() {
             email: { type: 'string', pattern: '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' },
             age: { type: 'number', minimum: 0, maximum: 150 },
             verified: { type: 'boolean' },
-            bio: { type: 'null', nullable: true }
-          }
-        }
-      }
-    }
+            bio: { type: 'null', nullable: true },
+          },
+        },
+      },
+    },
   };
 
   const { data, handleChange, undo, redo, canUndo, canRedo } = useJsonEditor(initialData);
@@ -218,16 +224,15 @@ function JsonEditorDemo() {
   return (
     <div>
       <div className="toolbar">
-        <button onClick={undo} disabled={!canUndo}>Undo</button>
-        <button onClick={redo} disabled={!canRedo}>Redo</button>
+        <button onClick={undo} disabled={!canUndo}>
+          Undo
+        </button>
+        <button onClick={redo} disabled={!canRedo}>
+          Redo
+        </button>
       </div>
 
-      <PojoViewer
-        data={data}
-        editable={true}
-        schema={schema}
-        onChange={handleChange}
-      />
+      <PojoViewer data={data} editable={true} schema={schema} onChange={handleChange} />
 
       <div className="output">
         <h3>Current Data:</h3>
