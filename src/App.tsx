@@ -264,21 +264,38 @@ const afterData = {
   ],
 };
 
+type DataSource = 'sample' | 'real';
+
 function App() {
   const [json, setJson] = useState(JSON.stringify(sampleData, null, 2));
-  const [useRealData, setUseRealData] = useState(false);
+  const [dataSource, setDataSource] = useState<DataSource>('sample');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<'viewer' | 'diff'>('viewer');
 
   useEffect(() => {
-    if (useRealData) {
+    if (dataSource === 'real') {
+      setIsLoading(true);
+      setError(null);
       void fetch(dataUrls.githubRepos)
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+          }
+          return res.json();
+        })
         .then((data) => setJson(JSON.stringify(data, null, 2)))
         .catch((error: unknown) => {
+          const message = error instanceof Error ? error.message : 'Unknown error';
           console.error('Failed to load GitHub repository data:', error);
-        });
+          setError(`Failed to load data: ${message}`);
+        })
+        .finally(() => setIsLoading(false));
+    } else {
+      setJson(JSON.stringify(sampleData, null, 2));
+      setError(null);
     }
-  }, [useRealData]);
+  }, [dataSource]);
 
   return (
     <ThemeProvider>
@@ -313,14 +330,20 @@ function App() {
 
           {activeView === 'viewer' && (
             <>
-              <div className="mb-4">
+              <div className="mb-4 flex items-center gap-4">
                 <button
                   type="button"
-                  onClick={() => setUseRealData(!useRealData)}
-                  className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                  onClick={() => setDataSource(dataSource === 'sample' ? 'real' : 'sample')}
+                  disabled={isLoading}
+                  className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {useRealData ? 'Show Sample Data' : 'Load GitHub Repos'}
+                  {isLoading
+                    ? 'Loading...'
+                    : dataSource === 'real'
+                      ? 'Show Sample Data'
+                      : 'Load GitHub Repos'}
                 </button>
+                {error && <span className="text-sm text-red-500">{error}</span>}
               </div>
               <JsonViewer
                 json={json}
