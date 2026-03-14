@@ -114,8 +114,25 @@ export interface JSONSchemaValidationOptions {
 
 /**
  * JSON Schema validator instance cache
+ * Keys by schema object -> options hash -> validate function
+ * This prevents different validation options from silently reusing the wrong compiled validator.
  */
-const validatorCache = new WeakMap<JSONSchemaObject, ValidateFunction>();
+const validatorCache = new WeakMap<JSONSchemaObject, Map<string, ValidateFunction>>();
+
+/**
+ * Creates a stable hash key from validation options
+ * Only includes options that affect Ajv compilation
+ */
+function hashOptions(options: JSONSchemaValidationOptions): string {
+  const relevant: Record<string, unknown> = {
+    strict: options.strict ?? false,
+    validateFormats: options.validateFormats ?? true,
+    coerceTypes: options.coerceTypes ?? false,
+    removeAdditional: options.removeAdditional ?? false,
+    useDefaults: options.useDefaults ?? false,
+  };
+  return JSON.stringify(relevant);
+}
 
 /**
  * Creates an Ajv instance with the given options
@@ -168,14 +185,23 @@ export function validateWithJSONSchema(
   jsonSchema: JSONSchemaObject,
   options: JSONSchemaValidationOptions = {},
 ): ValidationResult {
-  // Try to get cached validator
-  let validate = validatorCache.get(jsonSchema);
+  const optionsHash = hashOptions(options);
 
-  // Create validator if not cached
+  // Get or create the options map for this schema
+  let optionsMap = validatorCache.get(jsonSchema);
+  if (!optionsMap) {
+    optionsMap = new Map();
+    validatorCache.set(jsonSchema, optionsMap);
+  }
+
+  // Try to get cached validator for these specific options
+  let validate = optionsMap.get(optionsHash);
+
+  // Create validator if not cached for this options hash
   if (!validate) {
     const ajv = createAjv(options);
     validate = ajv.compile(jsonSchema);
-    validatorCache.set(jsonSchema, validate);
+    optionsMap.set(optionsHash, validate);
   }
 
   // Validate the data
@@ -479,12 +505,21 @@ export function createJSONSchemaValidator(
   jsonSchema: JSONSchemaObject,
   options: JSONSchemaValidationOptions = {},
 ): (data: unknown) => ValidationResult {
+  const optionsHash = hashOptions(options);
+
+  // Get or create the options map for this schema
+  let optionsMap = validatorCache.get(jsonSchema);
+  if (!optionsMap) {
+    optionsMap = new Map();
+    validatorCache.set(jsonSchema, optionsMap);
+  }
+
   // Pre-compile the validator
   const ajv = createAjv(options);
   const validate = ajv.compile(jsonSchema);
 
-  // Cache it
-  validatorCache.set(jsonSchema, validate);
+  // Cache it for this specific options hash
+  optionsMap.set(optionsHash, validate);
 
   // Return a function that validates data
   return (data: unknown): ValidationResult => {
