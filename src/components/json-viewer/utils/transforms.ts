@@ -1,3 +1,10 @@
+import {
+  dotPathToPathArray,
+  pathArrayToInternalKey,
+  pathArrayToJsonPath,
+  pathArrayToJsonPointer,
+} from './jsonpath';
+
 /**
  * Transformer type - a function that can modify a value before rendering
  */
@@ -16,9 +23,22 @@ export function createPathTransformer(
   transform: (value: unknown) => unknown,
 ): Transformer {
   return ({ value, path }) => {
-    const pathString = path.join('.');
-    const matches =
-      typeof pathPattern === 'string' ? pathString === pathPattern : pathPattern.test(pathString);
+    const matches = (() => {
+      if (typeof pathPattern !== 'string') {
+        return pathPattern.test(pathArrayToInternalKey(path));
+      }
+
+      if (pathPattern === '' || pathPattern.startsWith('/')) {
+        return pathArrayToJsonPointer(path) === pathPattern;
+      }
+
+      if (pathPattern.startsWith('$')) {
+        return pathArrayToJsonPath(path) === pathPattern;
+      }
+
+      const legacyPath = dotPathToPathArray(pathPattern);
+      return pathArrayToJsonPointer(path) === pathArrayToJsonPointer(legacyPath);
+    })();
 
     return matches ? transform(value) : value;
   };

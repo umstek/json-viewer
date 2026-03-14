@@ -5,7 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { TooltipWrapper } from '../../renderer/generic-renderer';
-import { pathArrayToJsonPath, pathArrayToJsonPointer } from '../../utils/jsonpath';
+import {
+  arePathsEqual,
+  jsonPathToPathArray,
+  jsonPointerToPathArray,
+  pathArrayToJsonPath,
+  pathArrayToJsonPointer,
+} from '../../utils/jsonpath';
 
 /**
  * Represents a single bookmark entry
@@ -78,14 +84,10 @@ export function BookmarkManager({
 
     if (customPath.startsWith('/')) {
       // JSON Pointer format
-      path = customPath.slice(1).split('/');
+      path = jsonPointerToPathArray(customPath);
     } else if (customPath.startsWith('$')) {
-      // JSONPath format - simple parsing
-      const normalized = customPath.slice(1);
-      path = normalized
-        .split(/[.[\]]/)
-        .filter((p) => p.length > 0)
-        .map((p) => p.replace(/^['"]|['"]$/g, ''));
+      // JSONPath format
+      path = jsonPathToPathArray(customPath);
     } else {
       // Assume dot-separated path
       path = customPath.split('.');
@@ -112,7 +114,7 @@ export function BookmarkManager({
   const isCurrentPathBookmarked =
     currentPath &&
     currentPath.length > 0 &&
-    bookmarks.some((b) => b.path.join('.') === currentPath.join('.'));
+    bookmarks.some((b) => arePathsEqual(b.path, currentPath));
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>

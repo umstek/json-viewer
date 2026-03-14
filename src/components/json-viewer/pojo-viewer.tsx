@@ -20,7 +20,7 @@ interface PojoViewerProps {
   renderers?: Renderer[];
   inlineRenderers?: InlineRenderer[];
   transformers?: Transformer[];
-  highlightedPath?: string;
+  highlightedPath?: string[];
   filterOptions?: FilterOptions;
   searchQuery?: string;
   sortOptions?: SortOptions;
@@ -56,7 +56,7 @@ export default function PojoViewer({
   return (
     <div>
       {router(data, [], {
-        highlightedPath: highlightedPath?.split('.') || [],
+        highlightedPath: highlightedPath || [],
         filterOptions,
         searchQuery,
         sortOptions,

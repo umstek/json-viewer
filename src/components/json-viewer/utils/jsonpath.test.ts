@@ -3,11 +3,15 @@
  */
 import { describe, expect, it } from 'vite-plus/test';
 import {
+  arePathsEqual,
   detectQueryType,
   executeQuery,
+  internalKeyToPathArray,
+  isPathAncestor,
   jsonPathToPathArray,
   jsonPointerToPathArray,
   matchPath,
+  pathArrayToInternalKey,
   pathArrayToJsonPath,
   pathArrayToJsonPointer,
 } from './jsonpath';
@@ -24,6 +28,16 @@ describe('JSONPath Utilities', () => {
 
     it('should escape special characters', () => {
       expect(pathArrayToJsonPointer(['a~b', 'c/d'])).toBe('/a~0b/c~1d');
+    });
+  });
+
+  describe('canonical internal path keys', () => {
+    it('round-trips dotted and slash keys safely', () => {
+      const path = ['a.b', 'x/y', '0'];
+      const key = pathArrayToInternalKey(path);
+
+      expect(key).toBe('/a.b/x~1y/0');
+      expect(internalKeyToPathArray(key)).toEqual(path);
     });
   });
 
@@ -222,6 +236,19 @@ describe('JSONPath Utilities', () => {
 
     it('should handle bracket notation with quotes', () => {
       expect(matchPath(['special-key', 'value'], "$['special-key'].value")).toBe(true);
+    });
+  });
+
+  describe('path comparisons', () => {
+    it('compares paths by segments without dot-join collisions', () => {
+      expect(arePathsEqual(['a.b'], ['a', 'b'])).toBe(false);
+      expect(arePathsEqual(['a.b'], ['a.b'])).toBe(true);
+    });
+
+    it('checks ancestors by segments without dot-join collisions', () => {
+      expect(isPathAncestor(['a'], ['a', 'b'])).toBe(true);
+      expect(isPathAncestor(['a.b'], ['a', 'b'])).toBe(false);
+      expect(isPathAncestor(['a.b'], ['a.b', 'c'])).toBe(true);
     });
   });
 });

@@ -9,6 +9,7 @@
 import { AlertCircle, XCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { ValidationError } from '../../schema/types';
+import { arePathsEqual, pathArrayToInternalKey } from '../../utils/jsonpath';
 import { GenericRenderer } from '../generic-renderer';
 import type { Renderer } from '../renderer';
 
@@ -32,11 +33,7 @@ export interface SchemaValidationRendererOptions {
  * Finds validation errors for a specific path
  */
 function findErrorsForPath(path: string[], errors: ValidationError[]): ValidationError[] {
-  const pathStr = path.join('.');
-  return errors.filter((error) => {
-    const errorPathStr = error.path.join('.');
-    return errorPathStr === pathStr;
-  });
+  return errors.filter((error) => arePathsEqual(error.path, path));
 }
 
 /**
@@ -80,7 +77,7 @@ export function createSchemaValidationRenderer(options: SchemaValidationRenderer
               </div>
               {pathErrors.map((error, index) => (
                 <div
-                  key={`${error.path.join('.')}-${error.rule}-${index}`}
+                  key={`${pathArrayToInternalKey(error.path)}-${error.rule}-${index}`}
                   className="flex flex-col gap-1 border-t pt-2"
                 >
                   <div className="text-muted-foreground text-xs">Rule: {error.rule}</div>
@@ -132,7 +129,7 @@ export function ValidationErrorPanel({ errors }: { errors: ValidationError[] }) 
       <div className="flex flex-col gap-2">
         {errors.map((error, index) => (
           <div
-            key={`${error.path.join('.')}-${error.rule}-${index}`}
+            key={`${pathArrayToInternalKey(error.path)}-${error.rule}-${index}`}
             className="rounded border border-red-200 bg-white p-2 text-sm dark:border-red-800 dark:bg-gray-800"
           >
             <div className="text-muted-foreground font-mono text-xs">

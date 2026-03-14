@@ -10,6 +10,44 @@ export interface QueryResult {
 }
 
 /**
+ * Canonical internal key for path storage/comparison.
+ * Uses RFC 6901 JSON Pointer encoding so keys remain unambiguous.
+ */
+export function pathArrayToInternalKey(path: string[]): string {
+  return pathArrayToJsonPointer(path);
+}
+
+/**
+ * Decodes a canonical internal path key back into path segments.
+ */
+export function internalKeyToPathArray(pathKey: string): string[] {
+  return jsonPointerToPathArray(pathKey);
+}
+
+/**
+ * Strict path equality check that is safe for arbitrary key names.
+ */
+export function arePathsEqual(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) return false;
+  for (let i = 0; i < left.length; i++) {
+    if (left[i] !== right[i]) return false;
+  }
+  return true;
+}
+
+/**
+ * Checks whether `ancestor` is equal to or a prefix of `path`.
+ */
+export function isPathAncestor(ancestor: string[], path: string[]): boolean {
+  if (ancestor.length === 0 || path.length === 0) return false;
+  if (ancestor.length > path.length) return false;
+  for (let i = 0; i < ancestor.length; i++) {
+    if (ancestor[i] !== path[i]) return false;
+  }
+  return true;
+}
+
+/**
  * Converts a path array to a JSON Pointer (RFC 6901) string
  * Example: ['store', 'book', '0', 'title'] => '/store/book/0/title'
  */

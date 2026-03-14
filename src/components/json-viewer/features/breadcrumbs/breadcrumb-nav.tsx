@@ -3,7 +3,11 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { TooltipWrapper } from '../../renderer/generic-renderer';
-import { pathArrayToJsonPath, pathArrayToJsonPointer } from '../../utils/jsonpath';
+import {
+  pathArrayToInternalKey,
+  pathArrayToJsonPath,
+  pathArrayToJsonPointer,
+} from '../../utils/jsonpath';
 
 export interface BreadcrumbNavProps {
   /**
@@ -86,8 +90,8 @@ export function BreadcrumbNav({ path, onNavigate, className = '' }: BreadcrumbNa
         {/* Path segments */}
         {path.map((segment, index) => {
           const isLast = index === path.length - 1;
-          // Use the path up to this point as a unique key
-          const uniqueKey = path.slice(0, index + 1).join('.');
+          // Use canonical internal key to avoid collisions for dotted keys
+          const uniqueKey = pathArrayToInternalKey(path.slice(0, index + 1));
           return (
             <div key={uniqueKey} className="flex items-center gap-1">
               <ChevronRight className="text-muted-foreground h-4 w-4" />

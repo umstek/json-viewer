@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useOptionalExpansion } from '../features/expansion';
+import { isPathAncestor, pathArrayToInternalKey } from '../utils/jsonpath';
 import {
   type ArrayItemWithSource,
   sortArrayItemsWithSource,
@@ -51,35 +52,23 @@ function HighlightText({ text, searchQuery }: HighlightTextProps) {
   );
 }
 
-function isPathAncestor(currentPath: string, targetPath: string): boolean {
-  if (!currentPath || !targetPath) return false;
-  if (currentPath === targetPath) return true;
-
-  const currentParts = currentPath.split('.');
-  const targetParts = targetPath.split('.');
-
-  // Check if current path is a prefix of target path
-  return targetParts.slice(0, currentParts.length).join('.') === currentPath;
-}
-
 export function ObjectRenderer({ value, router, path, options }: ObjectRendererProps) {
-  const currentPath = path.join('.');
   const expansionContext = useOptionalExpansion();
 
   // Use context-based expansion if available, otherwise use local state
   const [localIsOpen, setLocalIsOpen] = useState(false);
 
-  const isOpen = expansionContext ? expansionContext.isExpanded(currentPath) : localIsOpen;
+  const isOpen = expansionContext ? expansionContext.isExpanded(path) : localIsOpen;
 
   const setIsOpen = useCallback(
     (open: boolean) => {
       if (expansionContext) {
-        expansionContext.setExpanded(currentPath, open);
+        expansionContext.setExpanded(path, open);
       } else {
         setLocalIsOpen(open);
       }
     },
-    [expansionContext, currentPath],
+    [expansionContext, path],
   );
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -129,12 +118,11 @@ export function ObjectRenderer({ value, router, path, options }: ObjectRendererP
   // Auto-expand if this path is part of the highlighted path
   useEffect(() => {
     if (options.highlightedPath?.length) {
-      const highlightedPath = options.highlightedPath.join('.');
-      if (isPathAncestor(currentPath, highlightedPath)) {
+      if (isPathAncestor(path, options.highlightedPath)) {
         setIsOpen(true);
       }
     }
-  }, [options.highlightedPath, currentPath, setIsOpen]);
+  }, [options.highlightedPath, path, setIsOpen]);
 
   const virtualizer = useVirtualizer({
     count: filteredEntries.length,
@@ -183,7 +171,7 @@ export function ObjectRenderer({ value, router, path, options }: ObjectRendererP
 
     if (!shouldVirtualize) {
       return filteredEntries.map(([key, val]: [string, unknown]) => (
-        <div key={`${path.join('.')}.${key}`} className="flex w-full min-w-0 gap-2">
+        <div key={`${pathArrayToInternalKey(path)}/${key}`} className="flex w-full min-w-0 gap-2">
           <span className="text-primary whitespace-nowrap">
             <HighlightText text={`${key}:`} searchQuery={options.searchQuery} />
           </span>
@@ -240,24 +228,23 @@ export function ObjectRenderer({ value, router, path, options }: ObjectRendererP
 }
 
 export function ArrayRenderer({ value, router, path, options }: ObjectRendererProps) {
-  const currentPath = path.join('.');
   const expansionContext = useOptionalExpansion();
   const parentRef = useRef<HTMLDivElement>(null);
 
   // Use context-based expansion if available, otherwise use local state
   const [localIsOpen, setLocalIsOpen] = useState(false);
 
-  const isOpen = expansionContext ? expansionContext.isExpanded(currentPath) : localIsOpen;
+  const isOpen = expansionContext ? expansionContext.isExpanded(path) : localIsOpen;
 
   const setIsOpen = useCallback(
     (open: boolean) => {
       if (expansionContext) {
-        expansionContext.setExpanded(currentPath, open);
+        expansionContext.setExpanded(path, open);
       } else {
         setLocalIsOpen(open);
       }
     },
-    [expansionContext, currentPath],
+    [expansionContext, path],
   );
 
   // Lazy loading logic
@@ -303,12 +290,11 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
   // Auto-expand if this path is part of the highlighted path
   useEffect(() => {
     if (options.highlightedPath?.length) {
-      const highlightedPath = options.highlightedPath.join('.');
-      if (isPathAncestor(currentPath, highlightedPath)) {
+      if (isPathAncestor(path, options.highlightedPath)) {
         setIsOpen(true);
       }
     }
-  }, [options.highlightedPath, currentPath, setIsOpen]);
+  }, [options.highlightedPath, path, setIsOpen]);
 
   const virtualizer = useVirtualizer({
     count: filteredItems.length,
@@ -325,7 +311,7 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
     const item = filteredItems[virtualRow.index];
     return (
       <div
-        key={`${path.join('.')}.${item.sourceIndex}`}
+        key={`${pathArrayToInternalKey(path)}/${item.sourceIndex}`}
         data-index={virtualRow.index}
         ref={virtualizer.measureElement}
         className="absolute top-0 left-0 w-full overflow-hidden"
@@ -357,7 +343,10 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
 
     if (!shouldVirtualize) {
       return filteredItems.map((item: ArrayItemWithSource, index: number) => (
-        <div key={`${path.join('.')}.${item.sourceIndex}`} className="flex w-full min-w-0 gap-2">
+        <div
+          key={`${pathArrayToInternalKey(path)}/${item.sourceIndex}`}
+          className="flex w-full min-w-0 gap-2"
+        >
           <span className="text-primary whitespace-nowrap">
             <HighlightText text={`${index}:`} searchQuery={options.searchQuery} />
           </span>

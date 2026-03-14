@@ -1,6 +1,7 @@
 import { Star } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { FilterOptions } from '../pojo-viewer';
+import { arePathsEqual, pathArrayToInternalKey } from '../utils/jsonpath';
 import type { SortOptions } from '../utils/sorting';
 import { applyTransformers, type Transformer } from '../utils/transforms';
 import { stringifyUnknown } from '../utils/value-format';
@@ -28,7 +29,7 @@ export interface RouterOptions {
 
 function isPathMatch(currentPath: string[], highlightedPath: string[]): boolean {
   if (!currentPath.length || !highlightedPath.length) return false;
-  return currentPath.join('.') === highlightedPath.join('.');
+  return arePathsEqual(currentPath, highlightedPath);
 }
 
 /**
@@ -72,7 +73,8 @@ export function createRouter(
       ? isPathMatch(path, options.highlightedPath)
       : false;
 
-    const isBookmarked = path.length > 0 && options.bookmarkedPaths?.has(path.join('.'));
+    const isBookmarked =
+      path.length > 0 && options.bookmarkedPaths?.has(pathArrayToInternalKey(path));
 
     const isFocused = options.focusedPath?.length ? isPathMatch(path, options.focusedPath) : false;
 

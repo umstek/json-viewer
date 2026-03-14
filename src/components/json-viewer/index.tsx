@@ -456,7 +456,7 @@ export default function JsonViewer({
           data={data}
           renderers={renderers}
           transformers={transformers}
-          highlightedPath={searchResults[currentResultIndex]?.path.join('.') || ''}
+          highlightedPath={searchResults[currentResultIndex]?.path || []}
           filterOptions={filterOptions}
           searchQuery={queryType === 'text' ? searchQuery : ''}
           sortOptions={sortOptions}

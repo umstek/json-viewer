@@ -1,4 +1,5 @@
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react';
+import { pathArrayToInternalKey } from '../../utils/jsonpath';
 
 export interface ExpansionContextValue {
   /** Expand all nodes */
@@ -8,11 +9,11 @@ export interface ExpansionContextValue {
   /** Expand nodes to a specific depth */
   expandToDepth: (depth: number) => void;
   /** Check if a path is expanded */
-  isExpanded: (path: string) => boolean;
+  isExpanded: (path: string[]) => boolean;
   /** Set expansion state for a specific path */
-  setExpanded: (path: string, expanded: boolean) => void;
+  setExpanded: (path: string[], expanded: boolean) => void;
   /** Toggle expansion state for a specific path */
-  toggleExpanded: (path: string) => void;
+  toggleExpanded: (path: string[]) => void;
   /** Global expansion version - increments on expandAll/collapseAll to trigger re-renders */
   expansionVersion: number;
   /** Whether all nodes should be expanded (after expandAll) */
@@ -59,16 +60,17 @@ export function ExpansionProvider({ children, defaultExpanded = false }: Expansi
   }, []);
 
   const isExpanded = useCallback(
-    (path: string) => {
+    (path: string[]) => {
+      const pathKey = pathArrayToInternalKey(path);
       // Check individual override first
-      const override = expansionMap.get(path);
+      const override = expansionMap.get(pathKey);
       if (override !== undefined) {
         return override;
       }
 
       // Check depth limit
       if (targetDepth !== null) {
-        const depth = path.split('.').length;
+        const depth = path.length;
         return depth <= targetDepth;
       }
 
@@ -78,19 +80,21 @@ export function ExpansionProvider({ children, defaultExpanded = false }: Expansi
     [expansionMap, globalExpanded, targetDepth],
   );
 
-  const setExpanded = useCallback((path: string, expanded: boolean) => {
+  const setExpanded = useCallback((path: string[], expanded: boolean) => {
+    const pathKey = pathArrayToInternalKey(path);
     setExpansionMap((prev) => {
       const next = new Map(prev);
-      next.set(path, expanded);
+      next.set(pathKey, expanded);
       return next;
     });
   }, []);
 
-  const toggleExpanded = useCallback((path: string) => {
+  const toggleExpanded = useCallback((path: string[]) => {
+    const pathKey = pathArrayToInternalKey(path);
     setExpansionMap((prev) => {
       const next = new Map(prev);
-      const current = next.get(path);
-      next.set(path, !current);
+      const current = next.get(pathKey);
+      next.set(pathKey, !current);
       return next;
     });
   }, []);
