@@ -3,7 +3,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import dts from 'vite-plugin-dts';
-import { defineConfig } from 'vite-plus';
+import { defineConfig, lazyPlugins } from 'vite-plus';
 
 const libraryName = 'json_viewer';
 
@@ -52,21 +52,23 @@ export default defineConfig({
       typeCheck: true,
     },
     rules: {
-      'no-unused-variables': 'error',
+      'no-unused-vars': 'error',
     },
   },
   define: {
     'import.meta.vitest': 'undefined',
   },
-  plugins: [
-    tailwindcss(),
-    react(),
-    dts({
-      rollupTypes: true,
-      copyDtsFiles: true,
-      insertTypesEntry: true,
-    }),
-  ],
+  plugins: lazyPlugins(
+    () =>
+      [
+        tailwindcss(),
+        react(),
+        dts({
+          copyDtsFiles: true,
+          insertTypesEntry: true,
+        }),
+      ] as unknown as NonNullable<ReturnType<typeof lazyPlugins>>,
+  ),
   build: {
     target: 'esnext',
     minify: true,
