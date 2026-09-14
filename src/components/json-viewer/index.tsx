@@ -53,9 +53,12 @@ export interface JsonViewerProps {
   editable?: boolean;
   onChange?: (path: string[], newValue: unknown) => void;
   readOnly?: boolean;
+  /** Renders the Undo/Redo controls and wires their shortcuts; independent of `editable`. */
   editHistory?: EditHistoryController;
   contextMenu?: ContextMenuOptions;
+  /** Keys are RFC 6901 JSON Pointer strings (via `pathArrayToJsonPointer`). */
   bookmarkedPaths?: Set<string>;
+  /** Explicitly focused node; takes precedence over keyboard-driven focus. */
   focusedPath?: string[] | null;
 }
 

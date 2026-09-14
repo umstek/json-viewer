@@ -65,7 +65,10 @@ export function createRouter(
       return null;
     }
 
-    // Try custom renderers first (using transformed value)
+    // Try custom renderers first (using transformed value).
+    // Note: custom-renderer output bypasses the node chrome below (highlight,
+    // bookmark stars, context menu); renderers needing that chrome should
+    // return null here and let the default renderers handle the value.
     for (const renderer of customRenderers) {
       const result = renderer({
         value: transformedValue,
