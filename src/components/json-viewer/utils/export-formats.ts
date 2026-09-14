@@ -2,7 +2,7 @@
  * Export utilities for converting and downloading JSON data in various formats
  */
 
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import Papa from 'papaparse';
 import { cloneWithoutCircular, hasCircularReference, safeStringify } from './circular-detection';
 
