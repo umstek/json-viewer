@@ -78,6 +78,10 @@ export interface KeyboardNavigationOptions {
   onToggleExpand?: (path: string[]) => void;
   /** Callback when copy shortcut is triggered */
   onCopy?: (path: string[], value: unknown) => void;
+  /** Callback when undo shortcut is triggered */
+  onUndo?: () => void;
+  /** Callback when redo shortcut is triggered */
+  onRedo?: () => void;
   /** Ref to the search input element */
   searchInputRef?: React.RefObject<HTMLInputElement | null>;
   /** Ref to the export button element */
@@ -163,6 +167,32 @@ export const DEFAULT_SHORTCUTS: KeyboardShortcut[] = [
     name: 'Toggle Bookmarks',
     description: 'Toggle the bookmarks panel',
     keys: ['b', 'B'],
+    ctrl: true,
+    category: 'actions',
+  },
+  {
+    id: 'undo',
+    name: 'Undo',
+    description: 'Undo the last edit',
+    keys: ['z'],
+    ctrl: true,
+    category: 'actions',
+  },
+  // Only the shifted key so Ctrl+Shift+Z is not captured by undo as well
+  {
+    id: 'redo',
+    name: 'Redo',
+    description: 'Redo the last undone edit',
+    keys: ['Z'],
+    ctrl: true,
+    shift: true,
+    category: 'actions',
+  },
+  {
+    id: 'redo-alt',
+    name: 'Redo (alternate)',
+    description: 'Redo the last undone edit',
+    keys: ['y', 'Y'],
     ctrl: true,
     category: 'actions',
   },

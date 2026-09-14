@@ -66,6 +66,8 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
     onFocusChange,
     onToggleExpand,
     onCopy,
+    onUndo,
+    onRedo,
     searchInputRef,
     exportButtonRef,
     bookmarksButtonRef,
@@ -281,6 +283,20 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
   }, [bookmarksButtonRef]);
 
   /**
+   * Undo the last edit
+   */
+  const undo = useCallback(() => {
+    onUndo?.();
+  }, [onUndo]);
+
+  /**
+   * Redo the last undone edit
+   */
+  const redo = useCallback(() => {
+    onRedo?.();
+  }, [onRedo]);
+
+  /**
    * Show help panel
    */
   const toggleHelp = useCallback(() => {
@@ -304,6 +320,9 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
       'clear-search': clearFocus,
       'open-export': openExport,
       'toggle-bookmarks': toggleBookmarks,
+      undo,
+      redo,
+      'redo-alt': redo,
       'show-help': toggleHelp,
       'show-help-alt': toggleHelp,
     }),
@@ -318,6 +337,8 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
       clearFocus,
       openExport,
       toggleBookmarks,
+      undo,
+      redo,
       toggleHelp,
     ],
   );
