@@ -21,12 +21,19 @@ export type {
 export { BookmarkManager } from './components/json-viewer/features/bookmarks';
 export type { BreadcrumbNavProps } from './components/json-viewer/features/breadcrumbs';
 export { BreadcrumbNav } from './components/json-viewer/features/breadcrumbs';
-export type { EditorProps, ValueEditorProps } from './components/json-viewer/features/editor';
+export type {
+  EditHistory,
+  EditHistoryController,
+  EditHistoryOptions,
+  EditorProps,
+  ValueEditorProps,
+} from './components/json-viewer/features/editor';
 export {
   BooleanEditor,
   NullEditor,
   NumberEditor,
   StringEditor,
+  useEditHistory,
   useJsonEditor,
   ValueEditor,
 } from './components/json-viewer/features/editor';
