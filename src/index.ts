@@ -26,6 +26,7 @@ export type {
   EditHistoryController,
   EditHistoryOptions,
   EditorProps,
+  UndoRedoControlsProps,
   ValueEditorProps,
 } from './components/json-viewer/features/editor';
 export {
@@ -33,6 +34,7 @@ export {
   NullEditor,
   NumberEditor,
   StringEditor,
+  UndoRedoControls,
   useEditHistory,
   useJsonEditor,
   ValueEditor,

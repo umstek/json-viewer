@@ -8,3 +8,5 @@ export type { ValueEditorProps } from './value-editor';
 export { useJsonEditor, ValueEditor } from './value-editor';
 export type { EditHistory, EditHistoryController, EditHistoryOptions } from './use-edit-history';
 export { useEditHistory } from './use-edit-history';
+export type { UndoRedoControlsProps } from './undo-redo-controls';
+export { UndoRedoControls } from './undo-redo-controls';

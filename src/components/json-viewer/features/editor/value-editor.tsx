@@ -114,6 +114,7 @@ export function ValueEditor({
             variant="ghost"
             size="sm"
             onClick={() => setIsEditing(true)}
+            aria-label="Edit value"
             className="h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
           >
             <Pencil className="h-3 w-3" />

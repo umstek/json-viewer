@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { BreadcrumbNav } from './features/breadcrumbs';
+import { type EditHistoryController, UndoRedoControls } from './features/editor';
 import { ExpansionProvider, useExpansion } from './features/expansion';
 import { ExportButton } from './features/export';
 import {
@@ -48,6 +49,10 @@ export interface JsonViewerProps {
   showValidationErrors?: boolean;
   keyboardShortcuts?: boolean;
   customShortcuts?: CustomKeyboardShortcut[];
+  editable?: boolean;
+  onChange?: (path: string[], newValue: unknown) => void;
+  readOnly?: boolean;
+  editHistory?: EditHistoryController;
 }
 
 const defaultFilterOptions: FilterOptions = {
@@ -84,6 +89,10 @@ function JsonViewerContent({
   showValidationErrors = true,
   keyboardShortcuts = true,
   customShortcuts,
+  editable,
+  onChange,
+  readOnly,
+  editHistory,
 }: JsonViewerProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
@@ -114,6 +123,8 @@ function JsonViewerContent({
     onCopy: () => {
       console.log('Value copied to clipboard');
     },
+    onUndo: editHistory?.undo,
+    onRedo: editHistory?.redo,
     searchInputRef,
     exportButtonRef,
   });
@@ -193,6 +204,7 @@ function JsonViewerContent({
           onNavigateNext={() => navigateResults('next')}
           inputRef={searchInputRef}
         />
+        {editHistory && <UndoRedoControls history={editHistory} />}
         <ExportButton data={data} filename="json-data" ref={exportButtonRef} />
         {showThemeToggle && <ThemeToggle />}
         {keyboardShortcuts && (
@@ -261,6 +273,9 @@ function JsonViewerContent({
         searchQuery={searchState.queryType === 'text' ? searchState.query : ''}
         sortOptions={sortOptions}
         focusedPath={keyboard.focusState.focusedPath}
+        editable={editable}
+        onChange={onChange}
+        readOnly={readOnly}
       />
       {keyboardShortcuts && (
         <ShortcutsHelp
