@@ -55,6 +55,8 @@ export interface JsonViewerProps {
   readOnly?: boolean;
   editHistory?: EditHistoryController;
   contextMenu?: ContextMenuOptions;
+  bookmarkedPaths?: Set<string>;
+  focusedPath?: string[] | null;
 }
 
 const defaultFilterOptions: FilterOptions = {
@@ -96,6 +98,8 @@ function JsonViewerContent({
   readOnly,
   editHistory,
   contextMenu,
+  bookmarkedPaths,
+  focusedPath,
 }: JsonViewerProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
@@ -275,11 +279,12 @@ function JsonViewerContent({
         filterOptions={filterOptions}
         searchQuery={searchState.queryType === 'text' ? searchState.query : ''}
         sortOptions={sortOptions}
-        focusedPath={keyboard.focusState.focusedPath}
+        focusedPath={focusedPath ?? keyboard.focusState.focusedPath}
         editable={editable}
         onChange={onChange}
         readOnly={readOnly}
         contextMenu={contextMenu}
+        bookmarkedPaths={bookmarkedPaths}
       />
       {keyboardShortcuts && (
         <ShortcutsHelp

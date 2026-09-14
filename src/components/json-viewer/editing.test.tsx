@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { describe, expect, test, vi } from 'vite-plus/test';
 import { useEditHistory } from './features/editor';
 import JsonViewer from './index';
+import { pathArrayToInternalKey } from './utils/jsonpath';
 
 /**
  * Expands the root object by clicking its collapsible chevron trigger,
@@ -106,6 +107,44 @@ describe('JsonViewer editing integration', () => {
     );
     fireEvent.keyDown(container.firstChild as Element, { key: 'z', ctrlKey: true });
     expect(undo).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('JsonViewer bookmarkedPaths forwarding', () => {
+  test('renders the star indicator only when bookmarkedPaths is provided', () => {
+    const { rerender } = render(
+      <JsonViewer
+        json={JSON.stringify({ name: 'Alice' })}
+        bookmarkedPaths={new Set([pathArrayToInternalKey(['name'])])}
+        keyboardShortcuts={false}
+      />,
+    );
+
+    expandRootObject();
+
+    expect(document.querySelector('svg.lucide-star')).not.toBeNull();
+
+    rerender(<JsonViewer json={JSON.stringify({ name: 'Alice' })} keyboardShortcuts={false} />);
+
+    expect(document.querySelector('svg.lucide-star')).toBeNull();
+  });
+});
+
+describe('JsonViewer focusedPath forwarding', () => {
+  test('marks the node matching focusedPath with a focus ring', () => {
+    render(
+      <JsonViewer
+        json={JSON.stringify({ name: 'Alice' })}
+        focusedPath={['name']}
+        keyboardShortcuts={false}
+      />,
+    );
+
+    expandRootObject();
+
+    const focused = document.querySelector('[data-focused="true"]');
+    expect(focused).not.toBeNull();
+    expect(focused?.getAttribute('data-path')).toBe('name');
   });
 });
 
