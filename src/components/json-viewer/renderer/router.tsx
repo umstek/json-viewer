@@ -1,5 +1,6 @@
 import { Star } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { type ContextMenuOptions, NodeContextMenu } from '../features/context-menu';
 import type { FilterOptions } from '../pojo-viewer';
 import { arePathsEqual, pathArrayToInternalKey } from '../utils/jsonpath';
 import type { SortOptions } from '../utils/sorting';
@@ -25,6 +26,7 @@ export interface RouterOptions {
   onChange?: (path: string[], newValue: unknown) => void;
   readOnly?: boolean;
   focusedPath?: string[] | null;
+  contextMenu?: ContextMenuOptions;
 }
 
 function isPathMatch(currentPath: string[], highlightedPath: string[]): boolean {
@@ -63,7 +65,10 @@ export function createRouter(
       return null;
     }
 
-    // Try custom renderers first (using transformed value)
+    // Try custom renderers first (using transformed value).
+    // Note: custom-renderer output bypasses the node chrome below (highlight,
+    // bookmark stars, context menu); renderers needing that chrome should
+    // return null here and let the default renderers handle the value.
     for (const renderer of customRenderers) {
       const result = renderer({
         value: transformedValue,
@@ -103,6 +108,18 @@ export function createRouter(
       );
     };
 
+    // Wrap every node row with the context menu when the feature is enabled.
+    // Output is unchanged when no context menu options are provided.
+    const wrapNode = (element: ReactNode) => {
+      const wrapped = wrapWithHighlight(element);
+      if (!options.contextMenu) return wrapped;
+      return (
+        <NodeContextMenu path={path} value={transformedValue} options={options.contextMenu}>
+          {wrapped}
+        </NodeContextMenu>
+      );
+    };
+
     // Apply type-based filtering (using transformed value)
     if (filterOptions) {
       if (typeof transformedValue === 'string' && !filterOptions.showStrings) return null;
@@ -121,7 +138,7 @@ export function createRouter(
 
     // Fall back to default renderers (using transformed value)
     if (typeof transformedValue === 'string') {
-      return wrapWithHighlight(
+      return wrapNode(
         <StringRenderer
           value={transformedValue}
           path={path}
@@ -132,7 +149,7 @@ export function createRouter(
       );
     }
     if (typeof transformedValue === 'number') {
-      return wrapWithHighlight(
+      return wrapNode(
         <NumberRenderer
           value={transformedValue}
           path={path}
@@ -143,7 +160,7 @@ export function createRouter(
       );
     }
     if (typeof transformedValue === 'boolean') {
-      return wrapWithHighlight(
+      return wrapNode(
         <BooleanRenderer
           value={transformedValue}
           path={path}
@@ -154,7 +171,7 @@ export function createRouter(
       );
     }
     if (transformedValue === null || transformedValue === undefined) {
-      return wrapWithHighlight(
+      return wrapNode(
         <NullRenderer
           path={path}
           editable={options.editable}
@@ -164,7 +181,7 @@ export function createRouter(
       );
     }
     if (Array.isArray(transformedValue)) {
-      return wrapWithHighlight(
+      return wrapNode(
         <ArrayRenderer
           value={transformedValue}
           router={renderValue}
@@ -174,7 +191,7 @@ export function createRouter(
       );
     }
     if (typeof transformedValue === 'object') {
-      return wrapWithHighlight(
+      return wrapNode(
         <ObjectRenderer
           value={transformedValue}
           router={renderValue}
@@ -185,6 +202,6 @@ export function createRouter(
     }
 
     // Fallback for any other types
-    return wrapWithHighlight(<pre>{stringifyUnknown(transformedValue)}</pre>);
+    return wrapNode(<pre>{stringifyUnknown(transformedValue)}</pre>);
   };
 }

@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { BreadcrumbNav } from './features/breadcrumbs';
+import { type EditHistoryController, UndoRedoControls } from './features/editor';
 import { ExpansionProvider, useExpansion } from './features/expansion';
 import { ExportButton } from './features/export';
+import { type ContextMenuOptions } from './features/context-menu';
 import {
   type CustomKeyboardShortcut,
   ShortcutsHelp,
@@ -48,6 +50,16 @@ export interface JsonViewerProps {
   showValidationErrors?: boolean;
   keyboardShortcuts?: boolean;
   customShortcuts?: CustomKeyboardShortcut[];
+  editable?: boolean;
+  onChange?: (path: string[], newValue: unknown) => void;
+  readOnly?: boolean;
+  /** Renders the Undo/Redo controls and wires their shortcuts; independent of `editable`. */
+  editHistory?: EditHistoryController;
+  contextMenu?: ContextMenuOptions;
+  /** Keys are RFC 6901 JSON Pointer strings (via `pathArrayToJsonPointer`). */
+  bookmarkedPaths?: Set<string>;
+  /** Explicitly focused node; takes precedence over keyboard-driven focus. */
+  focusedPath?: string[] | null;
 }
 
 const defaultFilterOptions: FilterOptions = {
@@ -84,6 +96,13 @@ function JsonViewerContent({
   showValidationErrors = true,
   keyboardShortcuts = true,
   customShortcuts,
+  editable,
+  onChange,
+  readOnly,
+  editHistory,
+  contextMenu,
+  bookmarkedPaths,
+  focusedPath,
 }: JsonViewerProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
@@ -114,6 +133,8 @@ function JsonViewerContent({
     onCopy: () => {
       console.log('Value copied to clipboard');
     },
+    onUndo: editHistory?.undo,
+    onRedo: editHistory?.redo,
     searchInputRef,
     exportButtonRef,
   });
@@ -193,6 +214,7 @@ function JsonViewerContent({
           onNavigateNext={() => navigateResults('next')}
           inputRef={searchInputRef}
         />
+        {editHistory && <UndoRedoControls history={editHistory} />}
         <ExportButton data={data} filename="json-data" ref={exportButtonRef} />
         {showThemeToggle && <ThemeToggle />}
         {keyboardShortcuts && (
@@ -260,7 +282,12 @@ function JsonViewerContent({
         filterOptions={filterOptions}
         searchQuery={searchState.queryType === 'text' ? searchState.query : ''}
         sortOptions={sortOptions}
-        focusedPath={keyboard.focusState.focusedPath}
+        focusedPath={focusedPath ?? keyboard.focusState.focusedPath}
+        editable={editable}
+        onChange={onChange}
+        readOnly={readOnly}
+        contextMenu={contextMenu}
+        bookmarkedPaths={bookmarkedPaths}
       />
       {keyboardShortcuts && (
         <ShortcutsHelp
