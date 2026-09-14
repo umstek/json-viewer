@@ -14,6 +14,14 @@ const dataUrls = {
   githubRepos: 'https://api.github.com/users/umstek/repos',
 };
 
+/**
+ * crypto.randomUUID throws (or is absent) on insecure origins, so fall
+ * back to a random id for bookmark entries served over plain HTTP.
+ */
+function createId(): string {
+  return crypto.randomUUID?.() ?? `bm-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 // Comprehensive sample data demonstrating all library capabilities
 const sampleData = {
   company: {
@@ -299,7 +307,7 @@ function EditorPlayground() {
     setBookmarks([
       ...bookmarks,
       {
-        id: crypto.randomUUID(),
+        id: createId(),
         name: `Bookmark at ${jsonPath}`,
         path,
         jsonPath,
@@ -312,7 +320,7 @@ function EditorPlayground() {
   const addBookmark = (bookmark: Omit<BookmarkEntry, 'id' | 'createdAt'>) => {
     setBookmarks([
       ...bookmarks.filter((existing) => existing.jsonPointer !== bookmark.jsonPointer),
-      { ...bookmark, id: crypto.randomUUID(), createdAt: Date.now() },
+      { ...bookmark, id: createId(), createdAt: Date.now() },
     ]);
   };
 
