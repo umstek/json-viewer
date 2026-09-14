@@ -176,9 +176,11 @@ export const DEFAULT_SHORTCUTS: KeyboardShortcut[] = [
     description: 'Undo the last edit',
     keys: ['z'],
     ctrl: true,
+    // Explicitly exclude shifted variants so Ctrl+Shift+Z never matches undo
+    // regardless of which case the key event reports.
+    shift: false,
     category: 'actions',
   },
-  // Only the shifted key so Ctrl+Shift+Z is not captured by undo as well
   {
     id: 'redo',
     name: 'Redo',

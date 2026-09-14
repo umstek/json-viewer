@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { act, fireEvent, render, renderHook, screen } from '@testing-library/react';
+import { act, createEvent, fireEvent, render, renderHook, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vite-plus/test';
 import { ShortcutsHelp } from './shortcuts-help';
 import type { KeyboardNavigationOptions } from './types';
@@ -186,6 +186,56 @@ describe('undo and redo shortcuts', () => {
       });
       fireEvent.keyDown(getByTestId('keyboard-container'), { key: 'y', ctrlKey: true });
     }).not.toThrow();
+  });
+
+  it('should not prevent default on Ctrl+Z when onUndo is absent', () => {
+    const { getByTestId } = render(<KeyboardHarness options={{}} />);
+    const container = getByTestId('keyboard-container');
+
+    const event = createEvent.keyDown(container, { key: 'z', ctrlKey: true });
+    fireEvent(container, event);
+
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('should still claim Ctrl+Z when onUndo is provided', () => {
+    const onUndo = vi.fn();
+    const { getByTestId } = render(<KeyboardHarness options={{ onUndo }} />);
+    const container = getByTestId('keyboard-container');
+
+    const event = createEvent.keyDown(container, { key: 'z', ctrlKey: true });
+    fireEvent(container, event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(onUndo).toHaveBeenCalledTimes(1);
+  });
+
+  it('should keep typing untouched when onUndo is absent', () => {
+    const { getByTestId } = render(<KeyboardHarness options={{}} />);
+    const input = getByTestId('keyboard-input');
+
+    const keyEvent = createEvent.keyDown(input, { key: 'z', ctrlKey: true });
+    fireEvent(input, keyEvent);
+    expect(keyEvent.defaultPrevented).toBe(false);
+
+    fireEvent.change(input, { target: { value: 'typed' } });
+    expect((input as HTMLInputElement).value).toBe('typed');
+  });
+
+  it('should not trigger undo on Ctrl+Shift+Z reported as a lowercase key', () => {
+    const onUndo = vi.fn();
+    const onRedo = vi.fn();
+    const { getByTestId } = render(<KeyboardHarness options={{ onUndo, onRedo }} />);
+
+    // Caps lock and some layouts report 'z' even with Shift held; the
+    // explicit `shift: false` on undo must keep it from matching.
+    fireEvent.keyDown(getByTestId('keyboard-container'), {
+      key: 'z',
+      ctrlKey: true,
+      shiftKey: true,
+    });
+
+    expect(onUndo).not.toHaveBeenCalled();
   });
 
   it('should ignore undo and redo shortcuts while typing in an input', () => {
