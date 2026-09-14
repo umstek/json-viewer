@@ -67,7 +67,9 @@ export function deriveBaseFilename(path: string[]): string {
  */
 function writeClipboard(text: string): void {
   try {
-    void navigator.clipboard?.writeText(text);
+    navigator.clipboard?.writeText(text).catch((err) => {
+      console.error('Failed to copy:', err);
+    });
   } catch {
     // Clipboard unavailable; ignore rather than crash.
   }
@@ -151,7 +153,7 @@ export function NodeContextMenu({ path, value, options, children }: NodeContextM
           </ContextMenuSubContent>
         </ContextMenuSub>
         <ContextMenuSeparator />
-        {onBookmark && (
+        {onBookmark && path.length > 0 && (
           <ContextMenuItem onSelect={() => onBookmark(path, value)}>
             <Star />
             Bookmark this node

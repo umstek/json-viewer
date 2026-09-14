@@ -14,9 +14,10 @@ const nodePath = ['company', 'name'];
 
 /**
  * Stubs the clipboard API (absent in jsdom) and returns the writeText spy.
+ * The real API returns a promise, so the stub must too.
  */
 function stubClipboard() {
-  const writeText = vi.fn();
+  const writeText = vi.fn().mockResolvedValue(undefined);
   Object.assign(navigator, { clipboard: { writeText } });
   return writeText;
 }
@@ -82,6 +83,26 @@ describe('NodeContextMenu', () => {
     await openMenu();
 
     expect(screen.queryByRole('menuitem', { name: /bookmark this node/i })).toBeNull();
+  });
+
+  test('hides the bookmark item on the root node', async () => {
+    render(
+      <NodeContextMenu path={[]} value={data} options={{ onBookmark: vi.fn() }}>
+        <div data-testid="node">root</div>
+      </NodeContextMenu>,
+    );
+
+    await openMenu();
+
+    expect(screen.queryByRole('menuitem', { name: /bookmark this node/i })).toBeNull();
+  });
+
+  test('keeps the bookmark item on child nodes', async () => {
+    renderNodeMenu({ onBookmark: vi.fn() });
+
+    await openMenu();
+
+    expect(screen.getByRole('menuitem', { name: /bookmark this node/i })).not.toBeNull();
   });
 
   test('Copy JSONPath writes the JSONPath string', async () => {
@@ -263,5 +284,23 @@ describe('JsonViewer context menu integration', () => {
 
     fireEvent.click(getMenuItem('Copy JSON Pointer'));
     expect(writeText).toHaveBeenCalledWith('/company/name');
+  });
+
+  test('right-clicking inside an open inline editor keeps the native menu', () => {
+    render(
+      <JsonViewer
+        json={JSON.stringify({ name: 'Alice' })}
+        editable
+        contextMenu={{}}
+        keyboardShortcuts={false}
+      />,
+    );
+
+    clickChevron(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit value' }));
+    fireEvent.contextMenu(screen.getByDisplayValue('Alice'));
+
+    expect(screen.queryByRole('menu')).toBeNull();
   });
 });

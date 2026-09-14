@@ -4,7 +4,7 @@
  */
 
 import { Pencil } from 'lucide-react';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { SchemaNode } from '../../schema/types';
@@ -59,8 +59,9 @@ export function ValueEditor({
 
   if (isEditing) {
     // Render appropriate editor based on type
+    let editor: ReactNode;
     if (typeof value === 'string') {
-      return (
+      editor = (
         <StringEditor
           value={value}
           schema={schema}
@@ -69,9 +70,8 @@ export function ValueEditor({
           readOnly={readOnly}
         />
       );
-    }
-    if (typeof value === 'number') {
-      return (
+    } else if (typeof value === 'number') {
+      editor = (
         <NumberEditor
           value={value}
           schema={schema}
@@ -80,9 +80,8 @@ export function ValueEditor({
           readOnly={readOnly}
         />
       );
-    }
-    if (typeof value === 'boolean') {
-      return (
+    } else if (typeof value === 'boolean') {
+      editor = (
         <BooleanEditor
           value={value}
           schema={schema}
@@ -91,9 +90,8 @@ export function ValueEditor({
           readOnly={readOnly}
         />
       );
-    }
-    if (value === null) {
-      return (
+    } else {
+      editor = (
         <NullEditor
           value={null}
           schema={schema}
@@ -103,6 +101,10 @@ export function ValueEditor({
         />
       );
     }
+
+    // Right-clicks inside an open editor should keep the native browser
+    // menu, so stop the event before it reaches the node context menu trigger.
+    return <span onContextMenu={(e) => e.stopPropagation()}>{editor}</span>;
   }
 
   // Show edit button when not editing
