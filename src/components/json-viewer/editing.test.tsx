@@ -146,6 +146,27 @@ describe('JsonViewer focusedPath forwarding', () => {
     expect(focused).not.toBeNull();
     expect(focused?.getAttribute('data-path')).toBe('name');
   });
+
+  test('explicit focusedPath takes precedence over keyboard-driven focus', () => {
+    const { container } = render(
+      <JsonViewer json={JSON.stringify({ company: 'Acme', other: 1 })} focusedPath={['company']} />,
+    );
+
+    expandRootObject();
+
+    expect(document.querySelector('[data-focused="true"]')?.getAttribute('data-path')).toBe(
+      'company',
+    );
+
+    // Move keyboard focus to another node; the explicit prop still wins
+    fireEvent.keyDown(container.firstChild as Element, { key: 'ArrowDown' });
+    fireEvent.keyDown(container.firstChild as Element, { key: 'ArrowDown' });
+
+    expect(document.querySelector('[data-focused="true"]')?.getAttribute('data-path')).toBe(
+      'company',
+    );
+    expect(document.querySelectorAll('[data-focused="true"]').length).toBe(1);
+  });
 });
 
 describe('JsonViewer with useEditHistory integration', () => {
