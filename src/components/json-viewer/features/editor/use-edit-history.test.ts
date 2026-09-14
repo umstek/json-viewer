@@ -164,6 +164,30 @@ describe('useEditHistory', () => {
     expect(result.current.data).toEqual({ a: 1 });
   });
 
+  it('applies two synchronous setValue calls in the same tick', () => {
+    const { result } = renderHook(() => useEditHistory({ a: 1, b: 1 }));
+
+    act(() => {
+      result.current.setValue(['a'], 2);
+      result.current.setValue(['b'], 3);
+    });
+
+    expect(result.current.data).toEqual({ a: 2, b: 3 });
+
+    // Both edits are undoable stepwise
+    act(() => {
+      result.current.undo();
+    });
+    expect(result.current.data).toEqual({ a: 2, b: 1 });
+
+    act(() => {
+      result.current.undo();
+    });
+    expect(result.current.data).toEqual({ a: 1, b: 1 });
+    expect(result.current.canUndo).toBe(false);
+    expect(result.current.canRedo).toBe(true);
+  });
+
   it('applies immutable updates to nested paths through arrays and objects', () => {
     const initial = { a: [{ b: 'old' }, { b: 'keep' }] };
     const { result } = renderHook(() => useEditHistory(initial));

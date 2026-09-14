@@ -24,56 +24,74 @@ export interface EditHistory extends EditHistoryController {
 
 const DEFAULT_MAX_HISTORY = 100;
 
+interface HistoryState {
+  data: unknown;
+  history: unknown[];
+  historyIndex: number;
+}
+
 /**
- * Hook to manage JSON data with a bounded undo/redo history
+ * Hook to manage JSON data with a bounded undo/redo history.
+ * All mutations use functional setState updates so synchronous bursts
+ * of setValue calls compose correctly instead of reading stale closures.
  */
 export function useEditHistory(initialData: unknown, options?: EditHistoryOptions): EditHistory {
   const maxHistory = options?.maxHistory ?? DEFAULT_MAX_HISTORY;
 
-  const [data, setData] = useState(initialData);
-  const [history, setHistory] = useState<unknown[]>([initialData]);
-  const [historyIndex, setHistoryIndex] = useState(0);
+  const [state, setState] = useState<HistoryState>({
+    data: initialData,
+    history: [initialData],
+    historyIndex: 0,
+  });
 
   const setValue = (path: string[], newValue: unknown) => {
-    const newData = updateValueAtPath(data, path, newValue);
-    setData(newData);
+    setState((prev) => {
+      const newData = updateValueAtPath(prev.data, path, newValue);
 
-    // Truncate future snapshots, then push the new snapshot
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(newData);
+      // Truncate future snapshots, then push the new snapshot
+      const newHistory = prev.history.slice(0, prev.historyIndex + 1);
+      newHistory.push(newData);
 
-    // Cap retained past snapshots, keeping the current snapshot
-    if (newHistory.length > maxHistory + 1) {
-      newHistory.splice(0, newHistory.length - (maxHistory + 1));
-    }
+      // Cap retained past snapshots, keeping the current snapshot
+      if (newHistory.length > maxHistory + 1) {
+        newHistory.splice(0, newHistory.length - (maxHistory + 1));
+      }
 
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
+      return { data: newData, history: newHistory, historyIndex: newHistory.length - 1 };
+    });
   };
 
   const undo = () => {
-    if (historyIndex <= 0) return;
-    setHistoryIndex(historyIndex - 1);
-    setData(history[historyIndex - 1]);
+    setState((prev) => {
+      if (prev.historyIndex <= 0) return prev;
+      return {
+        ...prev,
+        historyIndex: prev.historyIndex - 1,
+        data: prev.history[prev.historyIndex - 1],
+      };
+    });
   };
 
   const redo = () => {
-    if (historyIndex >= history.length - 1) return;
-    setHistoryIndex(historyIndex + 1);
-    setData(history[historyIndex + 1]);
+    setState((prev) => {
+      if (prev.historyIndex >= prev.history.length - 1) return prev;
+      return {
+        ...prev,
+        historyIndex: prev.historyIndex + 1,
+        data: prev.history[prev.historyIndex + 1],
+      };
+    });
   };
 
   const reset = (nextData: unknown) => {
-    setData(nextData);
-    setHistory([nextData]);
-    setHistoryIndex(0);
+    setState({ data: nextData, history: [nextData], historyIndex: 0 });
   };
 
-  const canUndo = historyIndex > 0;
-  const canRedo = historyIndex < history.length - 1;
+  const canUndo = state.historyIndex > 0;
+  const canRedo = state.historyIndex < state.history.length - 1;
 
   return {
-    data,
+    data: state.data,
     setValue,
     reset,
     undo,
