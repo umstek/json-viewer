@@ -22,6 +22,10 @@ export { BookmarkManager } from './components/json-viewer/features/bookmarks';
 export type { BreadcrumbNavProps } from './components/json-viewer/features/breadcrumbs';
 export { BreadcrumbNav } from './components/json-viewer/features/breadcrumbs';
 export type {
+  ContextMenuCopyFormat,
+  ContextMenuOptions,
+} from './components/json-viewer/features/context-menu';
+export type {
   EditHistory,
   EditHistoryController,
   EditHistoryOptions,

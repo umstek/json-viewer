@@ -4,6 +4,7 @@ import { BreadcrumbNav } from './features/breadcrumbs';
 import { type EditHistoryController, UndoRedoControls } from './features/editor';
 import { ExpansionProvider, useExpansion } from './features/expansion';
 import { ExportButton } from './features/export';
+import { type ContextMenuOptions } from './features/context-menu';
 import {
   type CustomKeyboardShortcut,
   ShortcutsHelp,
@@ -53,6 +54,7 @@ export interface JsonViewerProps {
   onChange?: (path: string[], newValue: unknown) => void;
   readOnly?: boolean;
   editHistory?: EditHistoryController;
+  contextMenu?: ContextMenuOptions;
 }
 
 const defaultFilterOptions: FilterOptions = {
@@ -93,6 +95,7 @@ function JsonViewerContent({
   onChange,
   readOnly,
   editHistory,
+  contextMenu,
 }: JsonViewerProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
@@ -276,6 +279,7 @@ function JsonViewerContent({
         editable={editable}
         onChange={onChange}
         readOnly={readOnly}
+        contextMenu={contextMenu}
       />
       {keyboardShortcuts && (
         <ShortcutsHelp
