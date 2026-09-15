@@ -35,7 +35,7 @@ jobs:
         with:
           bun-version: latest
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Install deps
         run: bun install
       - name: Build project
