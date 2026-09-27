@@ -22,6 +22,9 @@ function matchesShortcut(event: KeyboardEvent, shortcut: KeyboardShortcut): bool
   if (!shortcut.ctrl && ctrlPressed && shortcut.id !== 'show-help') return false;
   if (shortcut.alt && !altPressed) return false;
   if (shortcut.shift && !shiftPressed) return false;
+  // An explicit `shift: false` excludes shifted variants even when the key
+  // itself is unshifted (e.g. caps-locked Ctrl+Shift+Z must not match undo).
+  if (shortcut.shift === false && shiftPressed) return false;
 
   // Check key
   return shortcut.keys.includes(event.key);
@@ -66,6 +69,8 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
     onFocusChange,
     onToggleExpand,
     onCopy,
+    onUndo,
+    onRedo,
     searchInputRef,
     exportButtonRef,
     bookmarksButtonRef,
@@ -281,6 +286,20 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
   }, [bookmarksButtonRef]);
 
   /**
+   * Undo the last edit
+   */
+  const undo = useCallback(() => {
+    onUndo?.();
+  }, [onUndo]);
+
+  /**
+   * Redo the last undone edit
+   */
+  const redo = useCallback(() => {
+    onRedo?.();
+  }, [onRedo]);
+
+  /**
    * Show help panel
    */
   const toggleHelp = useCallback(() => {
@@ -288,7 +307,9 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
   }, []);
 
   /**
-   * Keyboard handler map
+   * Keyboard handler map. Undo/redo entries are only registered when their
+   * callbacks are wired so the shortcuts are not claimed (no preventDefault,
+   * no stopPropagation) and the browser default behavior is preserved.
    */
   const handlers: KeyboardHandlerMap = useMemo(
     () => ({
@@ -304,6 +325,8 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
       'clear-search': clearFocus,
       'open-export': openExport,
       'toggle-bookmarks': toggleBookmarks,
+      ...(onUndo ? { undo } : {}),
+      ...(onRedo ? { redo, 'redo-alt': redo } : {}),
       'show-help': toggleHelp,
       'show-help-alt': toggleHelp,
     }),
@@ -318,6 +341,10 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
       clearFocus,
       openExport,
       toggleBookmarks,
+      onUndo,
+      undo,
+      onRedo,
+      redo,
       toggleHelp,
     ],
   );

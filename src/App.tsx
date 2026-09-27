@@ -1,12 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import JsonViewer from './components/json-viewer';
 import DiffViewer from './components/json-viewer/diff-viewer';
+import { type BookmarkEntry, BookmarkManager } from './components/json-viewer/features/bookmarks';
+import { useEditHistory } from './components/json-viewer/features/editor';
 import { ThemeProvider } from './components/json-viewer/features/theme';
+import {
+  pathArrayToJsonPath,
+  pathArrayToJsonPointer,
+} from './components/json-viewer/utils/jsonpath';
 
 const dataUrls = {
   githubRepos: 'https://api.github.com/users/umstek/repos',
 };
+
+/**
+ * crypto.randomUUID throws (or is absent) on insecure origins, so fall
+ * back to a random id for bookmark entries served over plain HTTP.
+ */
+function createId(): string {
+  return crypto.randomUUID?.() ?? `bm-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
 
 // Comprehensive sample data demonstrating all library capabilities
 const sampleData = {
@@ -265,13 +279,92 @@ const afterData = {
 };
 
 type DataSource = 'sample' | 'real';
+type View = 'viewer' | 'playground' | 'diff';
+
+const views: { id: View; label: string }[] = [
+  { id: 'viewer', label: 'JSON Viewer' },
+  { id: 'playground', label: 'Editor Playground' },
+  { id: 'diff', label: 'Diff Viewer' },
+];
+
+/**
+ * Editable playground wired to useEditHistory, the node context menu,
+ * and the bookmark manager. Uses its own clone of the sample data so
+ * it stays independent of the viewer tab's data source.
+ */
+function EditorPlayground() {
+  const history = useEditHistory(useMemo(() => structuredClone(sampleData), []));
+  const [bookmarks, setBookmarks] = useState<BookmarkEntry[]>([]);
+  const [focusedPath, setFocusedPath] = useState<string[] | null>(null);
+
+  const toggleBookmark = (path: string[]) => {
+    const jsonPointer = pathArrayToJsonPointer(path);
+    if (bookmarks.some((bookmark) => bookmark.jsonPointer === jsonPointer)) {
+      setBookmarks(bookmarks.filter((bookmark) => bookmark.jsonPointer !== jsonPointer));
+      return;
+    }
+    const jsonPath = pathArrayToJsonPath(path);
+    setBookmarks([
+      ...bookmarks,
+      {
+        id: createId(),
+        name: `Bookmark at ${jsonPath}`,
+        path,
+        jsonPath,
+        jsonPointer,
+        createdAt: Date.now(),
+      },
+    ]);
+  };
+
+  const addBookmark = (bookmark: Omit<BookmarkEntry, 'id' | 'createdAt'>) => {
+    setBookmarks([
+      ...bookmarks.filter((existing) => existing.jsonPointer !== bookmark.jsonPointer),
+      { ...bookmark, id: createId(), createdAt: Date.now() },
+    ]);
+  };
+
+  const removeBookmark = (id: string) => {
+    setBookmarks(bookmarks.filter((bookmark) => bookmark.id !== id));
+  };
+
+  return (
+    <>
+      <div className="mb-4">
+        <p className="text-muted-foreground text-sm">
+          Edit values with the pencil icon, press Ctrl+Z / Ctrl+Shift+Z to undo and redo, and
+          right-click nodes to copy paths or values, bookmark them, or export a subtree.
+        </p>
+      </div>
+      <JsonViewer
+        json={JSON.stringify(history.data, null, 2)}
+        editable
+        onChange={history.setValue}
+        editHistory={history}
+        contextMenu={{ onBookmark: toggleBookmark }}
+        bookmarkedPaths={new Set(bookmarks.map((bookmark) => bookmark.jsonPointer))}
+        focusedPath={focusedPath}
+        showThemeToggle={true}
+        codeOptions={{ enabled: true }}
+      />
+      <div className="mt-4">
+        <BookmarkManager
+          bookmarks={bookmarks}
+          onAddBookmark={addBookmark}
+          onRemoveBookmark={removeBookmark}
+          onNavigateToBookmark={(path) => setFocusedPath(path)}
+        />
+      </div>
+    </>
+  );
+}
 
 function App() {
   const [json, setJson] = useState(JSON.stringify(sampleData, null, 2));
   const [dataSource, setDataSource] = useState<DataSource>('sample');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<'viewer' | 'diff'>('viewer');
+  const [activeView, setActiveView] = useState<View>('viewer');
 
   useEffect(() => {
     if (dataSource === 'real') {
@@ -304,28 +397,20 @@ function App() {
           <h1 className="mb-6 text-3xl font-bold">JSON Viewer Demo</h1>
 
           <div className="mb-4 flex gap-4">
-            <button
-              type="button"
-              onClick={() => setActiveView('viewer')}
-              className={`rounded px-4 py-2 ${
-                activeView === 'viewer'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-              }`}
-            >
-              JSON Viewer
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveView('diff')}
-              className={`rounded px-4 py-2 ${
-                activeView === 'diff'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-              }`}
-            >
-              Diff Viewer
-            </button>
+            {views.map((view) => (
+              <button
+                key={view.id}
+                type="button"
+                onClick={() => setActiveView(view.id)}
+                className={`rounded px-4 py-2 ${
+                  activeView === view.id
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                }`}
+              >
+                {view.label}
+              </button>
+            ))}
           </div>
 
           {activeView === 'viewer' && (
@@ -353,6 +438,8 @@ function App() {
               />
             </>
           )}
+
+          {activeView === 'playground' && <EditorPlayground />}
 
           {activeView === 'diff' && (
             <>

@@ -168,4 +168,72 @@ describe('Demo App', () => {
       expect(screen.getByRole('button', { name: 'Load GitHub Repos' })).not.toBeNull();
     });
   });
+
+  describe('Editor Playground', () => {
+    /**
+     * Clicks the nth chevron trigger to expand a tree level.
+     */
+    function clickChevron(index: number) {
+      const chevrons = document.querySelectorAll('svg.lucide-chevron-right');
+      fireEvent.click((chevrons[index] as SVGSVGElement).parentElement as HTMLElement);
+    }
+
+    /**
+     * The BookmarkManager trigger button (icon-only, so located via its icon).
+     */
+    function getBookmarkTrigger() {
+      return document.querySelector('.lucide-bookmark')?.closest('button') ?? null;
+    }
+
+    function openPlayground() {
+      fireEvent.click(screen.getByRole('button', { name: 'Editor Playground' }));
+    }
+
+    test('renders undo/redo controls, bookmark trigger, and the viewer', () => {
+      render(<App />);
+
+      openPlayground();
+
+      expect(screen.getByRole('button', { name: 'Undo' }).hasAttribute('disabled')).toBe(true);
+      expect(screen.getByRole('button', { name: 'Redo' }).hasAttribute('disabled')).toBe(true);
+      expect(getBookmarkTrigger()).not.toBeNull();
+      expect(document.querySelector('svg.lucide-chevron-right')).not.toBeNull();
+    });
+
+    test('edits a value and reverts it with the undo button', () => {
+      render(<App />);
+
+      openPlayground();
+
+      clickChevron(0); // root object
+      clickChevron(1); // company object
+
+      fireEvent.click(screen.getAllByRole('button', { name: 'Edit value' })[0]);
+      const input = screen.getByDisplayValue('TechCorp International');
+      fireEvent.change(input, { target: { value: 'Renamed Corp' } });
+      fireEvent.keyDown(input, { key: 'Enter' });
+
+      expect(screen.getByText('Renamed Corp')).not.toBeNull();
+      expect(screen.getByRole('button', { name: 'Undo' }).hasAttribute('disabled')).toBe(false);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+
+      expect(screen.getByText('TechCorp International')).not.toBeNull();
+      expect(screen.queryByText('Renamed Corp')).toBeNull();
+    });
+
+    test('bookmarks a node from the context menu and shows the star', async () => {
+      render(<App />);
+
+      openPlayground();
+
+      clickChevron(0); // root object
+      clickChevron(1); // company object
+
+      fireEvent.contextMenu(screen.getByText('TechCorp International'));
+      fireEvent.click(await screen.findByRole('menuitem', { name: 'Bookmark this node' }));
+
+      expect(document.querySelector('svg.lucide-star.fill-yellow-400')).not.toBeNull();
+    });
+  });
 });

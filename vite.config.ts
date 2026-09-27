@@ -3,7 +3,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import dts from 'vite-plugin-dts';
-import { defineConfig, lazyPlugins } from 'vite-plus';
+import { configDefaults, defineConfig, lazyPlugins } from 'vite-plus';
 
 const libraryName = 'json_viewer';
 
@@ -14,6 +14,7 @@ const externalDeps = [
   '@js-temporal/polyfill',
   '@radix-ui/react-checkbox',
   '@radix-ui/react-collapsible',
+  '@radix-ui/react-context-menu',
   '@radix-ui/react-dialog',
   '@radix-ui/react-label',
   '@radix-ui/react-popover',
@@ -91,6 +92,10 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    // Extend vitest's defaults (configDefaults from 'vite-plus/test' is not
+    // available at runtime; the root package re-exports it) instead of
+    // replacing them.
+    exclude: [...configDefaults.exclude, '**/dist/**', '**/.delta/**'],
     server: {
       deps: {
         inline: ['zod'],

@@ -4,11 +4,12 @@
  */
 
 import { Pencil } from 'lucide-react';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { SchemaNode } from '../../schema/types';
 import { BooleanEditor, NullEditor, NumberEditor, StringEditor } from './inline-editors';
+import { useEditHistory } from './use-edit-history';
 
 export interface ValueEditorProps {
   value: unknown;
@@ -58,8 +59,9 @@ export function ValueEditor({
 
   if (isEditing) {
     // Render appropriate editor based on type
+    let editor: ReactNode;
     if (typeof value === 'string') {
-      return (
+      editor = (
         <StringEditor
           value={value}
           schema={schema}
@@ -68,9 +70,8 @@ export function ValueEditor({
           readOnly={readOnly}
         />
       );
-    }
-    if (typeof value === 'number') {
-      return (
+    } else if (typeof value === 'number') {
+      editor = (
         <NumberEditor
           value={value}
           schema={schema}
@@ -79,9 +80,8 @@ export function ValueEditor({
           readOnly={readOnly}
         />
       );
-    }
-    if (typeof value === 'boolean') {
-      return (
+    } else if (typeof value === 'boolean') {
+      editor = (
         <BooleanEditor
           value={value}
           schema={schema}
@@ -90,9 +90,8 @@ export function ValueEditor({
           readOnly={readOnly}
         />
       );
-    }
-    if (value === null) {
-      return (
+    } else {
+      editor = (
         <NullEditor
           value={null}
           schema={schema}
@@ -102,6 +101,10 @@ export function ValueEditor({
         />
       );
     }
+
+    // Right-clicks inside an open editor should keep the native browser
+    // menu, so stop the event before it reaches the node context menu trigger.
+    return <span onContextMenu={(e) => e.stopPropagation()}>{editor}</span>;
   }
 
   // Show edit button when not editing
@@ -113,6 +116,7 @@ export function ValueEditor({
             variant="ghost"
             size="sm"
             onClick={() => setIsEditing(true)}
+            aria-label="Edit value"
             className="h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
           >
             <Pencil className="h-3 w-3" />
@@ -130,81 +134,14 @@ export function ValueEditor({
  * Hook to manage JSON data editing state
  */
 export function useJsonEditor(initialData: unknown) {
-  const [data, setData] = useState(initialData);
-  const [history, setHistory] = useState<unknown[]>([initialData]);
-  const [historyIndex, setHistoryIndex] = useState(0);
-
-  const handleChange = (path: string[], newValue: unknown) => {
-    const newData = updateValueAtPath(data, path, newValue);
-    setData(newData);
-
-    // Add to history
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(newData);
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-  };
-
-  const undo = () => {
-    if (historyIndex > 0) {
-      setHistoryIndex(historyIndex - 1);
-      setData(history[historyIndex - 1]);
-    }
-  };
-
-  const redo = () => {
-    if (historyIndex < history.length - 1) {
-      setHistoryIndex(historyIndex + 1);
-      setData(history[historyIndex + 1]);
-    }
-  };
-
-  const canUndo = historyIndex > 0;
-  const canRedo = historyIndex < history.length - 1;
+  const { data, setValue, undo, redo, canUndo, canRedo } = useEditHistory(initialData);
 
   return {
     data,
-    handleChange,
+    handleChange: setValue,
     undo,
     redo,
     canUndo,
     canRedo,
   };
-}
-
-/**
- * Updates a value at a specific path in a nested object/array
- */
-function updateValueAtPath(data: unknown, path: string[], newValue: unknown): unknown {
-  if (path.length === 0) {
-    return newValue;
-  }
-
-  if (Array.isArray(data)) {
-    const index = Number.parseInt(path[0], 10);
-    const newArray = [...data];
-    if (path.length === 1) {
-      newArray[index] = newValue;
-    } else {
-      newArray[index] = updateValueAtPath(data[index], path.slice(1), newValue);
-    }
-    return newArray;
-  }
-
-  if (typeof data === 'object' && data !== null) {
-    const key = path[0];
-    const newObject = { ...data } as Record<string, unknown>;
-    if (path.length === 1) {
-      newObject[key] = newValue;
-    } else {
-      newObject[key] = updateValueAtPath(
-        (data as Record<string, unknown>)[key],
-        path.slice(1),
-        newValue,
-      );
-    }
-    return newObject;
-  }
-
-  return data;
 }
