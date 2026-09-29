@@ -77,7 +77,9 @@ export default defineConfig({
       entry: 'src/index.ts',
       name: libraryName,
       formats: ['es', 'cjs'],
-      fileName: (format) => `index.${format}.js`,
+      // The CJS bundle must carry the .cjs extension: package.json sets
+      // "type": "module", so a ".cjs.js" file would be parsed as ESM.
+      fileName: (format) => (format === 'es' ? 'index.es.js' : 'index.cjs'),
     },
     rollupOptions: {
       external: externalDeps,
