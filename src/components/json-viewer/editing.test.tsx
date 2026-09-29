@@ -147,7 +147,7 @@ describe('JsonViewer focusedPath forwarding', () => {
     expect(focused?.getAttribute('data-path')).toBe('name');
   });
 
-  test('explicit focusedPath takes precedence over keyboard-driven focus', () => {
+  test('explicit focusedPath wins until the user navigates with the keyboard', () => {
     const { container } = render(
       <JsonViewer json={JSON.stringify({ company: 'Acme', other: 1 })} focusedPath={['company']} />,
     );
@@ -158,14 +158,22 @@ describe('JsonViewer focusedPath forwarding', () => {
       'company',
     );
 
-    // Move keyboard focus to another node; the explicit prop still wins
+    // Once the user starts navigating, keyboard focus takes over the ring;
+    // previously the prop shadowed it forever, freezing the ring in place.
     fireEvent.keyDown(container.firstChild as Element, { key: 'ArrowDown' });
     fireEvent.keyDown(container.firstChild as Element, { key: 'ArrowDown' });
 
     expect(document.querySelector('[data-focused="true"]')?.getAttribute('data-path')).toBe(
-      'company',
+      'other',
     );
     expect(document.querySelectorAll('[data-focused="true"]').length).toBe(1);
+
+    // Escape clears keyboard focus, so the explicit prop takes over again.
+    fireEvent.keyDown(container.firstChild as Element, { key: 'Escape' });
+
+    expect(document.querySelector('[data-focused="true"]')?.getAttribute('data-path')).toBe(
+      'company',
+    );
   });
 });
 

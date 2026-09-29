@@ -118,6 +118,10 @@ function JsonViewerContent({
 
   const { searchState, handleSearch, navigateResults, navigateToPath } = useSearch(data);
 
+  // Keyboard-driven focus from the most recent interaction; takes precedence
+  // over the focusedPath prop once the user starts navigating with arrows.
+  const [keyboardFocus, setKeyboardFocus] = useState<string[] | null>(null);
+
   const [filterOptions, setFilterOptions] = useState<FilterOptions>(defaultFilterOptions);
   const [excludeKeyInput, setExcludeKeyInput] = useState('');
   const [sortOptions, setSortOptions] = useState<SortOptions>(defaultSortOptions);
@@ -127,11 +131,10 @@ function JsonViewerContent({
   const keyboard = useKeyboardNavigation(data, {
     enabled: keyboardShortcuts,
     customShortcuts,
-    onFocusChange: (path) => {
-      if (path) {
-        navigateToPath(path);
-      }
-    },
+    // Keyboard focus must not flow through the search pipeline: routing it
+    // through navigateToPath would replace the user's query and results on
+    // every arrow press. The focus ring is rendered from focusedPath below.
+    onFocusChange: setKeyboardFocus,
     onToggleExpand: (path, direction) => {
       if (direction === 'toggle') {
         expansion.toggleExpanded(path);
@@ -294,7 +297,7 @@ function JsonViewerContent({
         filterOptions={filterOptions}
         searchQuery={searchState.queryType === 'text' ? searchState.query : ''}
         sortOptions={sortOptions}
-        focusedPath={focusedPath ?? keyboard.focusState.focusedPath}
+        focusedPath={keyboardFocus ?? focusedPath ?? keyboard.focusState.focusedPath}
         editable={editable}
         onChange={onChange}
         readOnly={readOnly}

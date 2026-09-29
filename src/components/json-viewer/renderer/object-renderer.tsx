@@ -60,6 +60,7 @@ export function ObjectRenderer({ value, router, path, options }: ObjectRendererP
   const expansionContext = useOptionalExpansion();
   const pathKey = pathArrayToInternalKey(path);
   const highlightedPath = options.highlightedPath;
+  const focusedPath = options.focusedPath;
 
   // Use context-based expansion if available, otherwise use local state
   const [localIsOpen, setLocalIsOpen] = useState(false);
@@ -121,12 +122,18 @@ export function ObjectRenderer({ value, router, path, options }: ObjectRendererP
     };
   }, [value, options.filterOptions, options.sortOptions]);
 
-  // Auto-expand if this path is part of the highlighted path
+  // Auto-expand if this path is part of the highlighted or focused path so
+  // search results and keyboard/bookmark focus reveal their target node.
+  // The root (empty path) is an ancestor of every path but isPathAncestor
+  // rejects empty ancestors, so it is handled explicitly.
   useEffect(() => {
-    if (highlightedPath?.length && !isOpen && isPathAncestor(path, highlightedPath)) {
+    const revealPath = focusedPath?.length ? focusedPath : highlightedPath;
+    const revealsThis =
+      revealPath?.length && (path.length === 0 || isPathAncestor(path, revealPath));
+    if (revealsThis && !isOpen) {
       setIsOpen(true);
     }
-  }, [highlightedPath, isOpen, path, setIsOpen]);
+  }, [highlightedPath, focusedPath, isOpen, path, setIsOpen]);
 
   const virtualizer = useVirtualizer({
     count: filteredEntries.length,
@@ -235,6 +242,7 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
   const expansionContext = useOptionalExpansion();
   const pathKey = pathArrayToInternalKey(path);
   const highlightedPath = options.highlightedPath;
+  const focusedPath = options.focusedPath;
   const parentRef = useRef<HTMLDivElement>(null);
 
   // Use context-based expansion if available, otherwise use local state
@@ -293,12 +301,18 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
     };
   }, [value, options.filterOptions, options.sortOptions]);
 
-  // Auto-expand if this path is part of the highlighted path
+  // Auto-expand if this path is part of the highlighted or focused path so
+  // search results and keyboard/bookmark focus reveal their target node.
+  // The root (empty path) is an ancestor of every path but isPathAncestor
+  // rejects empty ancestors, so it is handled explicitly.
   useEffect(() => {
-    if (highlightedPath?.length && !isOpen && isPathAncestor(path, highlightedPath)) {
+    const revealPath = focusedPath?.length ? focusedPath : highlightedPath;
+    const revealsThis =
+      revealPath?.length && (path.length === 0 || isPathAncestor(path, revealPath));
+    if (revealsThis && !isOpen) {
       setIsOpen(true);
     }
-  }, [highlightedPath, isOpen, path, setIsOpen]);
+  }, [highlightedPath, focusedPath, isOpen, path, setIsOpen]);
 
   const virtualizer = useVirtualizer({
     count: filteredItems.length,

@@ -151,64 +151,40 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
    * Navigate up (previous node)
    */
   const navigateUp = useCallback(() => {
-    setFocusState((prev) => {
-      const newIndex = Math.max(0, prev.focusedIndex - 1);
-      const newPath = prev.navigablePaths[newIndex] || null;
-      onFocusChange?.(newPath);
-      return {
-        ...prev,
-        focusedIndex: newIndex,
-        focusedPath: newPath,
-      };
-    });
-  }, [onFocusChange]);
+    const newIndex = Math.max(0, focusState.focusedIndex - 1);
+    const newPath = focusState.navigablePaths[newIndex] ?? null;
+    setFocusState((prev) => ({ ...prev, focusedIndex: newIndex, focusedPath: newPath }));
+    onFocusChange?.(newPath);
+  }, [focusState.focusedIndex, focusState.navigablePaths, onFocusChange]);
 
   /**
    * Navigate down (next node)
    */
   const navigateDown = useCallback(() => {
-    setFocusState((prev) => {
-      const newIndex = Math.min(prev.totalNodes - 1, prev.focusedIndex + 1);
-      const newPath = prev.navigablePaths[newIndex] || null;
-      onFocusChange?.(newPath);
-      return {
-        ...prev,
-        focusedIndex: newIndex,
-        focusedPath: newPath,
-      };
-    });
-  }, [onFocusChange]);
+    const newIndex = Math.min(focusState.totalNodes - 1, focusState.focusedIndex + 1);
+    const newPath = focusState.navigablePaths[newIndex] ?? null;
+    setFocusState((prev) => ({ ...prev, focusedIndex: newIndex, focusedPath: newPath }));
+    onFocusChange?.(newPath);
+  }, [focusState.focusedIndex, focusState.navigablePaths, focusState.totalNodes, onFocusChange]);
 
   /**
    * Jump to first node
    */
   const jumpToFirst = useCallback(() => {
-    setFocusState((prev) => {
-      const newPath = prev.navigablePaths[0] || null;
-      onFocusChange?.(newPath);
-      return {
-        ...prev,
-        focusedIndex: 0,
-        focusedPath: newPath,
-      };
-    });
-  }, [onFocusChange]);
+    const newPath = focusState.navigablePaths[0] ?? null;
+    setFocusState((prev) => ({ ...prev, focusedIndex: 0, focusedPath: newPath }));
+    onFocusChange?.(newPath);
+  }, [focusState.navigablePaths, onFocusChange]);
 
   /**
    * Jump to last node
    */
   const jumpToLast = useCallback(() => {
-    setFocusState((prev) => {
-      const newIndex = prev.totalNodes - 1;
-      const newPath = prev.navigablePaths[newIndex] || null;
-      onFocusChange?.(newPath);
-      return {
-        ...prev,
-        focusedIndex: newIndex,
-        focusedPath: newPath,
-      };
-    });
-  }, [onFocusChange]);
+    const newIndex = focusState.totalNodes - 1;
+    const newPath = focusState.navigablePaths[newIndex] ?? null;
+    setFocusState((prev) => ({ ...prev, focusedIndex: newIndex, focusedPath: newPath }));
+    onFocusChange?.(newPath);
+  }, [focusState.navigablePaths, focusState.totalNodes, onFocusChange]);
 
   /**
    * Get value at a specific path
