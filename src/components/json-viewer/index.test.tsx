@@ -111,6 +111,24 @@ describe('JsonViewer integration', () => {
     expect(markup).toContain('No validation errors');
   });
 
+  test('schema validation indicators are not masked by the link renderer', () => {
+    // A URL-looking string that violates the schema must show its error
+    // indicator; previously the built-in link renderer claimed it first.
+    const json = { website: 'https://example.com/very/long/path' };
+    const schema = {
+      type: 'object' as const,
+      properties: {
+        website: { type: 'string' as const, maxLength: 10 },
+      },
+    };
+
+    const markup = renderToStaticMarkup(
+      <JsonViewer json={JSON.stringify(json)} jsonSchema={schema} keyboardShortcuts={false} />,
+    );
+
+    expect(markup).toContain('Validation Error');
+  });
+
   test('shows search bar when rendered', () => {
     const markup = renderToStaticMarkup(
       <JsonViewer json={JSON.stringify({ foo: 'bar' })} keyboardShortcuts={false} />,

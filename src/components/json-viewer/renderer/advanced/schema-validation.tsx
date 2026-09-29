@@ -49,6 +49,10 @@ export function createSchemaValidationRenderer(options: SchemaValidationRenderer
     // Don't render if no errors to show
     if (!showErrors || validationErrors.length === 0) return null;
 
+    // Root-level errors (path []) would replace the entire tree with an
+    // error box; those stay in the ValidationErrorPanel above the viewer.
+    if (path.length === 0) return null;
+
     // Find errors for this path
     const pathErrors = findErrorsForPath(path, validationErrors);
 

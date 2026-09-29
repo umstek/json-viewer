@@ -154,11 +154,10 @@ function JsonViewerContent({
     exportButtonRef,
   });
 
-  const builtInRenderers: Renderer[] = [
-    createCodeRenderer(codeOptions),
-    createDateRenderer(dateOptions),
-    createLinkRenderer(),
-  ];
+  // Validation renderers run before the cosmetic built-ins so an invalid
+  // value that happens to look like a link, date, or code block still shows
+  // its error indicator instead of being silently claimed first.
+  const builtInRenderers: Renderer[] = [];
 
   if (jsonSchema && schemaValidation && !schemaValidation.valid) {
     builtInRenderers.push(
@@ -168,6 +167,12 @@ function JsonViewerContent({
       }),
     );
   }
+
+  builtInRenderers.push(
+    createCodeRenderer(codeOptions),
+    createDateRenderer(dateOptions),
+    createLinkRenderer(),
+  );
 
   if (enableValidation) {
     builtInRenderers.push(createActionableRenderer());
