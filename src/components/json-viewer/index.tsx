@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { BreadcrumbNav } from './features/breadcrumbs';
 import { type EditHistoryController, UndoRedoControls } from './features/editor';
@@ -72,10 +72,11 @@ const defaultFilterOptions: FilterOptions = {
   excludedKeys: [],
 };
 
-// Mirrors the platform formatting used in the shortcuts help dialog.
+// Mirrors the platform formatting used in the shortcuts help dialog. Only
+// trusted after mount — see the help label state in JsonViewerContent — so
+// server-rendered and client first renders stay identical.
 const isMacPlatform =
   typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
-const HELP_BUTTON_LABEL = isMacPlatform ? '⌘K' : 'Ctrl+K';
 
 /**
  * A component that renders a JSON value as a tree of JSX elements.
@@ -111,6 +112,15 @@ function JsonViewerContent({
 }: JsonViewerProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Stable "Ctrl+K" on first render (the server cannot know the platform);
+  // switched to the Mac glyph after mount so hydration never mismatches.
+  const [helpButtonLabel, setHelpButtonLabel] = useState('Ctrl+K');
+  useEffect(() => {
+    if (isMacPlatform) {
+      setHelpButtonLabel('⌘K');
+    }
+  }, []);
 
   const { data, error } = useParsedJson(json);
 
@@ -244,7 +254,7 @@ function JsonViewerContent({
             className="focus-visible:ring-ring hover:bg-accent hover:text-accent-foreground border-input bg-background inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md border text-sm font-medium whitespace-nowrap shadow-xs transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
             aria-label="Keyboard shortcuts"
           >
-            <span className="text-xs font-bold">{HELP_BUTTON_LABEL}</span>
+            <span className="text-xs font-bold">{helpButtonLabel}</span>
           </button>
         )}
         <Popover>
