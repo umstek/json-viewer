@@ -58,7 +58,7 @@ export interface JsonViewerProps {
   contextMenu?: ContextMenuOptions;
   /** Keys are RFC 6901 JSON Pointer strings (via `pathArrayToJsonPointer`). */
   bookmarkedPaths?: Set<string>;
-  /** Explicitly focused node; takes precedence over keyboard-driven focus. */
+  /** Explicitly focused node; wins until the user navigates with the keyboard. */
   focusedPath?: string[] | null;
 }
 
