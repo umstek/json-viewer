@@ -226,7 +226,7 @@ export function ObjectRenderer({ value, router, path, options }: ObjectRendererP
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="group flex items-center gap-1">
-        <CollapsibleTrigger>
+        <CollapsibleTrigger aria-label={isOpen ? 'Collapse object' : 'Expand object'}>
           <ChevronRight className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
         </CollapsibleTrigger>
         <span className="text-muted-foreground">{isOpen ? '{' : inlinePreview}</span>
@@ -407,7 +407,7 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="group flex items-center gap-1">
-        <CollapsibleTrigger>
+        <CollapsibleTrigger aria-label={isOpen ? 'Collapse array' : 'Expand array'}>
           <ChevronRight className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
         </CollapsibleTrigger>
         <span className="text-muted-foreground">{isOpen ? '[' : inlinePreview}</span>
