@@ -20,7 +20,6 @@ const externalDeps = [
   '@radix-ui/react-popover',
   '@radix-ui/react-slot',
   '@radix-ui/react-tooltip',
-  '@tanstack/react-table',
   '@tanstack/react-virtual',
   'ajv',
   'ajv-formats',
