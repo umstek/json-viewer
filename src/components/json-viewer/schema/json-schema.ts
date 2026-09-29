@@ -10,6 +10,7 @@
 
 import Ajv, { type ErrorObject, type ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
+import { jsonPointerToPathArray } from '../utils/jsonpath';
 import { stringifyUnknown } from '../utils/value-format';
 import type {
   ArraySchemaNode,
@@ -230,11 +231,10 @@ export function validateWithJSONSchema(
  * Converts an ajv ErrorObject to our ValidationError format
  */
 function ajvErrorToValidationError(error: ErrorObject): ValidationError {
-  // Convert JSONPath to array (e.g., "/users/0/name" to ["users", "0", "name"])
-  const path = error.instancePath
-    .split('/')
-    .filter((segment) => segment !== '')
-    .map((segment) => decodeURIComponent(segment));
+  // ajv escapes instancePath with RFC 6901 JSON Pointer rules (~0/~1), not
+  // percent-encoding; decodeURIComponent both mis-decodes ~-escaped keys and
+  // throws URIError for keys containing a bare '%'.
+  const path = jsonPointerToPathArray(error.instancePath);
 
   // Build error message
   let message = error.message || 'Validation failed';

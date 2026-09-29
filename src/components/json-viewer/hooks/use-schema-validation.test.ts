@@ -36,4 +36,27 @@ describe('useSchemaValidation', () => {
     const { result } = renderHook(() => useSchemaValidation(null, schema));
     expect(result.current).toBeNull();
   });
+
+  it('should not throw for error paths containing keys with special characters', () => {
+    // ajv escapes instancePath with RFC 6901 (~0/~1). Keys with '%' used to
+    // hit decodeURIComponent and crash the whole viewer with a URIError.
+    const specialKeysSchema: JSONSchemaObject = {
+      type: 'object',
+      properties: {
+        'discount%': { type: 'number' },
+        'a/b': { type: 'number' },
+        't~x': { type: 'number' },
+      },
+      additionalProperties: false,
+    };
+
+    const { result } = renderHook(() =>
+      useSchemaValidation({ 'discount%': 'not a number' }, specialKeysSchema),
+    );
+
+    expect(result.current).not.toBeNull();
+    expect(result.current?.valid).toBe(false);
+    // The error path must decode to the actual offending key.
+    expect(result.current?.errors[0]?.path).toContain('discount%');
+  });
 });
