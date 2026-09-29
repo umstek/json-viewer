@@ -218,4 +218,30 @@ describe('JsonViewer with useEditHistory integration', () => {
     expect(screen.getByText('Alice')).not.toBeNull();
     expect(screen.queryByText('Bob')).toBeNull();
   });
+
+  test('cancels an open editing session when undo changes the value underneath', () => {
+    render(<EditableJsonViewer initialData={{ name: 'Alice' }} />);
+
+    expandRootObject();
+
+    // Save an edit first so the undo control becomes available.
+    fireEvent.click(screen.getByRole('button', { name: 'Edit value' }));
+    const input = screen.getByDisplayValue('Alice');
+    fireEvent.change(input, { target: { value: 'Bob' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(screen.getByText('Bob')).not.toBeNull();
+
+    // Reopen the editor, then undo while the editor is still open.
+    fireEvent.click(screen.getByRole('button', { name: 'Edit value' }));
+    expect(screen.getByDisplayValue('Bob')).not.toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+
+    // The stale editor must be gone instead of saving 'Bob' over the undo.
+    expect(screen.queryByDisplayValue('Bob')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Edit value' })).not.toBeNull();
+    expect(screen.getByText('Alice')).not.toBeNull();
+    expect(screen.queryByText('Bob')).toBeNull();
+  });
 });
