@@ -72,6 +72,11 @@ const defaultFilterOptions: FilterOptions = {
   excludedKeys: [],
 };
 
+// Mirrors the platform formatting used in the shortcuts help dialog.
+const isMacPlatform =
+  typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
+const HELP_BUTTON_LABEL = isMacPlatform ? '⌘K' : 'Ctrl+K';
+
 /**
  * A component that renders a JSON value as a tree of JSX elements.
  *
@@ -127,8 +132,15 @@ function JsonViewerContent({
         navigateToPath(path);
       }
     },
-    onToggleExpand: (path) => {
-      expansion.toggleExpanded(path);
+    onToggleExpand: (path, direction) => {
+      if (direction === 'toggle') {
+        expansion.toggleExpanded(path);
+      } else {
+        expansion.setExpanded(path, direction === 'expand');
+      }
+    },
+    onClearSearch: () => {
+      handleSearch('');
     },
     onCopy: () => {
       console.log('Value copied to clipboard');
@@ -224,7 +236,7 @@ function JsonViewerContent({
             className="focus-visible:ring-ring hover:bg-accent hover:text-accent-foreground border-input bg-background inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md border text-sm font-medium whitespace-nowrap shadow-xs transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
             aria-label="Keyboard shortcuts"
           >
-            <span className="text-xs font-bold">⌘K</span>
+            <span className="text-xs font-bold">{HELP_BUTTON_LABEL}</span>
           </button>
         )}
         <Popover>

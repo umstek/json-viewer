@@ -68,6 +68,7 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
     customShortcuts,
     onFocusChange,
     onToggleExpand,
+    onClearSearch,
     onCopy,
     onUndo,
     onRedo,
@@ -245,12 +246,16 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
   }, [focusState.focusedPath, getValueAtPath, onCopy]);
 
   /**
-   * Toggle expand/collapse on focused node
+   * Expand, collapse, or toggle the focused node. ArrowRight/ArrowLeft are
+   * directional per the help dialog; Enter toggles.
    */
-  const toggleExpand = useCallback(() => {
-    if (!focusState.focusedPath) return;
-    onToggleExpand?.(focusState.focusedPath);
-  }, [focusState.focusedPath, onToggleExpand]);
+  const setExpand = useCallback(
+    (direction: 'expand' | 'collapse' | 'toggle') => {
+      if (!focusState.focusedPath) return;
+      onToggleExpand?.(focusState.focusedPath, direction);
+    },
+    [focusState.focusedPath, onToggleExpand],
+  );
 
   /**
    * Clear focus and search
@@ -262,7 +267,8 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
       focusedIndex: -1,
     }));
     onFocusChange?.(null);
-  }, [onFocusChange]);
+    onClearSearch?.();
+  }, [onFocusChange, onClearSearch]);
 
   /**
    * Focus search input
@@ -315,9 +321,9 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
     () => ({
       'navigate-up': navigateUp,
       'navigate-down': navigateDown,
-      'expand-node': toggleExpand,
-      'collapse-node': toggleExpand,
-      'toggle-expand': toggleExpand,
+      'expand-node': () => setExpand('expand'),
+      'collapse-node': () => setExpand('collapse'),
+      'toggle-expand': () => setExpand('toggle'),
       'jump-to-first': jumpToFirst,
       'jump-to-last': jumpToLast,
       'copy-value': copyValue,
@@ -329,11 +335,12 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
       ...(onRedo ? { redo, 'redo-alt': redo } : {}),
       'show-help': toggleHelp,
       'show-help-alt': toggleHelp,
+      'show-help-mod': toggleHelp,
     }),
     [
       navigateUp,
       navigateDown,
-      toggleExpand,
+      setExpand,
       jumpToFirst,
       jumpToLast,
       copyValue,
@@ -364,6 +371,18 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
         }
       }
 
+      // Enter/Space on a focused native control must keep their default
+      // activation; claiming them here would also toggle the tree node,
+      // double-firing the action.
+      if (
+        (event.key === 'Enter' || event.key === ' ') &&
+        event.target instanceof HTMLElement &&
+        event.target !== event.currentTarget &&
+        event.target.closest('button, a[href], select, summary, [role="button"], [role="menuitem"]')
+      ) {
+        return;
+      }
+
       // Find matching shortcut
       for (const shortcut of shortcuts) {
         if (matchesShortcut(event, shortcut)) {
@@ -373,7 +392,7 @@ export function useKeyboardNavigation(data: unknown, options: KeyboardNavigation
             if (
               shortcut.ctrl ||
               shortcut.alt ||
-              ['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)
+              ['ArrowUp', 'ArrowDown', 'Home', 'End', 'Enter'].includes(event.key)
             ) {
               event.preventDefault();
             }

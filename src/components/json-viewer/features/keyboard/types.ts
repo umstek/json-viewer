@@ -75,7 +75,9 @@ export interface KeyboardNavigationOptions {
   /** Callback when focus changes */
   onFocusChange?: (path: string[] | null) => void;
   /** Callback when a node is expanded/collapsed via keyboard */
-  onToggleExpand?: (path: string[]) => void;
+  onToggleExpand?: (path: string[], direction: 'expand' | 'collapse' | 'toggle') => void;
+  /** Callback when the clear-search shortcut is triggered */
+  onClearSearch?: () => void;
   /** Callback when copy shortcut is triggered */
   onCopy?: (path: string[], value: unknown) => void;
   /** Callback when undo shortcut is triggered */
@@ -230,6 +232,14 @@ export const DEFAULT_SHORTCUTS: KeyboardShortcut[] = [
     name: 'Show Help (Alt)',
     description: 'Show keyboard shortcuts help (alternative)',
     keys: ['/'],
+    ctrl: true,
+    category: 'view',
+  },
+  {
+    id: 'show-help-mod',
+    name: 'Show Help (Ctrl+K)',
+    description: 'Show keyboard shortcuts help',
+    keys: ['k', 'K'],
     ctrl: true,
     category: 'view',
   },
