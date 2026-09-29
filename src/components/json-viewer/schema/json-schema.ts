@@ -148,14 +148,17 @@ export function __validatorCompileCountForTests(): number {
 /**
  * Creates a stable hash key from validation options
  * Only includes options that affect Ajv compilation
+ *
+ * Exported so the useSchemaValidation hook can derive its memo key from the
+ * same logic instead of keeping a duplicate in sync.
  */
-function hashOptions(options: JSONSchemaValidationOptions): string {
+export function hashOptions(options?: JSONSchemaValidationOptions): string {
   const relevant: Record<string, unknown> = {
-    strict: options.strict ?? false,
-    validateFormats: options.validateFormats ?? true,
-    coerceTypes: options.coerceTypes ?? false,
-    removeAdditional: options.removeAdditional ?? false,
-    useDefaults: options.useDefaults ?? false,
+    strict: options?.strict ?? false,
+    validateFormats: options?.validateFormats ?? true,
+    coerceTypes: options?.coerceTypes ?? false,
+    removeAdditional: options?.removeAdditional ?? false,
+    useDefaults: options?.useDefaults ?? false,
   };
   return JSON.stringify(relevant);
 }
