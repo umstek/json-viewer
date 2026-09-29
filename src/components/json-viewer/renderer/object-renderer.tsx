@@ -60,6 +60,7 @@ export function ObjectRenderer({ value, router, path, options }: ObjectRendererP
   const expansionContext = useOptionalExpansion();
   const pathKey = pathArrayToInternalKey(path);
   const highlightedPath = options.highlightedPath;
+  const focusedPath = options.focusedPath;
 
   // Use context-based expansion if available, otherwise use local state
   const [localIsOpen, setLocalIsOpen] = useState(false);
@@ -121,12 +122,31 @@ export function ObjectRenderer({ value, router, path, options }: ObjectRendererP
     };
   }, [value, options.filterOptions, options.sortOptions]);
 
-  // Auto-expand if this path is part of the highlighted path
+  // Auto-expand if this path is part of the highlighted or focused path so
+  // search results and keyboard/bookmark focus reveal their target node. Both
+  // targets are checked independently — a keyboard focus elsewhere must not
+  // hide a search hit inside this branch. The root (empty path) is an ancestor
+  // of every path but isPathAncestor rejects empty ancestors, so it is handled
+  // explicitly. Only a NEW reveal target may trigger expansion: a branch the
+  // user collapsed by hand stays collapsed until the target moves.
+  const lastRevealKeysRef = useRef('');
   useEffect(() => {
-    if (highlightedPath?.length && !isOpen && isPathAncestor(path, highlightedPath)) {
+    // setIsOpen changes identity whenever any node expands or collapses (it
+    // closes over the expansion context), so the effect re-runs constantly.
+    // Comparing the targets by content keeps those runs from re-opening a
+    // branch that was just collapsed manually.
+    const keys = `${JSON.stringify(focusedPath ?? null)}\u0001${JSON.stringify(highlightedPath ?? null)}`;
+    if (keys === lastRevealKeysRef.current) return;
+    lastRevealKeysRef.current = keys;
+
+    const reveals = (target: string[] | null | undefined) => {
+      if (!target || target.length === 0) return false;
+      return path.length === 0 || isPathAncestor(path, target);
+    };
+    if (reveals(focusedPath) || reveals(highlightedPath)) {
       setIsOpen(true);
     }
-  }, [highlightedPath, isOpen, path, setIsOpen]);
+  }, [focusedPath, highlightedPath, path, setIsOpen]);
 
   const virtualizer = useVirtualizer({
     count: filteredEntries.length,
@@ -135,7 +155,9 @@ export function ObjectRenderer({ value, router, path, options }: ObjectRendererP
     overscan: 5, // Number of items to render outside of the viewport
   });
 
-  if (filteredEntries.length === 0) {
+  // Hide the row only when every child was removed by filtering; a genuinely
+  // empty {} must stay visible ({...0 items}) or the value silently vanishes.
+  if (filteredEntries.length === 0 && Object.keys(value).length > 0) {
     return null;
   }
 
@@ -217,7 +239,7 @@ export function ObjectRenderer({ value, router, path, options }: ObjectRendererP
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="group flex items-center gap-1">
-        <CollapsibleTrigger>
+        <CollapsibleTrigger aria-label={isOpen ? 'Collapse object' : 'Expand object'}>
           <ChevronRight className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
         </CollapsibleTrigger>
         <span className="text-muted-foreground">{isOpen ? '{' : inlinePreview}</span>
@@ -235,6 +257,7 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
   const expansionContext = useOptionalExpansion();
   const pathKey = pathArrayToInternalKey(path);
   const highlightedPath = options.highlightedPath;
+  const focusedPath = options.focusedPath;
   const parentRef = useRef<HTMLDivElement>(null);
 
   // Use context-based expansion if available, otherwise use local state
@@ -293,12 +316,31 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
     };
   }, [value, options.filterOptions, options.sortOptions]);
 
-  // Auto-expand if this path is part of the highlighted path
+  // Auto-expand if this path is part of the highlighted or focused path so
+  // search results and keyboard/bookmark focus reveal their target node. Both
+  // targets are checked independently — a keyboard focus elsewhere must not
+  // hide a search hit inside this branch. The root (empty path) is an ancestor
+  // of every path but isPathAncestor rejects empty ancestors, so it is handled
+  // explicitly. Only a NEW reveal target may trigger expansion: a branch the
+  // user collapsed by hand stays collapsed until the target moves.
+  const lastRevealKeysRef = useRef('');
   useEffect(() => {
-    if (highlightedPath?.length && !isOpen && isPathAncestor(path, highlightedPath)) {
+    // setIsOpen changes identity whenever any node expands or collapses (it
+    // closes over the expansion context), so the effect re-runs constantly.
+    // Comparing the targets by content keeps those runs from re-opening a
+    // branch that was just collapsed manually.
+    const keys = `${JSON.stringify(focusedPath ?? null)}\u0001${JSON.stringify(highlightedPath ?? null)}`;
+    if (keys === lastRevealKeysRef.current) return;
+    lastRevealKeysRef.current = keys;
+
+    const reveals = (target: string[] | null | undefined) => {
+      if (!target || target.length === 0) return false;
+      return path.length === 0 || isPathAncestor(path, target);
+    };
+    if (reveals(focusedPath) || reveals(highlightedPath)) {
       setIsOpen(true);
     }
-  }, [highlightedPath, isOpen, path, setIsOpen]);
+  }, [focusedPath, highlightedPath, path, setIsOpen]);
 
   const virtualizer = useVirtualizer({
     count: filteredItems.length,
@@ -307,7 +349,9 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
     overscan: 5,
   });
 
-  if (filteredItems.length === 0) {
+  // Hide the row only when every child was removed by filtering; a genuinely
+  // empty [] must stay visible ([...0 items]) or the value silently vanishes.
+  if (filteredItems.length === 0 && value.length > 0) {
     return null;
   }
 
@@ -389,7 +433,7 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="group flex items-center gap-1">
-        <CollapsibleTrigger>
+        <CollapsibleTrigger aria-label={isOpen ? 'Collapse array' : 'Expand array'}>
           <ChevronRight className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
         </CollapsibleTrigger>
         <span className="text-muted-foreground">{isOpen ? '[' : inlinePreview}</span>

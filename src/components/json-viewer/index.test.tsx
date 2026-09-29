@@ -25,6 +25,22 @@ describe('JsonViewer integration', () => {
     ).not.toThrow();
   });
 
+  test('showThemeToggle works without an external ThemeProvider', () => {
+    window.localStorage.setItem('json-viewer-theme', 'light');
+    try {
+      const markup = renderToStaticMarkup(
+        <JsonViewer
+          json={JSON.stringify({ items: ['zebra', 'apple'] })}
+          keyboardShortcuts={false}
+          showThemeToggle
+        />,
+      );
+      expect(markup).toContain('Switch to dark mode');
+    } finally {
+      window.localStorage.removeItem('json-viewer-theme');
+    }
+  });
+
   test('renders nested objects with expansion collapsed by default', () => {
     const json = {
       user: {
@@ -93,6 +109,24 @@ describe('JsonViewer integration', () => {
     );
 
     expect(markup).toContain('No validation errors');
+  });
+
+  test('schema validation indicators are not masked by the link renderer', () => {
+    // A URL-looking string that violates the schema must show its error
+    // indicator; previously the built-in link renderer claimed it first.
+    const json = { website: 'https://example.com/very/long/path' };
+    const schema = {
+      type: 'object' as const,
+      properties: {
+        website: { type: 'string' as const, maxLength: 10 },
+      },
+    };
+
+    const markup = renderToStaticMarkup(
+      <JsonViewer json={JSON.stringify(json)} jsonSchema={schema} keyboardShortcuts={false} />,
+    );
+
+    expect(markup).toContain('Validation Error');
   });
 
   test('shows search bar when rendered', () => {
@@ -274,6 +308,14 @@ describe('DiffViewer integration', () => {
 
     expect(markup).toContain('=1');
     expect(markup).toContain('unchanged');
+  });
+
+  test('shows no differences message for identical objects', () => {
+    const obj = { name: 'John', age: 30 };
+
+    const markup = renderToStaticMarkup(<DiffViewer left={obj} right={obj} />);
+
+    expect(markup).toContain('No differences found');
   });
 
   test('handles arrays diff', () => {

@@ -31,6 +31,17 @@ const INLINE_PREVIEW_THRESHOLD = 3;
 const MAX_STRING_LENGTH = 50;
 
 /**
+ * Truncates a string to MAX_STRING_LENGTH code points, keeping surrogate
+ * pairs (emoji, CJK extensions) intact, so previews never embed unbounded
+ * string values in the DOM.
+ */
+function truncateString(value: string): string {
+  const chars = Array.from(value);
+  if (chars.length <= MAX_STRING_LENGTH) return value;
+  return `${chars.slice(0, MAX_STRING_LENGTH).join('')}...`;
+}
+
+/**
  * Default inline renderer for arrays
  * Shows [1, 2, 3] for small arrays or [5 items] for larger ones
  */
@@ -46,7 +57,7 @@ export function defaultArrayInlineRenderer(props: InlineRenderProps): ReactNode 
     const preview = value
       .slice(0, INLINE_PREVIEW_THRESHOLD)
       .map((item) => {
-        if (typeof item === 'string') return `"${item}"`;
+        if (typeof item === 'string') return `"${truncateString(item)}"`;
         if (typeof item === 'number') return String(item);
         if (typeof item === 'boolean') return String(item);
         if (item === null) return 'null';
@@ -81,7 +92,7 @@ export function defaultObjectInlineRenderer(props: InlineRenderProps): ReactNode
       .slice(0, INLINE_PREVIEW_THRESHOLD)
       .map(([key, val]) => {
         let valueStr = '';
-        if (typeof val === 'string') valueStr = `"${val}"`;
+        if (typeof val === 'string') valueStr = `"${truncateString(val)}"`;
         else if (typeof val === 'number') valueStr = String(val);
         else if (typeof val === 'boolean') valueStr = String(val);
         else if (val === null) valueStr = 'null';
@@ -107,11 +118,7 @@ export function defaultStringInlineRenderer(props: InlineRenderProps): ReactNode
 
   if (typeof value !== 'string') return null;
 
-  if (value.length > MAX_STRING_LENGTH) {
-    return `"${value.slice(0, MAX_STRING_LENGTH)}..."`;
-  }
-
-  return `"${value}"`;
+  return `"${truncateString(value)}"`;
 }
 
 /**
@@ -142,7 +149,7 @@ export function createInlineRouter(customRenderers: InlineRenderer[] = []) {
     }
 
     // Fallback: just return a simple string representation
-    if (typeof value === 'string') return `"${value}"`;
+    if (typeof value === 'string') return `"${truncateString(value)}"`;
     if (typeof value === 'number') return String(value);
     if (typeof value === 'boolean') return String(value);
     if (value === null) return 'null';

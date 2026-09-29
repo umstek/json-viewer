@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { BreadcrumbNav } from './features/breadcrumbs';
 import { type EditHistoryController, UndoRedoControls } from './features/editor';
@@ -10,7 +10,7 @@ import {
   ShortcutsHelp,
   useKeyboardNavigation,
 } from './features/keyboard';
-import { ThemeToggle } from './features/theme';
+import { OptionalThemeProvider, ThemeToggle } from './features/theme';
 import { useParsedJson } from './hooks/use-parsed-json';
 import { useSchemaValidation } from './hooks/use-schema-validation';
 import { useSearch } from './hooks/use-search';
@@ -58,7 +58,7 @@ export interface JsonViewerProps {
   contextMenu?: ContextMenuOptions;
   /** Keys are RFC 6901 JSON Pointer strings (via `pathArrayToJsonPointer`). */
   bookmarkedPaths?: Set<string>;
-  /** Explicitly focused node; takes precedence over keyboard-driven focus. */
+  /** Explicitly focused node; wins until the user navigates with the keyboard. */
   focusedPath?: string[] | null;
 }
 
@@ -71,6 +71,12 @@ const defaultFilterOptions: FilterOptions = {
   showArrays: true,
   excludedKeys: [],
 };
+
+// Mirrors the platform formatting used in the shortcuts help dialog. Only
+// trusted after mount — see the help label state in JsonViewerContent — so
+// server-rendered and client first renders stay identical.
+const isMacPlatform =
+  typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
 
 /**
  * A component that renders a JSON value as a tree of JSX elements.
@@ -107,11 +113,24 @@ function JsonViewerContent({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
 
+  // Stable "Ctrl+K" on first render (the server cannot know the platform);
+  // switched to the Mac glyph after mount so hydration never mismatches.
+  const [helpButtonLabel, setHelpButtonLabel] = useState('Ctrl+K');
+  useEffect(() => {
+    if (isMacPlatform) {
+      setHelpButtonLabel('⌘K');
+    }
+  }, []);
+
   const { data, error } = useParsedJson(json);
 
   const schemaValidation = useSchemaValidation(data, jsonSchema, jsonSchemaOptions);
 
   const { searchState, handleSearch, navigateResults, navigateToPath } = useSearch(data);
+
+  // Keyboard-driven focus from the most recent interaction; takes precedence
+  // over the focusedPath prop once the user starts navigating with arrows.
+  const [keyboardFocus, setKeyboardFocus] = useState<string[] | null>(null);
 
   const [filterOptions, setFilterOptions] = useState<FilterOptions>(defaultFilterOptions);
   const [excludeKeyInput, setExcludeKeyInput] = useState('');
@@ -122,13 +141,19 @@ function JsonViewerContent({
   const keyboard = useKeyboardNavigation(data, {
     enabled: keyboardShortcuts,
     customShortcuts,
-    onFocusChange: (path) => {
-      if (path) {
-        navigateToPath(path);
+    // Keyboard focus must not flow through the search pipeline: routing it
+    // through navigateToPath would replace the user's query and results on
+    // every arrow press. The focus ring is rendered from focusedPath below.
+    onFocusChange: setKeyboardFocus,
+    onToggleExpand: (path, direction) => {
+      if (direction === 'toggle') {
+        expansion.toggleExpanded(path);
+      } else {
+        expansion.setExpanded(path, direction === 'expand');
       }
     },
-    onToggleExpand: (path) => {
-      expansion.toggleExpanded(path);
+    onClearSearch: () => {
+      handleSearch('');
     },
     onCopy: () => {
       console.log('Value copied to clipboard');
@@ -139,11 +164,10 @@ function JsonViewerContent({
     exportButtonRef,
   });
 
-  const builtInRenderers: Renderer[] = [
-    createCodeRenderer(codeOptions),
-    createDateRenderer(dateOptions),
-    createLinkRenderer(),
-  ];
+  // Validation renderers run before the cosmetic built-ins so an invalid
+  // value that happens to look like a link, date, or code block still shows
+  // its error indicator instead of being silently claimed first.
+  const builtInRenderers: Renderer[] = [];
 
   if (jsonSchema && schemaValidation && !schemaValidation.valid) {
     builtInRenderers.push(
@@ -153,6 +177,12 @@ function JsonViewerContent({
       }),
     );
   }
+
+  builtInRenderers.push(
+    createCodeRenderer(codeOptions),
+    createDateRenderer(dateOptions),
+    createLinkRenderer(),
+  );
 
   if (enableValidation) {
     builtInRenderers.push(createActionableRenderer());
@@ -224,7 +254,7 @@ function JsonViewerContent({
             className="focus-visible:ring-ring hover:bg-accent hover:text-accent-foreground border-input bg-background inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md border text-sm font-medium whitespace-nowrap shadow-xs transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
             aria-label="Keyboard shortcuts"
           >
-            <span className="text-xs font-bold">⌘K</span>
+            <span className="text-xs font-bold">{helpButtonLabel}</span>
           </button>
         )}
         <Popover>
@@ -282,7 +312,7 @@ function JsonViewerContent({
         filterOptions={filterOptions}
         searchQuery={searchState.queryType === 'text' ? searchState.query : ''}
         sortOptions={sortOptions}
-        focusedPath={focusedPath ?? keyboard.focusState.focusedPath}
+        focusedPath={keyboardFocus ?? focusedPath ?? keyboard.focusState.focusedPath}
         editable={editable}
         onChange={onChange}
         readOnly={readOnly}
@@ -303,7 +333,9 @@ function JsonViewerContent({
 export default function JsonViewer(props: JsonViewerProps) {
   return (
     <ExpansionProvider>
-      <JsonViewerContent {...props} />
+      <OptionalThemeProvider>
+        <JsonViewerContent {...props} />
+      </OptionalThemeProvider>
     </ExpansionProvider>
   );
 }

@@ -140,32 +140,40 @@ describe('JsonViewer focusedPath forwarding', () => {
       />,
     );
 
-    expandRootObject();
-
+    // focusedPath auto-reveals the node, so the root is already expanded;
+    // clicking its chevron now would collapse it again.
     const focused = document.querySelector('[data-focused="true"]');
     expect(focused).not.toBeNull();
     expect(focused?.getAttribute('data-path')).toBe('name');
   });
 
-  test('explicit focusedPath takes precedence over keyboard-driven focus', () => {
+  test('explicit focusedPath wins until the user navigates with the keyboard', () => {
     const { container } = render(
       <JsonViewer json={JSON.stringify({ company: 'Acme', other: 1 })} focusedPath={['company']} />,
     );
 
-    expandRootObject();
-
+    // focusedPath auto-reveals the node, so the root is already expanded;
+    // clicking its chevron now would collapse it again.
     expect(document.querySelector('[data-focused="true"]')?.getAttribute('data-path')).toBe(
       'company',
     );
 
-    // Move keyboard focus to another node; the explicit prop still wins
+    // Once the user starts navigating, keyboard focus takes over the ring;
+    // previously the prop shadowed it forever, freezing the ring in place.
     fireEvent.keyDown(container.firstChild as Element, { key: 'ArrowDown' });
     fireEvent.keyDown(container.firstChild as Element, { key: 'ArrowDown' });
 
     expect(document.querySelector('[data-focused="true"]')?.getAttribute('data-path')).toBe(
-      'company',
+      'other',
     );
     expect(document.querySelectorAll('[data-focused="true"]').length).toBe(1);
+
+    // Escape clears keyboard focus, so the explicit prop takes over again.
+    fireEvent.keyDown(container.firstChild as Element, { key: 'Escape' });
+
+    expect(document.querySelector('[data-focused="true"]')?.getAttribute('data-path')).toBe(
+      'company',
+    );
   });
 });
 
@@ -207,6 +215,32 @@ describe('JsonViewer with useEditHistory integration', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
 
+    expect(screen.getByText('Alice')).not.toBeNull();
+    expect(screen.queryByText('Bob')).toBeNull();
+  });
+
+  test('cancels an open editing session when undo changes the value underneath', () => {
+    render(<EditableJsonViewer initialData={{ name: 'Alice' }} />);
+
+    expandRootObject();
+
+    // Save an edit first so the undo control becomes available.
+    fireEvent.click(screen.getByRole('button', { name: 'Edit value' }));
+    const input = screen.getByDisplayValue('Alice');
+    fireEvent.change(input, { target: { value: 'Bob' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(screen.getByText('Bob')).not.toBeNull();
+
+    // Reopen the editor, then undo while the editor is still open.
+    fireEvent.click(screen.getByRole('button', { name: 'Edit value' }));
+    expect(screen.getByDisplayValue('Bob')).not.toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+
+    // The stale editor must be gone instead of saving 'Bob' over the undo.
+    expect(screen.queryByDisplayValue('Bob')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Edit value' })).not.toBeNull();
     expect(screen.getByText('Alice')).not.toBeNull();
     expect(screen.queryByText('Bob')).toBeNull();
   });

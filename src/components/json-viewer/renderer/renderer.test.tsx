@@ -3,6 +3,7 @@ import { describe, expect, test } from 'vite-plus/test';
 import { ExpansionProvider } from '../features/expansion';
 import type { Renderer } from './renderer';
 import { createPathRenderer, createTypeRenderer } from './renderer';
+import PojoViewer from '../pojo-viewer';
 import { createRouter } from './router';
 
 function renderExpanded(value: unknown, renderers: Renderer[] = []) {
@@ -63,5 +64,31 @@ describe('renderer helpers', () => {
     expect(markup).toContain('status:ok');
     expect(markup).toContain('name');
     expect(markup).toContain('Ada');
+  });
+});
+
+describe('inline preview truncation', () => {
+  test('collapsed object previews truncate long string values', () => {
+    const longValue = 'x'.repeat(100_000);
+    const markup = renderToStaticMarkup(
+      <ExpansionProvider>
+        <PojoViewer data={{ bio: longValue }} />
+      </ExpansionProvider>,
+    );
+
+    expect(markup).toContain('...');
+    expect(markup.length).toBeLessThan(5000);
+  });
+
+  test('collapsed array previews truncate long string values', () => {
+    const longValue = 'y'.repeat(100_000);
+    const markup = renderToStaticMarkup(
+      <ExpansionProvider>
+        <PojoViewer data={{ tags: [longValue, 'short'] }} />
+      </ExpansionProvider>,
+    );
+
+    expect(markup).toContain('...');
+    expect(markup.length).toBeLessThan(5000);
   });
 });

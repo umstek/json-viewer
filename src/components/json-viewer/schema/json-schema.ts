@@ -10,6 +10,7 @@
 
 import Ajv, { type ErrorObject, type ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
+import { jsonPointerToPathArray } from '../utils/jsonpath';
 import { stringifyUnknown } from '../utils/value-format';
 import type {
   ArraySchemaNode,
@@ -120,16 +121,44 @@ export interface JSONSchemaValidationOptions {
 const validatorCache = new WeakMap<JSONSchemaObject, Map<string, ValidateFunction>>();
 
 /**
+ * Secondary validator cache keyed by the serialized schema plus the options hash
+ *
+ * Consumers often pass an inline schema literal (a fresh object identity on
+ * every render), so the identity-keyed WeakMap above never hits for them.
+ * This cache shares one compiled validator across structurally identical
+ * schemas. Once full, the oldest entry is evicted so it cannot grow forever.
+ */
+const structuralValidatorCache = new Map<string, ValidateFunction>();
+const structuralValidatorCacheLimit = 100;
+
+/**
+ * Number of validators compiled through the validate path since module load
+ */
+let validatorCompileCount = 0;
+
+/**
+ * Returns the number of validators compiled by validateWithJSONSchema since
+ * module load. Test-only: lets tests assert cache hit behavior without
+ * spying on ajv internals.
+ */
+export function __validatorCompileCountForTests(): number {
+  return validatorCompileCount;
+}
+
+/**
  * Creates a stable hash key from validation options
  * Only includes options that affect Ajv compilation
+ *
+ * Exported so the useSchemaValidation hook can derive its memo key from the
+ * same logic instead of keeping a duplicate in sync.
  */
-function hashOptions(options: JSONSchemaValidationOptions): string {
+export function hashOptions(options?: JSONSchemaValidationOptions): string {
   const relevant: Record<string, unknown> = {
-    strict: options.strict ?? false,
-    validateFormats: options.validateFormats ?? true,
-    coerceTypes: options.coerceTypes ?? false,
-    removeAdditional: options.removeAdditional ?? false,
-    useDefaults: options.useDefaults ?? false,
+    strict: options?.strict ?? false,
+    validateFormats: options?.validateFormats ?? true,
+    coerceTypes: options?.coerceTypes ?? false,
+    removeAdditional: options?.removeAdditional ?? false,
+    useDefaults: options?.useDefaults ?? false,
   };
   return JSON.stringify(relevant);
 }
@@ -154,6 +183,74 @@ function createAjv(options: JSONSchemaValidationOptions = {}): Ajv {
   addFormats(ajv as any);
 
   return ajv;
+}
+
+/**
+ * Builds the structural cache key from the serialized schema and the options hash
+ *
+ * JSON.stringify escapes control characters, so the U+0000 separator cannot
+ * occur inside either part and the concatenation stays unambiguous.
+ */
+function structuralCacheKey(jsonSchema: JSONSchemaObject, optionsHash: string): string {
+  return `${JSON.stringify(jsonSchema)}\u0000${optionsHash}`;
+}
+
+/**
+ * Returns a compiled validator for the schema and options
+ *
+ * Reuses cached validators by object identity first (no serialization cost),
+ * then by structural equality for fresh-but-identical schema literals, and
+ * only compiles when neither cache has a match. The options hash stays part
+ * of both cache keys because different options produce different validators.
+ */
+function getOrCreateValidator(
+  jsonSchema: JSONSchemaObject,
+  optionsHash: string,
+  options: JSONSchemaValidationOptions,
+): ValidateFunction {
+  // Fast path: the same schema object was seen before
+  let optionsMap = validatorCache.get(jsonSchema);
+  const identityHit = optionsMap?.get(optionsHash);
+  if (identityHit) {
+    return identityHit;
+  }
+
+  // Structural path: a fresh but structurally identical schema object (e.g.
+  // an inline <JsonViewer jsonSchema={{ ... }} /> literal recreated on every
+  // render) reuses the already compiled validator.
+  const cacheKey = structuralCacheKey(jsonSchema, optionsHash);
+  const structuralHit = structuralValidatorCache.get(cacheKey);
+  if (structuralHit) {
+    // Seed the identity cache so later calls with this same object skip the serialization
+    if (optionsMap) {
+      optionsMap.set(optionsHash, structuralHit);
+    } else {
+      validatorCache.set(jsonSchema, new Map([[optionsHash, structuralHit]]));
+    }
+    return structuralHit;
+  }
+
+  // No cache match: compile a new validator and store it in both caches
+  const ajv = createAjv(options);
+  const validate = ajv.compile(jsonSchema);
+  validatorCompileCount += 1;
+
+  if (optionsMap) {
+    optionsMap.set(optionsHash, validate);
+  } else {
+    validatorCache.set(jsonSchema, new Map([[optionsHash, validate]]));
+  }
+
+  // Cap the structural cache: evict the oldest entry once full
+  if (structuralValidatorCache.size >= structuralValidatorCacheLimit) {
+    const oldestKey = structuralValidatorCache.keys().next().value;
+    if (oldestKey !== undefined) {
+      structuralValidatorCache.delete(oldestKey);
+    }
+  }
+  structuralValidatorCache.set(cacheKey, validate);
+
+  return validate;
 }
 
 /**
@@ -186,23 +283,7 @@ export function validateWithJSONSchema(
   options: JSONSchemaValidationOptions = {},
 ): ValidationResult {
   const optionsHash = hashOptions(options);
-
-  // Get or create the options map for this schema
-  let optionsMap = validatorCache.get(jsonSchema);
-  if (!optionsMap) {
-    optionsMap = new Map();
-    validatorCache.set(jsonSchema, optionsMap);
-  }
-
-  // Try to get cached validator for these specific options
-  let validate = optionsMap.get(optionsHash);
-
-  // Create validator if not cached for this options hash
-  if (!validate) {
-    const ajv = createAjv(options);
-    validate = ajv.compile(jsonSchema);
-    optionsMap.set(optionsHash, validate);
-  }
+  const validate = getOrCreateValidator(jsonSchema, optionsHash, options);
 
   // Validate the data
   const valid = validate(data) as boolean;
@@ -230,11 +311,10 @@ export function validateWithJSONSchema(
  * Converts an ajv ErrorObject to our ValidationError format
  */
 function ajvErrorToValidationError(error: ErrorObject): ValidationError {
-  // Convert JSONPath to array (e.g., "/users/0/name" to ["users", "0", "name"])
-  const path = error.instancePath
-    .split('/')
-    .filter((segment) => segment !== '')
-    .map((segment) => decodeURIComponent(segment));
+  // ajv escapes instancePath with RFC 6901 JSON Pointer rules (~0/~1), not
+  // percent-encoding; decodeURIComponent both mis-decodes ~-escaped keys and
+  // throws URIError for keys containing a bare '%'.
+  const path = jsonPointerToPathArray(error.instancePath);
 
   // Build error message
   let message = error.message || 'Validation failed';
@@ -548,6 +628,7 @@ export function createJSONSchemaValidator(
  * Useful when you want to free up memory or reset validation state
  */
 export function clearValidatorCache(): void {
-  // WeakMap doesn't have a clear method, but we can't access it anyway
-  // This function is here for API completeness and future implementation
+  structuralValidatorCache.clear();
+  // The identity-keyed WeakMap has no clear(); its entries die with the
+  // schema objects that key them.
 }

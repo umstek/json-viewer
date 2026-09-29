@@ -1,6 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
+import { type ReactNode } from 'react';
 import { act, createEvent, fireEvent, render, renderHook, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vite-plus/test';
 import { ShortcutsHelp } from './shortcuts-help';
@@ -16,11 +17,18 @@ const testData = {
   array: [1, 2, 3],
 };
 
-function KeyboardHarness({ options }: { options: KeyboardNavigationOptions }) {
+function KeyboardHarness({
+  options,
+  children,
+}: {
+  options: KeyboardNavigationOptions;
+  children?: ReactNode;
+}) {
   const keyboard = useKeyboardNavigation(testData, options);
   return (
     <div data-testid="keyboard-container" ref={keyboard.containerRef}>
       <input data-testid="keyboard-input" readOnly />
+      {children}
     </div>
   );
 }
@@ -262,5 +270,92 @@ describe('undo and redo shortcuts', () => {
     expect(screen.getByText('Undo')).not.toBeNull();
     expect(screen.getByText('Redo')).not.toBeNull();
     expect(screen.getByText('Redo (alternate)')).not.toBeNull();
+  });
+});
+
+describe('expand and collapse shortcuts', () => {
+  it('should pass a direction so ArrowRight expands and ArrowLeft collapses', () => {
+    const onToggleExpand = vi.fn();
+    const { getByTestId } = render(<KeyboardHarness options={{ onToggleExpand }} />);
+
+    fireEvent.keyDown(getByTestId('keyboard-container'), { key: 'ArrowDown' });
+    fireEvent.keyDown(getByTestId('keyboard-container'), { key: 'ArrowRight' });
+
+    expect(onToggleExpand).toHaveBeenCalledWith(expect.any(Array), 'expand');
+
+    onToggleExpand.mockClear();
+    fireEvent.keyDown(getByTestId('keyboard-container'), { key: 'ArrowLeft' });
+    expect(onToggleExpand).toHaveBeenCalledWith(expect.any(Array), 'collapse');
+
+    onToggleExpand.mockClear();
+    fireEvent.keyDown(getByTestId('keyboard-container'), { key: 'Enter' });
+    expect(onToggleExpand).toHaveBeenCalledWith(expect.any(Array), 'toggle');
+  });
+});
+
+describe('Enter activation on focused controls', () => {
+  it('should not claim Enter when a button has DOM focus', () => {
+    const onToggleExpand = vi.fn();
+    const { getByTestId } = render(
+      <KeyboardHarness options={{ onToggleExpand }}>
+        <button type="button" data-testid="keyboard-button">
+          act
+        </button>
+      </KeyboardHarness>,
+    );
+
+    const event = createEvent.keyDown(getByTestId('keyboard-button'), { key: 'Enter' });
+    fireEvent(getByTestId('keyboard-button'), event);
+
+    expect(onToggleExpand).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+  });
+});
+
+describe('clear search shortcut', () => {
+  it('should invoke onClearSearch on Escape', () => {
+    const onClearSearch = vi.fn();
+    const { getByTestId } = render(<KeyboardHarness options={{ onClearSearch }} />);
+
+    fireEvent.keyDown(getByTestId('keyboard-container'), { key: 'Escape' });
+
+    expect(onClearSearch).toHaveBeenCalledTimes(1);
+  });
+
+  it('should invoke onClearSearch on Escape inside an input', () => {
+    const onClearSearch = vi.fn();
+    const { getByTestId } = render(<KeyboardHarness options={{ onClearSearch }} />);
+
+    fireEvent.keyDown(getByTestId('keyboard-input'), { key: 'Escape' });
+
+    expect(onClearSearch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('help shortcut', () => {
+  it('should open the help dialog on Ctrl+K', () => {
+    function HelpHarness() {
+      const keyboard = useKeyboardNavigation(testData);
+      return (
+        <div data-testid="keyboard-container" ref={keyboard.containerRef}>
+          {keyboard.showHelp ? <div data-testid="help-open" /> : null}
+        </div>
+      );
+    }
+
+    const { getByTestId, queryByTestId } = render(<HelpHarness />);
+    expect(queryByTestId('help-open')).toBeNull();
+
+    fireEvent.keyDown(getByTestId('keyboard-container'), { key: 'k', ctrlKey: true });
+
+    expect(getByTestId('help-open')).not.toBeNull();
+  });
+
+  it('should list Ctrl+K among the default shortcuts', () => {
+    const { result } = renderHook(() => useKeyboardNavigation(testData));
+    const mod = result.current.shortcuts.find((s) => s.id === 'show-help-mod');
+    expect(mod).toBeDefined();
+    expect(mod?.keys).toContain('k');
+    expect(mod?.ctrl).toBe(true);
   });
 });

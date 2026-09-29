@@ -4,7 +4,7 @@
  */
 
 import { Pencil } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { SchemaNode } from '../../schema/types';
@@ -32,6 +32,18 @@ export function ValueEditor({
   readOnly = false,
 }: ValueEditorProps) {
   const [isEditing, setIsEditing] = useState(false);
+  // Value captured when the editing session starts, so an incoming prop
+  // change (e.g. undo/redo) can be detected while the editor is open.
+  const editingStartValueRef = useRef<unknown>(value);
+
+  // The value prop can change underneath an open editor (e.g. undo/redo
+  // on the toolbar). Cancel the session instead of leaving a stale input
+  // that would save over the external change.
+  useEffect(() => {
+    if (isEditing && value !== editingStartValueRef.current) {
+      setIsEditing(false);
+    }
+  }, [isEditing, value]);
 
   // Don't show edit button if not editable or if value is object/array
   const canEdit =
@@ -115,7 +127,10 @@ export function ValueEditor({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setIsEditing(true)}
+            onClick={() => {
+              editingStartValueRef.current = value;
+              setIsEditing(true);
+            }}
             aria-label="Edit value"
             className="h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
           >

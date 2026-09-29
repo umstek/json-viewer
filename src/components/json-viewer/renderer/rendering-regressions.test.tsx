@@ -48,6 +48,39 @@ describe('renderer regressions', () => {
     expect((markup.match(/<button/g) ?? []).length).toBe(1);
   });
 
+  test('date renderer leaves large numbers alone unless numericTimestamps is enabled', () => {
+    const renderer = createDateRenderer();
+
+    // Default: a billion-range ID must not be claimed as a date
+    expect(renderer({ value: 1234567890, path: ['id'], render: () => null })).toBeNull();
+
+    // Opt-in: the same number renders as a date alongside the raw value
+    const optIn = createDateRenderer({ numericTimestamps: true });
+    const markup = renderToStaticMarkup(
+      <>{optIn({ value: 1234567890, path: ['createdAt'], render: () => null })}</>,
+    );
+    expect(markup).toContain('1234567890');
+    expect(markup).toContain('2009');
+
+    // Even opted-in, implausibly far-future numbers are rejected
+    expect(optIn({ value: 99999999999999, path: ['n'], render: () => null })).toBeNull();
+  });
+
+  test('empty objects and arrays render a visible placeholder instead of nothing', () => {
+    const markup = renderToStaticMarkup(
+      <ExpansionProvider defaultExpanded>
+        <PojoViewer data={{ emptyObject: {}, emptyArray: [] }} lazyLoadingEnabled={false} />
+      </ExpansionProvider>,
+    );
+
+    // The rows must exist with their keys, braces, and expand triggers;
+    // previously both renderers returned null and the values vanished.
+    expect(markup).toContain('emptyObject:');
+    expect(markup).toContain('emptyArray:');
+    expect(markup).toContain('{');
+    expect(markup).toContain('[');
+  });
+
   test('text highlight treats search text literally instead of as a regex', () => {
     expect(() =>
       renderToStaticMarkup(

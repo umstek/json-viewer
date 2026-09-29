@@ -151,7 +151,7 @@ function DiffNodeRenderer({
           <div className="group flex items-center gap-2">
             {isContainer && (
               <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-                <CollapsibleTrigger>
+                <CollapsibleTrigger aria-label={isOpen ? 'Collapse' : 'Expand'}>
                   <ChevronRight
                     className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-90' : ''}`}
                   />
@@ -208,7 +208,7 @@ function DiffNodeRenderer({
           <div className="group flex items-center gap-2">
             {isContainer && (
               <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-                <CollapsibleTrigger>
+                <CollapsibleTrigger aria-label={isOpen ? 'Collapse' : 'Expand'}>
                   <ChevronRight
                     className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-90' : ''}`}
                   />
@@ -274,7 +274,7 @@ function DiffNodeRenderer({
       <div className="group flex items-center gap-2">
         {isContainer && (
           <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-            <CollapsibleTrigger>
+            <CollapsibleTrigger aria-label={isOpen ? 'Collapse' : 'Expand'}>
               <ChevronRight
                 className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-90' : ''}`}
               />
@@ -371,7 +371,7 @@ export default function DiffViewer({
     if (showUnchanged) {
       return diff;
     }
-    return filterUnchanged(diff) || diff;
+    return filterUnchanged(diff);
   }, [diff, showUnchanged]);
 
   return (

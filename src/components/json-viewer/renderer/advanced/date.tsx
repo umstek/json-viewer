@@ -12,6 +12,20 @@ export interface DateRendererOptions {
   minDate?: Date;
 
   /**
+   * Maximum valid date to consider when parsing numeric timestamps
+   * Defaults to 2100-01-01
+   */
+  maxDate?: Date;
+
+  /**
+   * Treat bare numbers as Unix timestamps (seconds or milliseconds).
+   * Off by default: IDs, sizes, and monetary values in the billions are
+   * indistinguishable from epoch timestamps and would silently render as
+   * dates.
+   */
+  numericTimestamps?: boolean;
+
+  /**
    * Preferred timezone for displaying dates
    * Defaults to user's local timezone
    */
@@ -19,8 +33,9 @@ export interface DateRendererOptions {
 }
 
 export const createDateRenderer = (options: DateRendererOptions = {}): Renderer => {
-  const minDate = options.minDate || new Date(2000, 0, 1);
-  const minTimestamp = minDate.getTime();
+  const minTimestamp = (options.minDate || new Date(2000, 0, 1)).getTime();
+  const maxTimestamp = (options.maxDate || new Date(2100, 0, 1)).getTime();
+  const numericTimestamps = options.numericTimestamps ?? false;
   const timeZone = options.timeZone || Temporal.Now.timeZoneId();
 
   const parseDate = (value: unknown): Temporal.ZonedDateTime | null => {
@@ -30,18 +45,18 @@ export const createDateRenderer = (options: DateRendererOptions = {}): Renderer 
         return Temporal.ZonedDateTime.from(`${value}[UTC]`).withTimeZone(timeZone);
       }
 
-      // Try unix timestamp (in seconds or milliseconds)
-      if (typeof value === 'number' || (typeof value === 'string' && /^\d+$/.test(value))) {
+      // Try unix timestamp (in seconds or milliseconds), only when opted in
+      if (numericTimestamps && (typeof value === 'number' || /^\d+$/.test(String(value)))) {
         const timestamp = Number(value);
         // If timestamp is in seconds, convert to milliseconds
         const ms = timestamp < 1e12 ? timestamp * 1000 : timestamp;
 
-        if (ms < minTimestamp) return null;
+        if (ms < minTimestamp || ms > maxTimestamp) return null;
 
-        return Temporal.ZonedDateTime.from({
-          epochMilliseconds: ms,
-          timeZone: 'UTC',
-        }).withTimeZone(timeZone);
+        // The polyfill implements toZonedDateTimeISO, not toZonedDateTime
+        return Temporal.Instant.fromEpochMilliseconds(ms)
+          .toZonedDateTimeISO('UTC')
+          .withTimeZone(timeZone);
       }
     } catch {
       return null;
@@ -56,13 +71,14 @@ export const createDateRenderer = (options: DateRendererOptions = {}): Renderer 
     const userTz = Temporal.Now.timeZoneId();
     const isDefaultTzDifferent = userTz !== timeZone;
     const utcDate = date.withTimeZone('UTC');
+    const isNumeric = typeof value === 'number' || /^\d+$/.test(String(value));
 
     return (
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
             <GenericRenderer icon={Calendar} type="date" value={value}>
-              <pre>{date.toString()}</pre>
+              <pre>{isNumeric ? `${String(value)} → ${date.toString()}` : date.toString()}</pre>
             </GenericRenderer>
           </TooltipTrigger>
           <TooltipContent>
