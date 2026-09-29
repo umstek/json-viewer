@@ -292,6 +292,14 @@ describe('DiffViewer integration', () => {
     expect(markup).toContain('unchanged');
   });
 
+  test('shows no differences message for identical objects', () => {
+    const obj = { name: 'John', age: 30 };
+
+    const markup = renderToStaticMarkup(<DiffViewer left={obj} right={obj} />);
+
+    expect(markup).toContain('No differences found');
+  });
+
   test('handles arrays diff', () => {
     const left = [1, 2, 3];
     const right = [1, 5, 3];
