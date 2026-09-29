@@ -22,8 +22,12 @@ function getInitialTheme(): Theme {
     return storedTheme;
   }
 
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  return prefersDark ? 'dark' : 'light';
+  // matchMedia is missing in some environments (older jsdom, embedded webviews)
+  if (typeof window.matchMedia === 'function') {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return prefersDark ? 'dark' : 'light';
+  }
+  return 'light';
 }
 
 export interface ThemeProviderProps {
@@ -73,4 +77,17 @@ export function useTheme() {
   }
 
   return context;
+}
+
+/**
+ * Supplies a ThemeContext only when no outer provider exists, so features
+ * like ThemeToggle work inside a standalone JsonViewer without creating a
+ * second, competing theme context when the app already provides one.
+ */
+export function OptionalThemeProvider({ children }: { children: ReactNode }) {
+  const existing = useContext(ThemeContext);
+  if (existing) {
+    return <>{children}</>;
+  }
+  return <ThemeProvider>{children}</ThemeProvider>;
 }

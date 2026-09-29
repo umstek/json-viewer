@@ -25,6 +25,22 @@ describe('JsonViewer integration', () => {
     ).not.toThrow();
   });
 
+  test('showThemeToggle works without an external ThemeProvider', () => {
+    window.localStorage.setItem('json-viewer-theme', 'light');
+    try {
+      const markup = renderToStaticMarkup(
+        <JsonViewer
+          json={JSON.stringify({ items: ['zebra', 'apple'] })}
+          keyboardShortcuts={false}
+          showThemeToggle
+        />,
+      );
+      expect(markup).toContain('Switch to dark mode');
+    } finally {
+      window.localStorage.removeItem('json-viewer-theme');
+    }
+  });
+
   test('renders nested objects with expansion collapsed by default', () => {
     const json = {
       user: {

@@ -10,7 +10,7 @@ import {
   ShortcutsHelp,
   useKeyboardNavigation,
 } from './features/keyboard';
-import { ThemeToggle } from './features/theme';
+import { OptionalThemeProvider, ThemeToggle } from './features/theme';
 import { useParsedJson } from './hooks/use-parsed-json';
 import { useSchemaValidation } from './hooks/use-schema-validation';
 import { useSearch } from './hooks/use-search';
@@ -303,7 +303,9 @@ function JsonViewerContent({
 export default function JsonViewer(props: JsonViewerProps) {
   return (
     <ExpansionProvider>
-      <JsonViewerContent {...props} />
+      <OptionalThemeProvider>
+        <JsonViewerContent {...props} />
+      </OptionalThemeProvider>
     </ExpansionProvider>
   );
 }
