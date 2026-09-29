@@ -17,7 +17,13 @@ function getInitialTheme(): Theme {
     return 'light';
   }
 
-  const storedTheme = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+  // Storage access can throw in private-browsing modes and embedded webviews.
+  let storedTheme: string | null = null;
+  try {
+    storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  } catch {
+    // Fall through to the system preference or the light default.
+  }
   if (storedTheme === 'light' || storedTheme === 'dark') {
     return storedTheme;
   }
@@ -41,7 +47,16 @@ export function ThemeProvider({
   defaultTheme,
   storageKey = THEME_STORAGE_KEY,
 }: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<Theme>(() => defaultTheme ?? getInitialTheme());
+  // Hydration-safe initialization: the server and the client's first render
+  // must agree, so the initial state never reads the browser. The stored or
+  // system preference is applied right after mount instead.
+  const [theme, setThemeState] = useState<Theme>(defaultTheme ?? 'light');
+
+  useEffect(() => {
+    if (defaultTheme === undefined) {
+      setThemeState(getInitialTheme());
+    }
+  }, [defaultTheme]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -49,7 +64,11 @@ export function ThemeProvider({
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
 
-    localStorage.setItem(storageKey, theme);
+    try {
+      localStorage.setItem(storageKey, theme);
+    } catch {
+      // Storage can be unavailable; the in-memory theme still applies.
+    }
   }, [theme, storageKey]);
 
   const setTheme = (newTheme: Theme) => {
