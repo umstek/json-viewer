@@ -123,17 +123,30 @@ export function ObjectRenderer({ value, router, path, options }: ObjectRendererP
   }, [value, options.filterOptions, options.sortOptions]);
 
   // Auto-expand if this path is part of the highlighted or focused path so
-  // search results and keyboard/bookmark focus reveal their target node.
-  // The root (empty path) is an ancestor of every path but isPathAncestor
-  // rejects empty ancestors, so it is handled explicitly.
+  // search results and keyboard/bookmark focus reveal their target node. Both
+  // targets are checked independently — a keyboard focus elsewhere must not
+  // hide a search hit inside this branch. The root (empty path) is an ancestor
+  // of every path but isPathAncestor rejects empty ancestors, so it is handled
+  // explicitly. Only a NEW reveal target may trigger expansion: a branch the
+  // user collapsed by hand stays collapsed until the target moves.
+  const lastRevealKeysRef = useRef('');
   useEffect(() => {
-    const revealPath = focusedPath?.length ? focusedPath : highlightedPath;
-    const revealsThis =
-      revealPath?.length && (path.length === 0 || isPathAncestor(path, revealPath));
-    if (revealsThis && !isOpen) {
+    // setIsOpen changes identity whenever any node expands or collapses (it
+    // closes over the expansion context), so the effect re-runs constantly.
+    // Comparing the targets by content keeps those runs from re-opening a
+    // branch that was just collapsed manually.
+    const keys = `${JSON.stringify(focusedPath ?? null)}\u0001${JSON.stringify(highlightedPath ?? null)}`;
+    if (keys === lastRevealKeysRef.current) return;
+    lastRevealKeysRef.current = keys;
+
+    const reveals = (target: string[] | null | undefined) => {
+      if (!target || target.length === 0) return false;
+      return path.length === 0 || isPathAncestor(path, target);
+    };
+    if (reveals(focusedPath) || reveals(highlightedPath)) {
       setIsOpen(true);
     }
-  }, [highlightedPath, focusedPath, isOpen, path, setIsOpen]);
+  }, [focusedPath, highlightedPath, path, setIsOpen]);
 
   const virtualizer = useVirtualizer({
     count: filteredEntries.length,
@@ -304,17 +317,30 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
   }, [value, options.filterOptions, options.sortOptions]);
 
   // Auto-expand if this path is part of the highlighted or focused path so
-  // search results and keyboard/bookmark focus reveal their target node.
-  // The root (empty path) is an ancestor of every path but isPathAncestor
-  // rejects empty ancestors, so it is handled explicitly.
+  // search results and keyboard/bookmark focus reveal their target node. Both
+  // targets are checked independently — a keyboard focus elsewhere must not
+  // hide a search hit inside this branch. The root (empty path) is an ancestor
+  // of every path but isPathAncestor rejects empty ancestors, so it is handled
+  // explicitly. Only a NEW reveal target may trigger expansion: a branch the
+  // user collapsed by hand stays collapsed until the target moves.
+  const lastRevealKeysRef = useRef('');
   useEffect(() => {
-    const revealPath = focusedPath?.length ? focusedPath : highlightedPath;
-    const revealsThis =
-      revealPath?.length && (path.length === 0 || isPathAncestor(path, revealPath));
-    if (revealsThis && !isOpen) {
+    // setIsOpen changes identity whenever any node expands or collapses (it
+    // closes over the expansion context), so the effect re-runs constantly.
+    // Comparing the targets by content keeps those runs from re-opening a
+    // branch that was just collapsed manually.
+    const keys = `${JSON.stringify(focusedPath ?? null)}\u0001${JSON.stringify(highlightedPath ?? null)}`;
+    if (keys === lastRevealKeysRef.current) return;
+    lastRevealKeysRef.current = keys;
+
+    const reveals = (target: string[] | null | undefined) => {
+      if (!target || target.length === 0) return false;
+      return path.length === 0 || isPathAncestor(path, target);
+    };
+    if (reveals(focusedPath) || reveals(highlightedPath)) {
       setIsOpen(true);
     }
-  }, [highlightedPath, focusedPath, isOpen, path, setIsOpen]);
+  }, [focusedPath, highlightedPath, path, setIsOpen]);
 
   const virtualizer = useVirtualizer({
     count: filteredItems.length,

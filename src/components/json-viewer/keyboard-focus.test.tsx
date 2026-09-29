@@ -57,4 +57,47 @@ describe('keyboard navigation and focus', () => {
     // Arrow navigation moves focus off the prop-driven node without errors.
     expect(screen.getByText(/maxStorage/)).toBeDefined();
   });
+
+  test('a manually collapsed branch stays collapsed', async () => {
+    const { rerender } = render(
+      <JsonViewer json={nestedJson} focusedPath={['settings', 'limits', 'maxStorage']} />,
+    );
+
+    // The focused path reveals the leaf: root, settings and limits all open.
+    await waitFor(() => {
+      expect(screen.getByText('42')).toBeDefined();
+    });
+
+    // Collapse the root by hand while the focused path still runs through it.
+    const rootTrigger = screen.getAllByRole('button', { name: 'Collapse object' })[0];
+    await act(async () => {
+      fireEvent.click(rootTrigger);
+    });
+
+    // The unchanged focusedPath must not re-expand the branch.
+    expect(screen.queryByText('42')).toBeNull();
+    expect(screen.getAllByRole('button', { name: 'Expand object' }).length).toBeGreaterThan(0);
+
+    // A re-render with the same props must not re-expand it either.
+    rerender(<JsonViewer json={nestedJson} focusedPath={['settings', 'limits', 'maxStorage']} />);
+    expect(screen.queryByText('42')).toBeNull();
+  });
+
+  test('search results reveal even while a focusedPath is set', async () => {
+    render(<JsonViewer json={nestedJson} focusedPath={['settings']} />);
+
+    // Only the focused branch is revealed; the deeper leaf stays hidden behind
+    // the collapsed limits object (its preview shows no standalone value).
+    expect(screen.queryByText('42')).toBeNull();
+
+    const input = screen.getByRole('textbox') as HTMLInputElement;
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'maxStorage' } });
+    });
+
+    // The search hit lives outside the focused path but must still be revealed.
+    await waitFor(() => {
+      expect(screen.getByText('42')).toBeDefined();
+    });
+  });
 });

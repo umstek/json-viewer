@@ -140,8 +140,8 @@ describe('JsonViewer focusedPath forwarding', () => {
       />,
     );
 
-    expandRootObject();
-
+    // focusedPath auto-reveals the node, so the root is already expanded;
+    // clicking its chevron now would collapse it again.
     const focused = document.querySelector('[data-focused="true"]');
     expect(focused).not.toBeNull();
     expect(focused?.getAttribute('data-path')).toBe('name');
@@ -152,8 +152,8 @@ describe('JsonViewer focusedPath forwarding', () => {
       <JsonViewer json={JSON.stringify({ company: 'Acme', other: 1 })} focusedPath={['company']} />,
     );
 
-    expandRootObject();
-
+    // focusedPath auto-reveals the node, so the root is already expanded;
+    // clicking its chevron now would collapse it again.
     expect(document.querySelector('[data-focused="true"]')?.getAttribute('data-path')).toBe(
       'company',
     );
