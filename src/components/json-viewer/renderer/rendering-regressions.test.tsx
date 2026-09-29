@@ -66,6 +66,21 @@ describe('renderer regressions', () => {
     expect(optIn({ value: 99999999999999, path: ['n'], render: () => null })).toBeNull();
   });
 
+  test('empty objects and arrays render a visible placeholder instead of nothing', () => {
+    const markup = renderToStaticMarkup(
+      <ExpansionProvider defaultExpanded>
+        <PojoViewer data={{ emptyObject: {}, emptyArray: [] }} lazyLoadingEnabled={false} />
+      </ExpansionProvider>,
+    );
+
+    // The rows must exist with their keys, braces, and expand triggers;
+    // previously both renderers returned null and the values vanished.
+    expect(markup).toContain('emptyObject:');
+    expect(markup).toContain('emptyArray:');
+    expect(markup).toContain('{');
+    expect(markup).toContain('[');
+  });
+
   test('text highlight treats search text literally instead of as a regex', () => {
     expect(() =>
       renderToStaticMarkup(

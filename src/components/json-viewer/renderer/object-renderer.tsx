@@ -142,7 +142,9 @@ export function ObjectRenderer({ value, router, path, options }: ObjectRendererP
     overscan: 5, // Number of items to render outside of the viewport
   });
 
-  if (filteredEntries.length === 0) {
+  // Hide the row only when every child was removed by filtering; a genuinely
+  // empty {} must stay visible ({...0 items}) or the value silently vanishes.
+  if (filteredEntries.length === 0 && Object.keys(value).length > 0) {
     return null;
   }
 
@@ -321,7 +323,9 @@ export function ArrayRenderer({ value, router, path, options }: ObjectRendererPr
     overscan: 5,
   });
 
-  if (filteredItems.length === 0) {
+  // Hide the row only when every child was removed by filtering; a genuinely
+  // empty [] must stay visible ([...0 items]) or the value silently vanishes.
+  if (filteredItems.length === 0 && value.length > 0) {
     return null;
   }
 
