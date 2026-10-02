@@ -11,14 +11,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-      - name: Setup bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Vite+ (Node, pnpm, dependency cache)
+        uses: voidzero-dev/setup-vp@v1.21.1
         with:
-          bun-version: latest
+          node-version: '24'
+          cache: true
       - name: Install dependencies
-        run: bun install
+        run: vp install
       - name: Build
-        run: bun run build
+        run: vp run build
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -32,21 +33,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Setup bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Vite+ (Node, pnpm, dependency cache)
+        uses: voidzero-dev/setup-vp@v1.21.1
         with:
-          bun-version: latest
+          node-version: '24'
+          cache: true
       - name: Set tokens
         run: echo "//registry.npmjs.org/:_authToken=${{env.NPM_CONFIG_TOKEN}}" >> ~/.npmrc
       - name: Install dependencies
-        run: bun install
+        run: vp install
       - name: Download build artifacts
         uses: actions/download-artifact@v8
         with:
           name: build-artifact
           path: dist
       - name: Publish
-        run: bun publish --access public
+        # Release checkouts are detached HEADs, which pnpm's default
+        # branch/tree git checks would reject.
+        run: pnpm publish --access public --no-git-checks
 
   publish-gpr:
     env:
@@ -58,13 +62,23 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v7
-      - name: Setup bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Vite+ (Node, pnpm, dependency cache)
+        uses: voidzero-dev/setup-vp@v1.21.1
         with:
-          bun-version: latest
+          node-version: '24'
+          cache: true
       - name: Set tokens
-        run: echo "//npm.pkg.github.com/:_authToken=${{env.NPM_CONFIG_TOKEN}}" >> ~/.npmrc
+        run: |
+          echo "registry=https://npm.pkg.github.com" >> ~/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{env.NPM_CONFIG_TOKEN}}" >> ~/.npmrc
       - name: Install dependencies
-        run: bun install
+        run: vp install
+      - name: Download build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: build-artifact
+          path: dist
       - name: Publish
-        run: bun publish --access public
+        # Release checkouts are detached HEADs, which pnpm's default
+        # branch/tree git checks would reject.
+        run: pnpm publish --access public --no-git-checks

@@ -30,16 +30,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-      - name: Setup bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Vite+ (Node, pnpm, dependency cache)
+        uses: voidzero-dev/setup-vp@v1.21.1
         with:
-          bun-version: latest
+          node-version: '24'
+          cache: true
       - name: Setup Pages
         uses: actions/configure-pages@v6
       - name: Install deps
-        run: bun install
+        run: vp install
       - name: Build project
-        run: bun run build:demo
+        run: vp run build:demo
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:
