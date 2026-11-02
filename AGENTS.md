@@ -12,7 +12,7 @@ Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.de
 
 ## Running Scripts
 
-Run TypeScript and JavaScript files with `vpx <file>`, for example `vpx ./scripts/seed.ts --dry-run`. It handles enums, decorators, JSX, and tsconfig `paths`, so do not add `tsx` or `ts-node` to run scripts. `vpx --watch <file>` reruns the file when a file it uses changes, in place of `tsx watch`. `vp node <file>` runs plain Node.js.
+Run TypeScript and JavaScript files with `vpx <file>`, for example `vpx ./scripts/seed.ts --dry-run`. It handles enums, JSX, and tsconfig `paths`; decorators require `"experimentalDecorators": true`, and standard decorators and `accessor` fields are not supported yet. Prefer `vpx` over adding `tsx` or `ts-node`, but keep them where `vpx` cannot run the script. See `node_modules/vite-plus/docs/guide/vpx.md` for the full list of limitations. `vpx --watch <file>` reruns the file when a file it uses changes, in place of `tsx watch`. `vp node <file>` runs plain Node.js.
 
 ## Tool Versions
 

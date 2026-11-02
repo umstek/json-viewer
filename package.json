@@ -25,7 +25,7 @@
     "preview": "vp preview",
     "test": "vp test",
     "coverage": "vp test run --coverage",
-    "prepare": "vp config"
+    "prepare": "vp config --no-agent"
   },
   "dependencies": {
     "@js-temporal/polyfill": "^0.5.1",
