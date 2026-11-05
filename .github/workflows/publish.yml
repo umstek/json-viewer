@@ -13,9 +13,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Setup Vite+ (Node, pnpm, dependency cache)
-        uses: voidzero-dev/setup-vp@v1.21.1
+        uses: voidzero-dev/setup-vp@v1.22.0
         with:
-          node-version: '24'
+          node-version: '26'
           cache: true
       - name: Install dependencies
         run: vp install
@@ -36,9 +36,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Setup Vite+ (Node, pnpm, dependency cache)
-        uses: voidzero-dev/setup-vp@v1.21.1
+        uses: voidzero-dev/setup-vp@v1.22.0
         with:
-          node-version: '24'
+          node-version: '26'
           cache: true
       - name: Install dependencies
         run: vp install
@@ -63,9 +63,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Setup Vite+ (Node, pnpm, dependency cache)
-        uses: voidzero-dev/setup-vp@v1.21.1
+        uses: voidzero-dev/setup-vp@v1.22.0
         with:
-          node-version: '24'
+          node-version: '26'
           cache: true
       - name: Set tokens
         run: |
