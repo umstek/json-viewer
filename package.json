@@ -76,5 +76,9 @@
   "packageManager": "pnpm@12.16.1",
   "trustedDependencies": [
     "esbuild"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/umstek/json-viewer"
+  }
 }
