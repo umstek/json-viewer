@@ -231,7 +231,7 @@ importers:
         version: 1.69.0(@types/react@19.3.0)(react@19.3.1)
       papaparse:
         specifier: ^5.7.0
-        version: 5.7.0
+        version: 5.7.1
       react:
         specifier: ^19.3.1
         version: 19.3.1
@@ -1919,8 +1919,8 @@ packages:
       vite-plus:
         optional: true
 
-  papaparse@5.7.0:
-    resolution: {integrity: sha512-qBGxg/7Q3Kl9Wfhrz2Z74UnvnHTXLNG6jmKJFeBvP2+y4lV7So+7SR62+Zd47JvdrCkX+nDcnr0ObPzek/+6RA==}
+  papaparse@5.7.1:
+    resolution: {integrity: sha512-qOR+UDWv6D3hMxnWWOk0ZpBdCkd+kw5Yh7aXOaNSQU8A+73EA2bhW7EiUix/hY0yulUi5FRvt7PpYSI2VDvY0g==}
 
   parse5-parser-stream@8.1.0:
     resolution: {integrity: sha512-58MPfNTA+DsIzro41rU94xghnu/h2N4yEPdPdGPlZVHM/QvA5jlVGYVo7IzlHbFLHYx3cZUnr9s9HBrA0tEYyw==}
@@ -3557,7 +3557,7 @@ snapshots:
       oxlint-tsgolint: 7.0.2005
       vite-plus: 1.5.0(@types/node@26.6.6)(@vitest/ui@5.1.0)(jiti@2.7.0)(jsdom@31.0.0)(typescript@7.0.2)
 
-  papaparse@5.7.0: {}
+  papaparse@5.7.1: {}
 
   parse5-parser-stream@8.1.0:
     dependencies:
